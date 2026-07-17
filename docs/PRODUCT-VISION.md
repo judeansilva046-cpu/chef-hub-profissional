@@ -30,9 +30,12 @@ aumentar a eficiência operacional.
 - [x] Planejamento de produção
 - [x] Lista de compras inteligente
 - [ ] Calculadora completa de custos de funcionários
-- [ ] Gestão de custos fixos e variáveis
-- [ ] Ponto de equilíbrio
-- [ ] Sugestão de metas mínimas de vendas para nunca operar no prejuízo
+- [x] Gestão de custos fixos e variáveis
+- [x] Ponto de equilíbrio
+- [x] Sugestão de metas mínimas de vendas para nunca operar no prejuízo
+      (Metas de Vendas + Painel "Nunca no Vermelho")
+- [x] Taxas configuráveis por canal de venda (iFood, 99Food, Keeta, Delivery
+      Próprio, canais personalizados) e simulador de promoções
 - [ ] Relatórios gerenciais
 
 ## Princípio de produto
@@ -68,7 +71,14 @@ código existente.
   Compras — banco de dados real (Supabase), autenticação (email/senha),
   multi-empresa, e CRUDs de apoio (ingredientes, categorias, unidades de
   medida). Ver [DATABASE.md](./DATABASE.md) para o schema e as fórmulas.
-- Ainda não implementados: etiquetas de validade, custos de
-  funcionários/fixos/variáveis, ponto de equilíbrio, relatórios gerenciais,
-  e qualquer integração externa (iFood, PDVs, ERPs etc. — ver
+- **Sprint 03**: módulo Financeiro — Precificação (margem de contribuição
+  real por ficha técnica e por canal de venda), taxas configuráveis de
+  iFood/99Food/Keeta/Delivery Próprio/canais personalizados, Custos Fixos,
+  Custos Variáveis, Ponto de Equilíbrio, Metas de Vendas, Simulador de
+  Promoções e Painel "Nunca no Vermelho". Reaproveita 100% os dados de
+  Ficha Técnica/Estoque/Compras/Produção já calculados — nenhuma tabela ou
+  fórmula duplicada (ver [DATABASE.md](./DATABASE.md#sprint-03--financeiro-precificação-custeio-completo-e-canais-de-venda)).
+- Ainda não implementados: etiquetas de validade, calculadora completa de
+  custos de funcionários, relatórios gerenciais, e qualquer integração
+  externa real (iFood, PDVs, ERPs etc. — ver
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros)).

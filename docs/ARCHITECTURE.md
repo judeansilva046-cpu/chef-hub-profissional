@@ -68,6 +68,16 @@ src/
       producao/page.tsx                 # Visão dia/semana (query params), consumo previsto, necessidade de compra
       lista-compras/page.tsx             # Histórico de listas geradas
       lista-compras/[id]/page.tsx         # Itens editáveis, agrupado por fornecedor, converter em pedidos
+      financeiro/
+        page.tsx                          # Redireciona para /financeiro/painel
+        painel/page.tsx                    # "Nunca no Vermelho": semáforo + resumo + alertas (próprios + de outros módulos)
+        precificacao/page.tsx               # Margem real por ficha + preço/margem por canal de venda
+        ponto-equilibrio/page.tsx            # Receita necessária no geral e por produto
+        metas-vendas/page.tsx                # CRUD de metas de faturamento mensal
+        custos-fixos/page.tsx                # CRUD de despesas recorrentes
+        custos-variaveis/page.tsx            # CRUD de custos por venda (cartão, embalagem — qualquer canal)
+        canais/page.tsx                      # CRUD de canais de venda (iFood, 99Food, Keeta, Delivery Próprio, personalizados)
+        simulador-promocoes/page.tsx         # Impacto de desconto na margem, por canal opcional
   features/                    # Um módulo de domínio por pasta
     auth/{actions.ts, validation.ts, components/}
     empresa/{actions.ts, validation.ts, types.ts, components/}
@@ -86,6 +96,10 @@ src/
       date-range.ts               # Cálculo de semana (segunda–domingo) e navegação de datas — sem libs externas
       components/
     lista-compras/{queries.ts, actions.ts, components/}
+    financeiro/
+      queries.ts, actions.ts, validation.ts
+      calculations.ts             # Margem real, preço por margem-alvo, ponto de equilíbrio — combina, não duplica, as fórmulas de fichas-tecnicas/calculations.ts
+      components/                 # Managers de custos fixos/variáveis/canais, painel, precificação (geral + por canal), simulador
   server/
     auth/
       dal.ts                       # verifySession() com React cache() — única fonte de verdade de "quem está logado"
@@ -157,7 +171,7 @@ action>`), passando um objeto tipado. A Server Action, por sua vez, chama a
 
 ### Padrão de sub-navegação de módulo
 
-Módulos com mais de uma tela relacionada (Estoque, Compras) usam
+Módulos com mais de uma tela relacionada (Estoque, Compras, Financeiro) usam
 `ModuleSubNav` (`src/components/layout/module-sub-nav.tsx`): um componente
 genérico que recebe uma lista de `{ href, label }` e destaca o link ativo
 comparando com `usePathname()` — mesmo visual do `Tabs`, mas navegando entre
@@ -169,16 +183,16 @@ separadas) em vez de `ModuleSubNav`.
 
 ## Pontos de extensão futuros
 
-Estas pastas **não existem ainda** — são reservas de nome documentadas aqui
-para os próximos pilares funcionais (ver [PRODUCT-VISION.md](./PRODUCT-VISION.md)):
-custos de funcionários, custos fixos/variáveis, relatórios gerenciais.
 Controle de Estoque, Compras, Planejamento de Produção e Lista Inteligente de
-Compras foram implementados na Sprint 02 (ver árvore acima e
-`docs/DATABASE.md`).
+Compras foram implementados na Sprint 02; Precificação, custeio completo
+(custos fixos/variáveis, canais de venda), Ponto de Equilíbrio, Metas de
+Vendas, Simulador de Promoções e Painel "Nunca no Vermelho" foram
+implementados na Sprint 03 (`src/features/financeiro/*` — ver árvore acima e
+`docs/DATABASE.md`). Restam como pastas **que ainda não existem**:
 
-| Pasta futura              | Propósito                                                                                                                                                                                                                            |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/integrations/*`       | Adaptadores para sistemas externos — iFood, 99Food, Keeta, Open Delivery, PDVs, ERPs e impressoras térmicas. Cada integração deve implementar uma interface comum para não vazar detalhes de um provedor específico no resto do app. |
-| `src/features/financeiro/*` | Custos de funcionários, custos fixos/variáveis e relatórios gerenciais — próximo pilar funcional, seguindo o mesmo padrão dos módulos existentes.                                                                                    |
+| Pasta futura        | Propósito                                                                                                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/integrations/*` | Adaptadores para sistemas externos — iFood, 99Food, Keeta, Open Delivery, PDVs, ERPs e impressoras térmicas (integração de PEDIDOS/catálogo real; `canais_venda` no Financeiro só modela a TAXA de cada canal para precificação, não a integração). Cada integração deve implementar uma interface comum para não vazar detalhes de um provedor específico no resto do app. |
+| custos de funcionários, relatórios gerenciais | Ainda fora de escopo — ver [PRODUCT-VISION.md](./PRODUCT-VISION.md). Quando entrarem, seguem o mesmo padrão de `src/features/financeiro/*`.                                                                    |
 
 Quando uma dessas pastas for criada, atualize esta tabela.

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { CANAIS_VENDA_PADRAO } from "@/features/financeiro/validation";
 import { verifySession } from "@/server/auth/dal";
 import {
   EMPRESA_ATIVA_COOKIE,
@@ -59,6 +60,14 @@ export async function criarEmpresa(
   if (error || !data) {
     return { formError: "Não foi possível criar a empresa. Tente novamente." };
   }
+
+  await supabase.from("canais_venda").insert(
+    CANAIS_VENDA_PADRAO.map((canal) => ({
+      empresa_id: data.id,
+      tipo: canal.tipo,
+      nome: canal.nome,
+    })),
+  );
 
   await definirEmpresaAtiva(data.id);
   redirect("/fichas-tecnicas");

@@ -293,6 +293,74 @@ disparam esse trigger. `fornecedores` usa `updated_at` (padrão da Sprint 01)
 e nunca foi afetada. Corrigido na migration `0023`: nova função
 `set_atualizado_em()`, com as três triggers recriadas para usá-la.
 
+## Sprint 03 — Financeiro (Precificação, custeio completo e canais de venda)
+
+Quatro tabelas novas, todas **CRUD simples sem RPC** (diferente de
+Estoque/Compras/Produção): nenhuma delas tem efeito colateral em outra
+tabela ao ser escrita, então não há função Postgres dedicada — só RLS +
+trigger de `atualizado_em` (reaproveitando `set_atualizado_em()`, migration
+`0023`).
+
+```
+empresas (1) ─┬─< custos_fixos
+              ├─< custos_variaveis
+              ├─< metas_vendas
+              └─< canais_venda
+```
+
+- **`custos_fixos`** — despesas mensais recorrentes (aluguel, salários),
+  independentes do volume de vendas. Base do Ponto de Equilíbrio.
+- **`custos_variaveis`** — custos que só existem quando há uma venda (taxa
+  de cartão, embalagem) e incidem em **qualquer** canal, ao contrário de
+  `canais_venda` (abaixo).
+- **`metas_vendas`** — uma meta de faturamento por mês (`UNIQUE(empresa_id,
+  mes_referencia)`), usada para calcular a margem de contribuição mínima
+  necessária.
+- **`canais_venda`** — comissão (`taxa_percentual`) + taxa fixa
+  (`taxa_fixa`) de cada canal de venda: iFood, 99Food, Keeta, Delivery
+  Próprio (`tipo` fixo, seedados automaticamente para toda empresa —
+  migration `0025` para empresas existentes, `criarEmpresa` em
+  `src/features/empresa/actions.ts` para empresas novas) e canais
+  personalizados (`tipo = 'personalizado'`, nome livre, múltiplos
+  permitidos). Índice único parcial em `(empresa_id, tipo) WHERE tipo <>
+  'personalizado'` impede duplicar iFood/99Food/Keeta/Delivery Próprio na
+  mesma empresa.
+
+Nenhuma tabela do Sprint 03 duplica dado do Sprint 02: tudo lê
+`fichas_tecnicas.custo_por_porcao` / `preco_venda_praticado` /
+`preco_sugerido` (já calculados por trigger, ver [Fórmulas](#fórmulas))
+como entrada — `src/features/financeiro/queries.ts` só agrega.
+
+### Fórmulas do módulo Financeiro (não duplicam as da Ficha Técnica)
+
+`src/features/financeiro/calculations.ts` só combina o que a Ficha Técnica
+já calculou com os custos variáveis/canal — nenhuma fórmula acima
+(`custo_total`, `preco_sugerido`, `cmv_percentual`, etc.) é reimplementada:
+
+```
+# custosVariaveis = agregado de custos_variaveis ativos (geral) e/ou de UM
+# canais_venda (taxa_percentual, taxa_fixa) — combináveis via
+# combinarCustosVariaveis() quando uma venda passa por um canal específico.
+
+margem_contribuicao_real
+  = preço − custo_por_porcao − (preço × custosVariaveis.percentual/100 + custosVariaveis.fixo)
+
+margem_alvo_implícita = 1 − (custo_por_porcao / preco_sugerido)
+  # extraída do preco_sugerido já calculado pelo banco (não reimplementa a
+  # cadeia de prioridade alvo da ficha > padrão da empresa > 70%)
+
+preco_para_margem_alvo   # "preço sugerido" com custeio completo (variáveis
+                          # gerais + canal), usado na Precificação por canal
+  = (custo_por_porcao + custosVariaveis.fixo)
+    / (1 − margemAlvo/100 − custosVariaveis.percentual/100)
+
+margem_necessária_percentual = custos_fixos_totais / meta_receita_mensal
+ponto_equilibrio_receita     = custos_fixos_totais / (margem_contribuicao_média/100)
+ponto_equilibrio_unidades    = custos_fixos_totais / margem_contribuicao_unitária
+
+quantidade_equivalente_promocao = (quantidade_base × margem_unitária_original) / margem_unitária_promocional
+```
+
 ### Segurança: `fn_recalcular_estoque_saldo`
 
 Única função `SECURITY DEFINER` do Sprint 02 que não pôde ter `EXECUTE`

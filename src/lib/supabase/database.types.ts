@@ -15,6 +15,50 @@ export type Database = {
   };
   public: {
     Tables: {
+      canais_venda: {
+        Row: {
+          ativo: boolean;
+          atualizado_em: string;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          nome: string;
+          taxa_fixa: number;
+          taxa_percentual: number;
+          tipo: string;
+        };
+        Insert: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          nome: string;
+          taxa_fixa?: number;
+          taxa_percentual?: number;
+          tipo?: string;
+        };
+        Update: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          nome?: string;
+          taxa_fixa?: number;
+          taxa_percentual?: number;
+          tipo?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "canais_venda_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       categorias_ingredientes: {
         Row: {
           created_at: string;
