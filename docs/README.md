@@ -15,6 +15,10 @@
   e suas variantes.
 - [CODING-STANDARDS.md](./CODING-STANDARDS.md) — convenções de código,
   estrutura de componentes e commits.
+- [AGENTE-LOCAL.md](./AGENTE-LOCAL.md) — contrato de API do agente local de
+  impressão térmica (Sprint 04).
+- [SPRINT-04.md](./SPRINT-04.md) — resumo da Sprint 04 (Dashboard,
+  Relatórios, CRM, Etiquetas, Integrações): migrations, rotas e reuso.
 
 Cada sprint subsequente deve atualizar estes documentos conforme o sistema
 evolui — eles são a fonte de verdade para decisões de arquitetura e design.

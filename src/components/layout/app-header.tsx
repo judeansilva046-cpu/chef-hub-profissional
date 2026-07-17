@@ -9,12 +9,17 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { EmpresaSwitcher } from "./empresa-switcher";
 
 const NAV_LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/fichas-tecnicas", label: "Fichas técnicas" },
+  { href: "/vendas", label: "Vendas" },
+  { href: "/clientes", label: "Clientes" },
   { href: "/estoque", label: "Estoque" },
   { href: "/compras", label: "Compras" },
   { href: "/producao", label: "Produção" },
   { href: "/lista-compras", label: "Lista de compras" },
   { href: "/financeiro", label: "Financeiro" },
+  { href: "/relatorios", label: "Relatórios" },
+  { href: "/integracoes", label: "Integrações" },
   { href: "/ingredientes", label: "Ingredientes" },
   { href: "/categorias", label: "Categorias" },
   { href: "/unidades-medida", label: "Unidades de medida" },

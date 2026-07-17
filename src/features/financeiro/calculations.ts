@@ -67,6 +67,83 @@ export function calcularMargemContribuicaoReal(
   return { custoVariavelValor, margemUnitaria, margemPercentual };
 }
 
+export interface FichaEmAlerta {
+  id: string;
+  nome: string;
+  margemPercentual: number;
+  margemUnitaria: number;
+}
+
+export interface AnaliseFichasEmAlerta {
+  margemContribuicaoMediaPercentual: number | null;
+  fichasNoVermelho: FichaEmAlerta[];
+  fichasAbaixoDoNecessario: FichaEmAlerta[];
+}
+
+/**
+ * Aplica calcularMargemContribuicaoReal a um conjunto de fichas técnicas e
+ * separa as que estão "no vermelho" (margem <= 0) das que estão "abaixo do
+ * necessário" (margem > 0 mas abaixo da margemNecessariaPercentual) — mesma
+ * lógica usada pelo Painel Nunca no Vermelho e pelo Dashboard Executivo,
+ * extraída aqui para as duas telas não duplicarem o cálculo.
+ */
+export function analisarFichasEmAlerta(
+  fichas: Array<{
+    id: string;
+    nome: string;
+    custo_por_porcao: number;
+    preco_venda_praticado: number | null;
+    preco_sugerido: number | null;
+  }>,
+  custosVariaveis: CustoVariavelAgregado,
+  margemNecessariaPercentual: number | null,
+): AnaliseFichasEmAlerta {
+  const margens = fichas.map((ficha) => ({
+    id: ficha.id,
+    nome: ficha.nome,
+    margem: calcularMargemContribuicaoReal(
+      ficha.custo_por_porcao,
+      ficha.preco_venda_praticado ?? ficha.preco_sugerido,
+      custosVariaveis,
+    ),
+  }));
+
+  const margensValidas = margens.filter(
+    (item): item is typeof item & { margem: MargemContribuicaoReal } =>
+      item.margem !== null,
+  );
+
+  const margemContribuicaoMediaPercentual =
+    margensValidas.length > 0
+      ? margensValidas.reduce((total, item) => total + item.margem.margemPercentual, 0) /
+        margensValidas.length
+      : null;
+
+  const paraFichaEmAlerta = (item: (typeof margensValidas)[number]): FichaEmAlerta => ({
+    id: item.id,
+    nome: item.nome,
+    margemPercentual: item.margem.margemPercentual,
+    margemUnitaria: item.margem.margemUnitaria,
+  });
+
+  const fichasNoVermelho = margensValidas
+    .filter((item) => item.margem.margemUnitaria <= 0)
+    .map(paraFichaEmAlerta);
+
+  const fichasAbaixoDoNecessario =
+    margemNecessariaPercentual === null
+      ? []
+      : margensValidas
+          .filter(
+            (item) =>
+              item.margem.margemUnitaria > 0 &&
+              item.margem.margemPercentual < margemNecessariaPercentual,
+          )
+          .map(paraFichaEmAlerta);
+
+  return { margemContribuicaoMediaPercentual, fichasNoVermelho, fichasAbaixoDoNecessario };
+}
+
 /**
  * Margem de contribuição % mínima que cada venda precisa entregar, em
  * média, para que a meta de faturamento do mês cubra os custos fixos. É o

@@ -10,11 +10,54 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5";
   };
   public: {
     Tables: {
+      agentes_impressao: {
+        Row: {
+          ativo: boolean;
+          atualizado_em: string;
+          chave_api_hash: string;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          nome: string;
+          ultimo_ping_em: string | null;
+        };
+        Insert: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          chave_api_hash: string;
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          nome: string;
+          ultimo_ping_em?: string | null;
+        };
+        Update: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          chave_api_hash?: string;
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          nome?: string;
+          ultimo_ping_em?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "agentes_impressao_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       canais_venda: {
         Row: {
           ativo: boolean;
@@ -87,6 +130,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "categorias_ingredientes_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      clientes: {
+        Row: {
+          ativo: boolean;
+          atualizado_em: string;
+          criado_em: string;
+          documento: string | null;
+          email: string | null;
+          empresa_id: string;
+          endereco: string | null;
+          id: string;
+          nome: string;
+          observacoes: string | null;
+          preferencias: string | null;
+          segmento: string | null;
+          telefone: string | null;
+        };
+        Insert: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          criado_em?: string;
+          documento?: string | null;
+          email?: string | null;
+          empresa_id: string;
+          endereco?: string | null;
+          id?: string;
+          nome: string;
+          observacoes?: string | null;
+          preferencias?: string | null;
+          segmento?: string | null;
+          telefone?: string | null;
+        };
+        Update: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          criado_em?: string;
+          documento?: string | null;
+          email?: string | null;
+          empresa_id?: string;
+          endereco?: string | null;
+          id?: string;
+          nome?: string;
+          observacoes?: string | null;
+          preferencias?: string | null;
+          segmento?: string | null;
+          telefone?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clientes_empresa_id_fkey";
             columns: ["empresa_id"];
             isOneToOne: false;
             referencedRelation: "empresas";
@@ -465,6 +564,81 @@ export type Database = {
           },
         ];
       };
+      etiquetas_impressas: {
+        Row: {
+          codigo_interno: string;
+          criado_por: string | null;
+          emitido_em: string;
+          empresa_id: string;
+          fila_impressao_id: string | null;
+          id: string;
+          lote_id: string | null;
+          quantidade_etiquetas: number;
+          responsavel_id: string | null;
+          tamanho: string;
+        };
+        Insert: {
+          codigo_interno: string;
+          criado_por?: string | null;
+          emitido_em?: string;
+          empresa_id: string;
+          fila_impressao_id?: string | null;
+          id?: string;
+          lote_id?: string | null;
+          quantidade_etiquetas?: number;
+          responsavel_id?: string | null;
+          tamanho?: string;
+        };
+        Update: {
+          codigo_interno?: string;
+          criado_por?: string | null;
+          emitido_em?: string;
+          empresa_id?: string;
+          fila_impressao_id?: string | null;
+          id?: string;
+          lote_id?: string | null;
+          quantidade_etiquetas?: number;
+          responsavel_id?: string | null;
+          tamanho?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "etiquetas_impressas_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_impressas_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_impressas_fila_impressao_id_fkey";
+            columns: ["fila_impressao_id"];
+            isOneToOne: false;
+            referencedRelation: "fila_impressao";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_impressas_lote_id_fkey";
+            columns: ["lote_id"];
+            isOneToOne: false;
+            referencedRelation: "estoque_lotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_impressas_responsavel_id_fkey";
+            columns: ["responsavel_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       fichas_tecnicas: {
         Row: {
           ativo: boolean;
@@ -660,6 +834,63 @@ export type Database = {
             columns: ["ficha_tecnica_id"];
             isOneToOne: false;
             referencedRelation: "fichas_tecnicas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fila_impressao: {
+        Row: {
+          atualizado_em: string;
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          erro_mensagem: string | null;
+          id: string;
+          payload: Json;
+          processado_em: string | null;
+          status: string;
+          tentativas: number;
+          tipo: string;
+        };
+        Insert: {
+          atualizado_em?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          erro_mensagem?: string | null;
+          id?: string;
+          payload: Json;
+          processado_em?: string | null;
+          status?: string;
+          tentativas?: number;
+          tipo?: string;
+        };
+        Update: {
+          atualizado_em?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          erro_mensagem?: string | null;
+          id?: string;
+          payload?: Json;
+          processado_em?: string | null;
+          status?: string;
+          tentativas?: number;
+          tipo?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fila_impressao_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fila_impressao_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
             referencedColumns: ["id"];
           },
         ];
@@ -862,6 +1093,139 @@ export type Database = {
             columns: ["ingrediente_id"];
             isOneToOne: false;
             referencedRelation: "ingredientes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integracoes_canais: {
+        Row: {
+          atualizado_em: string;
+          conectado_em: string | null;
+          credenciais_criptografadas: string | null;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          metadata: Json;
+          provedor: string;
+          status_conexao: string;
+        };
+        Insert: {
+          atualizado_em?: string;
+          conectado_em?: string | null;
+          credenciais_criptografadas?: string | null;
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          metadata?: Json;
+          provedor: string;
+          status_conexao?: string;
+        };
+        Update: {
+          atualizado_em?: string;
+          conectado_em?: string | null;
+          credenciais_criptografadas?: string | null;
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          metadata?: Json;
+          provedor?: string;
+          status_conexao?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_canais_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integracoes_logs_sincronizacao: {
+        Row: {
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          integracao_id: string | null;
+          mensagem: string | null;
+          payload_resumo: Json | null;
+          status: string;
+          tipo_evento: string;
+        };
+        Insert: {
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          integracao_id?: string | null;
+          mensagem?: string | null;
+          payload_resumo?: Json | null;
+          status: string;
+          tipo_evento: string;
+        };
+        Update: {
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          integracao_id?: string | null;
+          mensagem?: string | null;
+          payload_resumo?: Json | null;
+          status?: string;
+          tipo_evento?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_logs_sincronizacao_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integracoes_logs_sincronizacao_integracao_id_fkey";
+            columns: ["integracao_id"];
+            isOneToOne: false;
+            referencedRelation: "integracoes_canais";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integracoes_webhooks_recebidos: {
+        Row: {
+          assinatura_valida: boolean;
+          criado_em: string;
+          empresa_id: string | null;
+          erro_mensagem: string | null;
+          id: string;
+          payload: Json;
+          processado: boolean;
+          provedor: string;
+        };
+        Insert: {
+          assinatura_valida?: boolean;
+          criado_em?: string;
+          empresa_id?: string | null;
+          erro_mensagem?: string | null;
+          id?: string;
+          payload: Json;
+          processado?: boolean;
+          provedor: string;
+        };
+        Update: {
+          assinatura_valida?: boolean;
+          criado_em?: string;
+          empresa_id?: string | null;
+          erro_mensagem?: string | null;
+          id?: string;
+          payload?: Json;
+          processado?: boolean;
+          provedor?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_webhooks_recebidos_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
             referencedColumns: ["id"];
           },
         ];
@@ -1327,6 +1691,96 @@ export type Database = {
           },
         ];
       };
+      vendas: {
+        Row: {
+          atualizado_em: string;
+          canal_venda_id: string | null;
+          cliente_id: string | null;
+          criado_em: string;
+          criado_por: string | null;
+          custo_unitario_snapshot: number;
+          data_venda: string;
+          empresa_id: string;
+          ficha_tecnica_id: string;
+          id: string;
+          margem_total: number | null;
+          observacao: string | null;
+          preco_unitario_praticado: number;
+          quantidade: number;
+          valor_total: number | null;
+        };
+        Insert: {
+          atualizado_em?: string;
+          canal_venda_id?: string | null;
+          cliente_id?: string | null;
+          criado_em?: string;
+          criado_por?: string | null;
+          custo_unitario_snapshot?: number;
+          data_venda?: string;
+          empresa_id: string;
+          ficha_tecnica_id: string;
+          id?: string;
+          margem_total?: number | null;
+          observacao?: string | null;
+          preco_unitario_praticado: number;
+          quantidade: number;
+          valor_total?: number | null;
+        };
+        Update: {
+          atualizado_em?: string;
+          canal_venda_id?: string | null;
+          cliente_id?: string | null;
+          criado_em?: string;
+          criado_por?: string | null;
+          custo_unitario_snapshot?: number;
+          data_venda?: string;
+          empresa_id?: string;
+          ficha_tecnica_id?: string;
+          id?: string;
+          margem_total?: number | null;
+          observacao?: string | null;
+          preco_unitario_praticado?: number;
+          quantidade?: number;
+          valor_total?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendas_canal_venda_id_fkey";
+            columns: ["canal_venda_id"];
+            isOneToOne: false;
+            referencedRelation: "canais_venda";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendas_cliente_id_fkey";
+            columns: ["cliente_id"];
+            isOneToOne: false;
+            referencedRelation: "clientes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendas_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendas_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendas_ficha_tecnica_id_fkey";
+            columns: ["ficha_tecnica_id"];
+            isOneToOne: false;
+            referencedRelation: "fichas_tecnicas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1346,6 +1800,16 @@ export type Database = {
       };
       fn_duplicar_ficha_tecnica: {
         Args: { p_ficha_id: string };
+        Returns: string;
+      };
+      fn_emitir_etiqueta: {
+        Args: {
+          p_empresa_id: string;
+          p_lote_id: string;
+          p_payload: Json;
+          p_quantidade_etiquetas: number;
+          p_tamanho: string;
+        };
         Returns: string;
       };
       fn_gerar_lista_compras: {
@@ -1399,13 +1863,13 @@ export type Database = {
         Returns: undefined;
       };
       salvar_ficha_tecnica: {
-        // p_modo_preparo/p_preco_venda_praticado/p_margem_contribuicao_percentual_alvo/
-        // p_tempo_preparo_minutos têm NENHUM default em SQL (por isso o
-        // gerador não os marca `?:`), mas os 4 aceitam NULL em runtime (ver
-        // migration 0010) — o gerador da Supabase não expressa "obrigatório
-        // porém aceita null" para argumentos de função, então isso é
-        // corrigido manualmente aqui (mesma limitação em fn_registrar_*
-        // abaixo, que optional-param cobre porque aqueles TÊM default).
+        // p_ficha_id/p_modo_preparo/p_preco_venda_praticado/
+        // p_margem_contribuicao_percentual_alvo/p_tempo_preparo_minutos não
+        // têm default em SQL (por isso o gerador não os marca `?:`), mas
+        // aceitam NULL em runtime (ver migration 0010) — o gerador da
+        // Supabase não expressa "obrigatório porém aceita null" para
+        // argumentos de função; corrigido manualmente aqui (reaplicado após
+        // cada `generate_typescript_types`, ver Sprint 03).
         Args: {
           p_empresa_id: string;
           p_ficha_id: string | null;
@@ -1435,18 +1899,21 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  "public"
+>];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1468,13 +1935,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1493,13 +1959,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1518,13 +1983,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1537,11 +2001,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

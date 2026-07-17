@@ -5,4 +5,5 @@ export const ESTOQUE_SUB_NAV_LINKS: readonly ModuleSubNavLink[] = [
   { href: "/estoque/movimentacoes", label: "Movimentações" },
   { href: "/estoque/lotes", label: "Lotes e validade" },
   { href: "/estoque/inventarios", label: "Inventários" },
+  { href: "/estoque/etiquetas", label: "Etiquetas" },
 ];

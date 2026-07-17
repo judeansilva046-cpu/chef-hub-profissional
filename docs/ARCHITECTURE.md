@@ -38,6 +38,11 @@ src/
       cadastro/page.tsx
     auth/confirm/route.ts         # Callback do link de confirmação de e-mail (Route Handler, não é página)
     onboarding/page.tsx            # Cria a primeira empresa do usuário (ou uma empresa adicional)
+    api/                            # Route Handlers técnicos (não são páginas — ver "Route Handlers" abaixo)
+      agente-impressao/trabalhos/route.ts        # GET: agente local consulta jobs pendentes (Bearer da chave própria)
+      agente-impressao/trabalhos/[id]/route.ts    # PATCH: agente reporta status do job
+      relatorios/[tipo]/route.ts                   # GET: exportação CSV (?formato=pdf ainda retorna 501)
+      webhooks/[provedor]/route.ts                  # POST: inbox de webhook de integração (iFood/99Food/Keeta/Open Delivery)
     (app)/
       layout.tsx                   # DAL: exige sessão + resolve empresa ativa; renderiza AppHeader
       fichas-tecnicas/
@@ -78,6 +83,18 @@ src/
         custos-variaveis/page.tsx            # CRUD de custos por venda (cartão, embalagem — qualquer canal)
         canais/page.tsx                      # CRUD de canais de venda (iFood, 99Food, Keeta, Delivery Próprio, personalizados)
         simulador-promocoes/page.tsx         # Impacto de desconto na margem, por canal opcional
+      dashboard/page.tsx                  # KPIs realizados/projetados, meta vs realizado, alertas, produtos/canal — filtro de período+canal
+      vendas/page.tsx                     # Registro de vendas: única fonte de "realizado" do sistema
+      clientes/
+        page.tsx                            # CRM: listagem + busca + paginação
+        [id]/page.tsx                        # Detalhe: estatísticas + histórico de pedidos (derivados de vendas)
+      relatorios/page.tsx                 # 8 relatórios (seletor por tipo) + exportação CSV
+      estoque/etiquetas/page.tsx           # Emissão de etiqueta de validade + fila de impressão + agentes locais
+      integracoes/page.tsx                # iFood/99Food/Keeta/Open Delivery: status, credenciais (estrutura, sem chamada real)
+  integrations/                  # Adapters de integração externa — interface comum, nenhum chama API real (ver docs/DATABASE.md)
+    types.ts                        # IntegracaoAdapter, ProvedorIntegracao, IntegracaoNaoDisponivelError
+    registry.ts                     # obterAdapter(provedor)
+    ifood/adapter.ts, 99food/adapter.ts, keeta/adapter.ts, open-delivery/adapter.ts
   features/                    # Um módulo de domínio por pasta
     auth/{actions.ts, validation.ts, components/}
     empresa/{actions.ts, validation.ts, types.ts, components/}
@@ -98,17 +115,36 @@ src/
     lista-compras/{queries.ts, actions.ts, components/}
     financeiro/
       queries.ts, actions.ts, validation.ts
-      calculations.ts             # Margem real, preço por margem-alvo, ponto de equilíbrio — combina, não duplica, as fórmulas de fichas-tecnicas/calculations.ts
+      calculations.ts             # Margem real, preço por margem-alvo, ponto de equilíbrio, análise de fichas em alerta — combina, não duplica, as fórmulas de fichas-tecnicas/calculations.ts
       components/                 # Managers de custos fixos/variáveis/canais, painel, precificação (geral + por canal), simulador
+    vendas/{queries.ts, actions.ts, validation.ts, components/}
+    clientes/{queries.ts, actions.ts, validation.ts, components/}
+    dashboard/
+      calculations.ts             # analisarVendas() — agrega vendas do período reusando calcularMargemContribuicaoReal do Financeiro; sem query própria de banco
+      components/
+    relatorios/
+      queries.ts                  # Uma função por relatório sem correspondente direto em outro módulo (vendas, compras) — o resto reusa queries existentes
+      csv.ts                       # gerarCsv() puro, sem lib externa
+      components/
+    etiquetas/
+      queries.ts, actions.ts, validation.ts
+      agente-auth.ts               # Valida o Bearer do agente local contra agentes_impressao.chave_api_hash
+      components/                  # Emissão + preview + histórico + gestão de agentes locais
+    integracoes/
+      queries.ts, actions.ts, validation.ts
+      crypto.ts                    # AES-256-GCM para credenciais (chave em INTEGRACOES_SECRET_KEY, nunca no banco)
+      components/
   server/
     auth/
       dal.ts                       # verifySession() com React cache() — única fonte de verdade de "quem está logado"
       get-empresa-atual.ts          # Resolve a empresa ativa (cookie) entre as empresas do usuário
   lib/
     supabase/{client.ts, server.ts, database.types.ts}
+    supabase/service-role.ts        # Client com service-role (bypassa RLS) — só para Route Handlers sem sessão Supabase Auth (agente local, webhooks)
     utils.ts                        # cn() — combina/mescla classes Tailwind
     fonts.ts                         # Fontes (next/font) centralizadas
     format.ts                        # Intl.NumberFormat/DateTimeFormat pt-BR compartilhados (moeda, decimal, %, data)
+    periodo.ts                       # Primeiro/último dia do mês corrente — período padrão de Dashboard/Relatórios
   hooks/
     use-debounced-value.ts
   types/
@@ -181,18 +217,49 @@ páginas de verdade (cada aba é uma URL própria, com seus próprios
 Produção, por ter só uma página, usa `Tabs` (client-side, sem URLs
 separadas) em vez de `ModuleSubNav`.
 
+### Route Handlers e autenticação sem sessão (Sprint 04)
+
+`src/app/auth/confirm/route.ts` já estabelecia o padrão: Route Handler fora
+de qualquer route group quando o endpoint é técnico, não uma página. A
+Sprint 04 adicionou o primeiro caso de **chamador sem sessão Supabase
+Auth**: o agente local de impressão (processo headless no Windows) e um
+provedor de integração externo batendo no webhook não têm cookie de
+usuário nenhum. Para esses dois casos:
+
+- A Route Handler usa `src/lib/supabase/service-role.ts`
+  (`createServiceRoleClient()`), que bypassa RLS por completo — igual a uma
+  função `SECURITY DEFINER` no banco.
+- Por isso, **a checagem de posse é sempre manual e explícita** logo no
+  início do handler — mesma convenção de toda função `SECURITY DEFINER` do
+  projeto (ver `docs/DATABASE.md`). Para o agente: valida o `Bearer` da
+  chave contra `agentes_impressao.chave_api_hash`
+  (`src/features/etiquetas/agente-auth.ts`) e só então filtra por
+  `empresa_id` do agente autenticado. Para o webhook: não há usuário para
+  validar (é o provedor externo chamando), então o handler só registra em
+  `integracoes_webhooks_recebidos` — nenhuma escrita em tabela
+  multiempresa sem confirmar de qual empresa é o dado.
+- **Nunca** use `createServiceRoleClient()` fora desses dois casos — toda
+  outra Route Handler/Server Action/Server Component usa
+  `src/lib/supabase/server.ts` (client normal, respeita RLS via a sessão do
+  cookie).
+
 ## Pontos de extensão futuros
 
 Controle de Estoque, Compras, Planejamento de Produção e Lista Inteligente de
 Compras foram implementados na Sprint 02; Precificação, custeio completo
 (custos fixos/variáveis, canais de venda), Ponto de Equilíbrio, Metas de
 Vendas, Simulador de Promoções e Painel "Nunca no Vermelho" foram
-implementados na Sprint 03 (`src/features/financeiro/*` — ver árvore acima e
-`docs/DATABASE.md`). Restam como pastas **que ainda não existem**:
+implementados na Sprint 03; Dashboard Executivo, Relatórios Gerenciais, CRM
+de Clientes, Vendas, Etiquetas de Validade + Fila de Impressão e a
+**estrutura** de Integrações foram implementados na Sprint 04 (ver árvore
+acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 
-| Pasta futura        | Propósito                                                                                                                                                                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/integrations/*` | Adaptadores para sistemas externos — iFood, 99Food, Keeta, Open Delivery, PDVs, ERPs e impressoras térmicas (integração de PEDIDOS/catálogo real; `canais_venda` no Financeiro só modela a TAXA de cada canal para precificação, não a integração). Cada integração deve implementar uma interface comum para não vazar detalhes de um provedor específico no resto do app. |
-| custos de funcionários, relatórios gerenciais | Ainda fora de escopo — ver [PRODUCT-VISION.md](./PRODUCT-VISION.md). Quando entrarem, seguem o mesmo padrão de `src/features/financeiro/*`.                                                                    |
+| Pendência                                    | Propósito                                                                                                                                                                                                                            |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chamadas reais em `src/integrations/*`        | Os 4 adapters (iFood, 99Food, Keeta, Open Delivery) existem como esqueleto (`IntegracaoAdapter`) mas todo método lança `IntegracaoNaoDisponivelError` — implementar de verdade requer credenciais de parceiro homologado com cada provedor, que este projeto não tem. |
+| Executável do agente local                    | O contrato da API está pronto e documentado (`docs/AGENTE-LOCAL.md`), mas o processo/serviço Windows que efetivamente imprime na térmica não foi construído nesta sprint.                                                          |
+| Exportação em PDF                             | `/api/relatorios/[tipo]?formato=pdf` já existe na assinatura e retorna 501 — geração real de PDF fica para uma sprint futura.                                                                                                       |
+| PDVs, ERPs, impressoras térmicas (adapters)    | Mesma lógica dos adapters de delivery — reserva de nome, sem implementação real.                                                                                                                                                     |
+| Custos de funcionários, relatórios de RH       | Ainda fora de escopo — ver [PRODUCT-VISION.md](./PRODUCT-VISION.md).                                                                                                                                                                 |
 
-Quando uma dessas pastas for criada, atualize esta tabela.
+Quando uma dessas pendências for resolvida, atualize esta tabela.

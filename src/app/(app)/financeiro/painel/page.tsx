@@ -6,13 +6,12 @@ import { Heading } from "@/components/ui/heading";
 import { Section } from "@/components/ui/section";
 import { Text } from "@/components/ui/text";
 import {
-  calcularMargemContribuicaoReal,
+  analisarFichasEmAlerta,
   calcularMargemNecessariaPercentual,
   calcularPontoEquilibrioReceita,
   mesAtualReferencia,
 } from "@/features/financeiro/calculations";
 import { FINANCEIRO_SUB_NAV_LINKS } from "@/features/financeiro/components/financeiro-sub-nav-links";
-import type { FichaAlerta } from "@/features/financeiro/components/painel-alertas";
 import { PainelAlertas } from "@/features/financeiro/components/painel-alertas";
 import { PainelResumoCards } from "@/features/financeiro/components/painel-resumo-cards";
 import {
@@ -63,61 +62,18 @@ export default async function PainelFinanceiroPage() {
     }),
   ]);
 
-  const margens = fichas.map((ficha) => ({
-    id: ficha.id,
-    nome: ficha.nome,
-    margem: calcularMargemContribuicaoReal(
-      ficha.custo_por_porcao,
-      ficha.preco_venda_praticado ?? ficha.preco_sugerido,
-      custosVariaveis,
-    ),
-  }));
-
-  const margensValidas = margens.filter(
-    (item): item is typeof item & { margem: NonNullable<typeof item.margem> } =>
-      item.margem !== null,
-  );
-
-  const margemContribuicaoMediaPercentual =
-    margensValidas.length > 0
-      ? margensValidas.reduce((total, item) => total + item.margem.margemPercentual, 0) /
-        margensValidas.length
-      : null;
-
   const margemNecessariaPercentual = calcularMargemNecessariaPercentual(
     custosFixosTotais,
     meta?.valor_meta_receita ?? null,
   );
 
+  const { margemContribuicaoMediaPercentual, fichasNoVermelho, fichasAbaixoDoNecessario } =
+    analisarFichasEmAlerta(fichas, custosVariaveis, margemNecessariaPercentual);
+
   const pontoEquilibrioReceita = calcularPontoEquilibrioReceita(
     custosFixosTotais,
     margemContribuicaoMediaPercentual,
   );
-
-  const fichasNoVermelho: FichaAlerta[] = margensValidas
-    .filter((item) => item.margem.margemUnitaria <= 0)
-    .map((item) => ({
-      id: item.id,
-      nome: item.nome,
-      margemPercentual: item.margem.margemPercentual,
-      margemUnitaria: item.margem.margemUnitaria,
-    }));
-
-  const fichasAbaixoDoNecessario: FichaAlerta[] =
-    margemNecessariaPercentual === null
-      ? []
-      : margensValidas
-          .filter(
-            (item) =>
-              item.margem.margemUnitaria > 0 &&
-              item.margem.margemPercentual < margemNecessariaPercentual,
-          )
-          .map((item) => ({
-            id: item.id,
-            nome: item.nome,
-            margemPercentual: item.margem.margemPercentual,
-            margemUnitaria: item.margem.margemUnitaria,
-          }));
 
   let nivelSemaforo: NivelSemaforo = "neutro";
   if (margemNecessariaPercentual !== null && margemContribuicaoMediaPercentual !== null) {

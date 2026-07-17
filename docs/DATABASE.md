@@ -374,3 +374,125 @@ a função via RPC com um `ingrediente_id` de uma empresa e um `empresa_id` de
 outra (ambas seriam suas, já que só pode manipular suas próprias empresas),
 poluindo `estoque_saldos` com dados cruzados. Verificado via `get_advisors`
 como alerta revisado/aceito, mesma categoria de `salvar_ficha_tecnica`.
+
+## Sprint 04 — Dashboard, Relatórios, CRM, Etiquetas e Integrações
+
+Sete tabelas novas (migrations `0026`–`0029`), documentação completa em
+[docs/SPRINT-04.md](./SPRINT-04.md).
+
+```
+empresas (1) ─┬─< clientes
+              ├─< vendas ──> fichas_tecnicas / canais_venda / clientes
+              ├─< agentes_impressao
+              ├─< fila_impressao
+              ├─< etiquetas_impressas ──> estoque_lotes
+              ├─< integracoes_canais ──< integracoes_logs_sincronizacao
+              └─< integracoes_webhooks_recebidos
+```
+
+### `vendas` (migration `0027`) — a base transacional que faltava
+
+Até a Sprint 03, o schema não tinha nenhum registro de venda realizada — só
+`metas_vendas` (meta) e `fichas_tecnicas.preco_venda_praticado` (preço
+cadastrado, não uma transação). Sem isso, "Meta vs. Realizado", CMV/margem
+*realizados* e "produtos mais/menos rentáveis" não têm dado real para
+agregar. `vendas` resolve isso: `ficha_tecnica_id` (obrigatório),
+`canal_venda_id`/`cliente_id` (opcionais), `quantidade`,
+`preco_unitario_praticado`, `data_venda`.
+
+- **`custo_unitario_snapshot`** — imutável, gravado por trigger `BEFORE
+  INSERT` (`vendas_snapshot_custo()`) a partir de
+  `fichas_tecnicas.custo_por_porcao` no momento da venda — nunca aceito do
+  cliente da API, mesmo princípio de
+  `fichas_tecnicas_itens.custo_unitario_utilizado`. Por isso a edição de
+  uma venda (`atualizarVenda`) nunca permite trocar `ficha_tecnica_id`: o
+  snapshot só é recalculado na criação.
+- **`valor_total`/`margem_total`** — generated columns (`quantidade ×
+  preco_unitario_praticado` e `(preco_unitario_praticado −
+  custo_unitario_snapshot) × quantidade`), mesmo padrão de
+  `fichas_tecnicas_itens.custo_total_item`.
+- CRUD simples, sem outra tabela afetada — registrar uma venda **não** baixa
+  estoque nesta sprint (ponto de extensão documentado para quando existir
+  integração real de PDV/marketplace, ver `docs/ARCHITECTURE.md`).
+
+### Dashboard e Relatórios não recalculam nada — só agregam
+
+`src/features/dashboard/calculations.ts` (`analisarVendas`) aplica
+`calcularMargemContribuicaoReal` (Sprint 03) linha a linha sobre as vendas
+do período, combinando custos variáveis gerais + a taxa do canal daquela
+venda (`combinarCustosVariaveis` + `canalParaCustoVariavelAgregado`, ambas
+já existentes) — nenhuma fórmula de margem/CMV é reimplementada, só
+somada/agrupada (por produto, por canal). Os Relatórios Gerenciais
+(`src/features/relatorios/*`) chamam a **mesma** `analisarVendas` e as
+mesmas queries do Dashboard/Estoque/Compras/Produção — a exportação CSV
+(`/api/relatorios/[tipo]`) roda a mesma consulta da tela, sem duplicar
+lógica entre visualização e exportação.
+
+`analisarFichasEmAlerta` (extraída de `financeiro/calculations.ts` nesta
+sprint, antes vivia inline em `financeiro/painel/page.tsx`) agora é
+compartilhada pelo Painel Nunca no Vermelho **e** pelo Dashboard Executivo
+— refactor comportamento-preservado, não uma funcionalidade nova.
+
+### `clientes` (migration `0026`) — CRM
+
+Mesmo padrão de `fornecedores`: CRUD simples, sem `DELETE` (cliente pode
+estar referenciado em `vendas` antigas — "remover" = `ativo = false`).
+**Ticket médio, frequência e última compra não são colunas** — sempre
+derivados de `vendas` por `cliente_id` em `buscarEstatisticasCliente`
+(`src/features/clientes/queries.ts`), mesmo princípio de `estoque_saldos`
+ser só cache derivável de `estoque_lotes`.
+
+### Etiquetas de Validade + Fila de Impressão (migration `0028`)
+
+Três tabelas, para o fluxo `Chef Hub Web → fila_impressao → Agente Local
+Windows → Impressora Térmica` (contrato completo em
+[docs/AGENTE-LOCAL.md](./AGENTE-LOCAL.md)):
+
+- **`etiquetas_impressas`** — histórico de emissão (append-only, só
+  `SELECT`/`INSERT`), referencia `estoque_lotes` por `lote_id` em vez de
+  duplicar `numero_lote`/`data_validade`.
+- **`fila_impressao`** — jobs com `status` (`pendente` → `processando` →
+  `concluido`/`erro`), `payload` jsonb com os dados já resolvidos para o
+  agente renderizar a etiqueta.
+- **`agentes_impressao`** — credencial do agente local por empresa: só o
+  hash SHA-256 da chave é gravado (`chave_api_hash`), nunca a chave em
+  texto puro — mesmo princípio de senha.
+- **`fn_emitir_etiqueta(...)`** (`SECURITY INVOKER`) — único caminho de
+  escrita: cria o job na fila **e** o registro histórico numa única
+  transação, mesmo motivo de toda função "único caminho de escrita" do
+  projeto (nunca uma etiqueta "pela metade" se a conexão cair no meio).
+  `SECURITY INVOKER` porque as duas tabelas já permitem `INSERT` direto
+  para o usuário autenticado via RLS — não precisa bypassar nada, mesmo
+  caso de `fn_duplicar_ficha_tecnica`.
+
+**Autenticação do agente local não usa Supabase Auth**: é um processo
+headless no Windows, sem sessão de navegador. Autentica via
+`Authorization: Bearer <chave>`, validada contra `chave_api_hash`
+(`src/features/etiquetas/agente-auth.ts`), rodando com o client
+**service-role** (`src/lib/supabase/service-role.ts`, novo nesta sprint) —
+bypassa RLS deliberadamente, com checagem manual de posse (job pertence à
+mesma empresa do agente), mesmo princípio das funções `SECURITY DEFINER`.
+`fila_impressao` não tem policy de `UPDATE` para `authenticated`: a
+transição de status só acontece pela API do agente (service-role).
+
+### Integrações (migration `0029`) — estrutura, sem chamada real
+
+`integracoes_canais` (uma linha por `(empresa_id, provedor)`, `provedor in
+('ifood','99food','keeta','open_delivery')`), `integracoes_logs_sincronizacao`
+(append-only) e `integracoes_webhooks_recebidos` (append-only, **sem**
+policy de `INSERT` para `authenticated` — só a Route Handler
+`/api/webhooks/[provedor]`, rodando com service-role, grava aqui; mesmo
+padrão de `ingredientes_historico_precos`).
+
+- **Credenciais não são criptografadas dentro do Postgres** —
+  `credenciais_criptografadas` guarda só o texto já cifrado em AES-256-GCM
+  pela aplicação (`src/features/integracoes/crypto.ts`, chave em
+  `INTEGRACOES_SECRET_KEY`, variável de ambiente). Cifrar dentro do SQL
+  exigiria guardar a chave de criptografia numa migration ou função do
+  banco — menos seguro, não mais, já que qualquer leitura do schema
+  revelaria a chave.
+- **Nenhum adapter (`src/integrations/*`) chama uma API real** — todos
+  lançam `IntegracaoNaoDisponivelError`. Conectar só grava as credenciais
+  cifradas e marca `status_conexao = 'pendente_homologacao'`; "testar
+  conexão" sempre volta essa mesma mensagem. Isso é intencional: nenhuma
+  dessas integrações tem credencial de parceiro homologado.
