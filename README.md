@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chef Hub Profissional
 
-## Getting Started
+Plataforma SaaS e PWA de gestão inteligente para restaurantes, delivery, dark
+kitchens, padarias, confeitarias, cafeterias e pequenos produtores de
+alimentos — foco em precificação, fichas técnicas, estoque, CMV, margem de
+contribuição e decisões baseadas em dados.
 
-First, run the development server:
+> **Estado atual: fundação (Sprint 01).** Documentação, arquitetura de
+> pastas, Design System, tema claro/escuro, layout base e componentes de UI
+> reutilizáveis. Nenhuma funcionalidade de negócio foi implementada ainda —
+> ver [docs/PRODUCT-VISION.md](./docs/PRODUCT-VISION.md).
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4
+
+## Como rodar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3010](http://localhost:3010).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> O projeto usa a porta **3010** (não a 3000, padrão do Next.js) — já
+> configurada nos scripts `dev` e `start` do `package.json`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Script                 | Descrição                                |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Servidor de desenvolvimento (Turbopack)  |
+| `npm run build`        | Build de produção                        |
+| `npm run start`        | Serve o build de produção                |
+| `npm run lint`         | ESLint                                   |
+| `npm run typecheck`    | Verificação de tipos (`tsc --noEmit`)    |
+| `npm run format`       | Formata o projeto com Prettier           |
+| `npm run format:check` | Verifica formatação sem alterar arquivos |
 
-To learn more about Next.js, take a look at the following resources:
+## Documentação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Toda a documentação técnica está em [`docs/`](./docs/README.md):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Visão do produto](./docs/PRODUCT-VISION.md)
+- [Arquitetura](./docs/ARCHITECTURE.md)
+- [Design System](./docs/DESIGN-SYSTEM.md)
+- [Componentes](./docs/COMPONENTS.md)
+- [Padrões de código](./docs/CODING-STANDARDS.md)
