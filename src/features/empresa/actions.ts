@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { CANAIS_VENDA_PADRAO } from "@/features/financeiro/validation";
+import {
+  CANAIS_VENDA_PADRAO,
+  CENTROS_CUSTO_PADRAO,
+  PLANO_CONTAS_PADRAO,
+} from "@/features/financeiro/validation";
 import { verifySession } from "@/server/auth/dal";
 import {
   EMPRESA_ATIVA_COOKIE,
@@ -66,6 +70,44 @@ export async function criarEmpresa(
       empresa_id: data.id,
       tipo: canal.tipo,
       nome: canal.nome,
+    })),
+  );
+
+  await supabase.from("centros_custo").insert(
+    CENTROS_CUSTO_PADRAO.map((centro) => ({
+      empresa_id: data.id,
+      codigo: centro.codigo,
+      nome: centro.nome,
+    })),
+  );
+
+  // Duas fases: contas de nível 1 primeiro (para pegar o id gerado), depois
+  // as de nível 2 já com conta_pai_id resolvido — mesmo resultado do
+  // seed em SQL da migration 0040, só que para empresas criadas depois dela.
+  const contasNivel1 = PLANO_CONTAS_PADRAO.filter((conta) => conta.contaPaiCodigo === null);
+  const contasNivel2 = PLANO_CONTAS_PADRAO.filter((conta) => conta.contaPaiCodigo !== null);
+
+  const { data: nivel1Inseridas } = await supabase
+    .from("plano_contas")
+    .insert(
+      contasNivel1.map((conta) => ({
+        empresa_id: data.id,
+        codigo: conta.codigo,
+        nome: conta.nome,
+        tipo: conta.tipo,
+      })),
+    )
+    .select("id, codigo");
+
+  const idPorCodigo = new Map((nivel1Inseridas ?? []).map((conta) => [conta.codigo, conta.id]));
+
+  await supabase.from("plano_contas").insert(
+    contasNivel2.map((conta) => ({
+      empresa_id: data.id,
+      codigo: conta.codigo,
+      nome: conta.nome,
+      tipo: conta.tipo,
+      conta_pai_id: idPorCodigo.get(conta.contaPaiCodigo!) ?? null,
     })),
   );
 

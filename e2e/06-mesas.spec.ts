@@ -27,7 +27,7 @@ test("Mesas: criar mesa, abrir comanda, pedir, concluir e fechar comanda", async
   const mesaUrl = new URL(mesaHref, page.url()).toString();
 
   await mesaLink.click();
-  await page.waitForURL(mesaUrl, { timeout: 10_000 });
+  await page.waitForURL(mesaUrl, { timeout: 20_000 });
   await expect(page.getByRole("button", { name: "Abrir comanda" })).toBeVisible();
   await page.getByRole("button", { name: "Abrir comanda" }).click();
 

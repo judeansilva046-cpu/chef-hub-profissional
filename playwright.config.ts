@@ -4,9 +4,14 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  // 1 retry: absorve a latência de primeira compilação do Next dev server
+  // por rota (não reflete comportamento de produção) — visto repetidamente
+  // quando a suíte inteira visita muitas rotas pela primeira vez em
+  // sequência; não mascara falha real (falha real falha nas duas tentativas).
+  retries: 1,
   reporter: [["list"], ["html", { open: "never", outputFolder: "e2e-report" }]],
   timeout: 30_000,
+  expect: { timeout: 10_000 },
   use: {
     baseURL: "http://localhost:3010",
     trace: "retain-on-failure",

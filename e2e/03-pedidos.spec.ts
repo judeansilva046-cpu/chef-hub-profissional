@@ -13,7 +13,7 @@ test.describe("Pedidos", () => {
     await expect(page.getByRole("heading", { name: "Pedidos" })).toBeVisible();
 
     await page.getByRole("link", { name: "Novo pedido" }).click();
-    await expect(page).toHaveURL(/\/pedidos\/novo/);
+    await expect(page).toHaveURL(/\/pedidos\/novo/, { timeout: 10_000 });
 
     await page.getByRole("button", { name: "Criar pedido" }).click();
     await expect(page).toHaveURL(/\/pedidos\/[0-9a-f-]{36}$/, { timeout: 10_000 });

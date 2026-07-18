@@ -258,6 +258,44 @@ export type Database = {
           },
         ]
       }
+      centros_custo: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          codigo: string
+          criado_em: string
+          empresa_id: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          codigo: string
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          codigo?: string
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "centros_custo_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           ativo: boolean
@@ -387,6 +425,296 @@ export type Database = {
             foreignKeyName: "contadores_pedidos_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: true
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas_pagar: {
+        Row: {
+          atualizado_em: string
+          categoria_origem: string
+          centro_custo_id: string | null
+          conciliado: boolean
+          conciliado_em: string | null
+          conciliado_por: string | null
+          criado_em: string
+          criado_por: string | null
+          data_emissao: string
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string
+          empresa_id: string
+          forma_pagamento: string | null
+          fornecedor_id: string | null
+          id: string
+          numero_documento: string | null
+          observacao: string | null
+          plano_conta_id: string | null
+          referencia_id: string | null
+          referencia_tipo: string | null
+          status: string
+          valor: number
+          valor_pago: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria_origem?: string
+          centro_custo_id?: string | null
+          conciliado?: boolean
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao: string
+          empresa_id: string
+          forma_pagamento?: string | null
+          fornecedor_id?: string | null
+          id?: string
+          numero_documento?: string | null
+          observacao?: string | null
+          plano_conta_id?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          status?: string
+          valor: number
+          valor_pago?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          categoria_origem?: string
+          centro_custo_id?: string | null
+          conciliado?: boolean
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string
+          empresa_id?: string
+          forma_pagamento?: string | null
+          fornecedor_id?: string | null
+          id?: string
+          numero_documento?: string | null
+          observacao?: string | null
+          plano_conta_id?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          status?: string
+          valor?: number
+          valor_pago?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_pagar_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_pagar_conciliado_por_fkey"
+            columns: ["conciliado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_pagar_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_pagar_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_pagar_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_pagar_plano_conta_id_fkey"
+            columns: ["plano_conta_id"]
+            isOneToOne: false
+            referencedRelation: "plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas_receber: {
+        Row: {
+          atualizado_em: string
+          centro_custo_id: string | null
+          cliente_id: string | null
+          criado_em: string
+          criado_por: string | null
+          data_emissao: string
+          descricao: string
+          empresa_id: string
+          id: string
+          numero_parcelas: number
+          observacao: string | null
+          plano_conta_id: string | null
+          referencia_id: string | null
+          referencia_tipo: string | null
+          status: string
+          valor_total: number
+        }
+        Insert: {
+          atualizado_em?: string
+          centro_custo_id?: string | null
+          cliente_id?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_emissao?: string
+          descricao: string
+          empresa_id: string
+          id?: string
+          numero_parcelas?: number
+          observacao?: string | null
+          plano_conta_id?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          status?: string
+          valor_total: number
+        }
+        Update: {
+          atualizado_em?: string
+          centro_custo_id?: string | null
+          cliente_id?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_emissao?: string
+          descricao?: string
+          empresa_id?: string
+          id?: string
+          numero_parcelas?: number
+          observacao?: string | null
+          plano_conta_id?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          status?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_receber_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "centros_custo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_plano_conta_id_fkey"
+            columns: ["plano_conta_id"]
+            isOneToOne: false
+            referencedRelation: "plano_contas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas_receber_parcelas: {
+        Row: {
+          conciliado: boolean
+          conciliado_em: string | null
+          conciliado_por: string | null
+          conta_receber_id: string
+          criado_em: string
+          data_recebimento: string | null
+          data_vencimento: string
+          empresa_id: string
+          forma_pagamento: string | null
+          id: string
+          numero_parcela: number
+          status: string
+          valor: number
+          valor_recebido: number | null
+        }
+        Insert: {
+          conciliado?: boolean
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          conta_receber_id: string
+          criado_em?: string
+          data_recebimento?: string | null
+          data_vencimento: string
+          empresa_id: string
+          forma_pagamento?: string | null
+          id?: string
+          numero_parcela: number
+          status?: string
+          valor: number
+          valor_recebido?: number | null
+        }
+        Update: {
+          conciliado?: boolean
+          conciliado_em?: string | null
+          conciliado_por?: string | null
+          conta_receber_id?: string
+          criado_em?: string
+          data_recebimento?: string | null
+          data_vencimento?: string
+          empresa_id?: string
+          forma_pagamento?: string | null
+          id?: string
+          numero_parcela?: number
+          status?: string
+          valor?: number
+          valor_recebido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_receber_parcelas_conciliado_por_fkey"
+            columns: ["conciliado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_parcelas_conta_receber_id_fkey"
+            columns: ["conta_receber_id"]
+            isOneToOne: false
+            referencedRelation: "contas_receber"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_parcelas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
             referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
@@ -1221,6 +1549,57 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financeiro_auditoria: {
+        Row: {
+          acao: string
+          criado_em: string
+          dados_antigos: Json | null
+          dados_novos: Json | null
+          empresa_id: string
+          id: string
+          registro_id: string
+          tabela: string
+          usuario_id: string | null
+        }
+        Insert: {
+          acao: string
+          criado_em?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          empresa_id: string
+          id?: string
+          registro_id: string
+          tabela: string
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string
+          criado_em?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          empresa_id?: string
+          id?: string
+          registro_id?: string
+          tabela?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financeiro_auditoria_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financeiro_auditoria_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2224,6 +2603,57 @@ export type Database = {
           },
         ]
       }
+      plano_contas: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          codigo: string
+          conta_pai_id: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          nome: string
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          codigo: string
+          conta_pai_id?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          tipo: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          codigo?: string
+          conta_pai_id?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_contas_conta_pai_id_fkey"
+            columns: ["conta_pai_id"]
+            isOneToOne: false
+            referencedRelation: "plano_contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plano_contas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pracas_producao: {
         Row: {
           ativo: boolean
@@ -2463,6 +2893,61 @@ export type Database = {
           },
         ]
       }
+      usuarios_empresa: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          convidado_por: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          papel: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          papel?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          papel?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_empresa_convidado_por_fkey"
+            columns: ["convidado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_empresa_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_empresa_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendas: {
         Row: {
           atualizado_em: string
@@ -2570,6 +3055,22 @@ export type Database = {
         Args: { p_mesa_id: string; p_quantidade_pessoas?: number }
         Returns: string
       }
+      fn_buscar_usuario_por_email: {
+        Args: { p_email: string }
+        Returns: {
+          email: string
+          id: string
+          nome_completo: string
+        }[]
+      }
+      fn_cancelar_conta_pagar: {
+        Args: { p_conta_pagar_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      fn_cancelar_conta_receber: {
+        Args: { p_conta_receber_id: string; p_motivo: string }
+        Returns: undefined
+      }
       fn_cancelar_pedido: {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
@@ -2587,6 +3088,22 @@ export type Database = {
       fn_converter_lista_em_pedidos: {
         Args: { p_lista_id: string }
         Returns: string[]
+      }
+      fn_criar_conta_receber: {
+        Args: {
+          p_centro_custo_id?: string
+          p_cliente_id?: string
+          p_descricao: string
+          p_empresa_id: string
+          p_numero_parcelas: number
+          p_observacao?: string
+          p_plano_conta_id?: string
+          p_primeira_data_vencimento: string
+          p_referencia_id?: string
+          p_referencia_tipo?: string
+          p_valor_total: number
+        }
+        Returns: string
       }
       fn_duplicar_ficha_tecnica: {
         Args: { p_ficha_id: string }
@@ -2611,6 +3128,10 @@ export type Database = {
         Returns: undefined
       }
       fn_fechar_comanda: { Args: { p_comanda_id: string }; Returns: undefined }
+      fn_gerar_contas_pagar_do_mes: {
+        Args: { p_empresa_id: string; p_mes_referencia: string }
+        Returns: number
+      }
       fn_gerar_lista_compras: {
         Args: {
           p_data_fim: string
@@ -2623,6 +3144,14 @@ export type Database = {
       fn_iniciar_preparo_pedido: {
         Args: { p_pedido_id: string }
         Returns: undefined
+      }
+      fn_perfis_visiveis_financeiro: {
+        Args: { p_empresa_id: string }
+        Returns: {
+          email: string
+          id: string
+          nome_completo: string
+        }[]
       }
       fn_proximo_numero_pedido: {
         Args: { p_empresa_id: string }
@@ -2666,6 +3195,15 @@ export type Database = {
         }
         Returns: string
       }
+      fn_registrar_pagamento_conta_pagar: {
+        Args: {
+          p_conta_pagar_id: string
+          p_data_pagamento?: string
+          p_forma_pagamento: string
+          p_valor_pago: number
+        }
+        Returns: undefined
+      }
       fn_registrar_pagamento_pedido: {
         Args: {
           p_caixa_id?: string
@@ -2676,6 +3214,15 @@ export type Database = {
           p_valor: number
         }
         Returns: string
+      }
+      fn_registrar_recebimento_parcela: {
+        Args: {
+          p_data_recebimento?: string
+          p_forma_pagamento: string
+          p_parcela_id: string
+          p_valor_recebido: number
+        }
+        Returns: undefined
       }
       fn_registrar_saida_estoque: {
         Args: {
@@ -2688,6 +3235,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      fn_tem_acesso_financeiro: {
+        Args: { p_empresa_id: string; p_exigir_escrita?: boolean }
+        Returns: boolean
+      }
       fn_transferir_comanda_mesa: {
         Args: { p_comanda_id: string; p_nova_mesa_id: string }
         Returns: undefined
@@ -2698,6 +3249,10 @@ export type Database = {
       }
       recalcular_ficha_tecnica: {
         Args: { p_ficha_id: string }
+        Returns: undefined
+      }
+      recalcular_status_conta_receber: {
+        Args: { p_conta_receber_id: string }
         Returns: undefined
       }
       recalcular_subtotal_pedido: {
