@@ -36,8 +36,12 @@ export function PainelAlertas({
   producoesNaoConcluidasNaSemana,
 }: PainelAlertasProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
+    // min-w-0 nos dois níveis (grid e Card): item de grid não encolhe
+    // abaixo do conteúdo por padrão — o mesmo problema resolvido em
+    // dashboard-produtos-rentaveis.tsx, aqui num nível a mais (grid > Card
+    // > CardContent > linha).
+    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="text-base">Fichas técnicas em alerta</CardTitle>
         </CardHeader>
@@ -79,18 +83,18 @@ export function PainelAlertas({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="text-base">Outros módulos</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Link
             href="/estoque"
-            className="hover:bg-secondary flex items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
+            className="hover:bg-secondary flex min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
           >
-            <span className="flex items-center gap-2 text-sm">
-              <PackageX className="text-muted-foreground h-4 w-4" />
-              Ingredientes abaixo do estoque mínimo
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <PackageX className="text-muted-foreground h-4 w-4 shrink-0" />
+              <span className="truncate">Ingredientes abaixo do estoque mínimo</span>
             </span>
             <Badge variant={ingredientesAbaixoDoMinimo > 0 ? "danger" : "success"}>
               {ingredientesAbaixoDoMinimo}
@@ -99,11 +103,11 @@ export function PainelAlertas({
 
           <Link
             href="/estoque/lotes"
-            className="hover:bg-secondary flex items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
+            className="hover:bg-secondary flex min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
           >
-            <span className="flex items-center gap-2 text-sm">
-              <AlertTriangle className="text-muted-foreground h-4 w-4" />
-              Lotes vencendo em 7 dias
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <AlertTriangle className="text-muted-foreground h-4 w-4 shrink-0" />
+              <span className="truncate">Lotes vencendo em 7 dias</span>
             </span>
             <Badge variant={lotesVencendoEm7Dias > 0 ? "warning" : "success"}>
               {lotesVencendoEm7Dias}
@@ -112,11 +116,11 @@ export function PainelAlertas({
 
           <Link
             href="/compras/pedidos"
-            className="hover:bg-secondary flex items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
+            className="hover:bg-secondary flex min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
           >
-            <span className="flex items-center gap-2 text-sm">
-              <ShoppingCart className="text-muted-foreground h-4 w-4" />
-              Pedidos de compra pendentes de recebimento
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <ShoppingCart className="text-muted-foreground h-4 w-4 shrink-0" />
+              <span className="truncate">Pedidos de compra pendentes de recebimento</span>
             </span>
             <Badge variant={pedidosCompraPendentes > 0 ? "info" : "success"}>
               {pedidosCompraPendentes}
@@ -125,11 +129,11 @@ export function PainelAlertas({
 
           <Link
             href="/producao"
-            className="hover:bg-secondary flex items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
+            className="hover:bg-secondary flex min-w-0 items-center justify-between gap-2 rounded-md px-2 py-1.5 -mx-2 transition-colors"
           >
-            <span className="flex items-center gap-2 text-sm">
-              <ClipboardList className="text-muted-foreground h-4 w-4" />
-              Produções não concluídas nesta semana
+            <span className="flex min-w-0 items-center gap-2 text-sm">
+              <ClipboardList className="text-muted-foreground h-4 w-4 shrink-0" />
+              <span className="truncate">Produções não concluídas nesta semana</span>
             </span>
             <Badge variant={producoesNaoConcluidasNaSemana > 0 ? "info" : "success"}>
               {producoesNaoConcluidasNaSemana}

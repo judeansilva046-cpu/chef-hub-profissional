@@ -142,14 +142,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           producoesNaoConcluidasNaSemana={producoesNaoConcluidasNaSemana}
         />
 
-        <div>
+        {/* min-w-0: filho de flex-col não encolhe abaixo do conteúdo por
+            padrão — sem isso, a largura mínima da tabela (mesmo com
+            overflow-x-auto nela) força a página inteira a rolar
+            horizontalmente em telas estreitas. */}
+        <div className="min-w-0">
           <Heading level={3} className="mb-3">
             Produtos mais e menos rentáveis
           </Heading>
           <DashboardProdutosRentaveis porProduto={porProduto} nomesPorFicha={nomesPorFicha} />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <Heading level={3} className="mb-3">
             Comparativo por canal de venda
           </Heading>

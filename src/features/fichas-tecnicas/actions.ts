@@ -61,16 +61,22 @@ export async function salvarFichaTecnica(
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("salvar_ficha_tecnica", {
-    p_ficha_id: validated.data.fichaId,
+    // Os parâmetros abaixo são opcionais NO NEGÓCIO (fichaId nulo = criar
+    // nova; demais campos opcionais da ficha), mas o tipo gerado pelo
+    // Supabase para esta função não inclui `| null` (só marca como opcional
+    // parâmetros com DEFAULT no SQL, e estes não têm — só são required-
+    // present, aceitando null em tempo de execução via PostgREST). O cast
+    // documenta essa lacuna conhecida do codegen, não muda o comportamento.
+    p_ficha_id: validated.data.fichaId as unknown as string,
     p_empresa_id: empresa.id,
     p_nome: validated.data.nome,
-    p_modo_preparo: validated.data.modoPreparo,
-    p_tempo_preparo_minutos: validated.data.tempoPreparoMinutos,
+    p_modo_preparo: validated.data.modoPreparo as unknown as string,
+    p_tempo_preparo_minutos: validated.data.tempoPreparoMinutos as unknown as number,
     p_rendimento_quantidade: validated.data.rendimentoQuantidade,
     p_rendimento_unidade_id: validated.data.rendimentoUnidadeId,
-    p_preco_venda_praticado: validated.data.precoVendaPraticado,
+    p_preco_venda_praticado: validated.data.precoVendaPraticado as unknown as number,
     p_margem_contribuicao_percentual_alvo:
-      validated.data.margemContribuicaoPercentualAlvo,
+      validated.data.margemContribuicaoPercentualAlvo as unknown as number,
     p_itens: validated.data.itens.map((item) => ({
       ingrediente_id: item.ingredienteId,
       peso_bruto: item.pesoBruto,

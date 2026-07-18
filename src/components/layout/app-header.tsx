@@ -10,6 +10,12 @@ import { EmpresaSwitcher } from "./empresa-switcher";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/pedidos", label: "Pedidos" },
+  { href: "/pdv", label: "PDV" },
+  { href: "/caixa", label: "Caixa" },
+  { href: "/mesas", label: "Mesas" },
+  { href: "/kds", label: "KDS" },
+  { href: "/expedicao", label: "Expedição" },
   { href: "/fichas-tecnicas", label: "Fichas técnicas" },
   { href: "/vendas", label: "Vendas" },
   { href: "/clientes", label: "Clientes" },

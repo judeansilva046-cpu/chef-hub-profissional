@@ -73,12 +73,15 @@ export function DashboardProdutosRentaveis({
   const menosRentaveis = [...porProduto].reverse().slice(0, 5);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="flex flex-col gap-3">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+      {/* min-w-0: item de grid não encolhe abaixo do conteúdo por padrão —
+          sem isso, a largura mínima da tabela força a coluna a estourar a
+          viewport em telas estreitas, mesmo com overflow-x-auto na tabela. */}
+      <div className="flex min-w-0 flex-col gap-3">
         <Text weight="semibold">Produtos mais rentáveis</Text>
         <TabelaProdutos linhas={maisRentaveis} nomesPorFicha={nomesPorFicha} />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-3">
         <Text weight="semibold">Produtos menos rentáveis</Text>
         <TabelaProdutos linhas={menosRentaveis} nomesPorFicha={nomesPorFicha} />
       </div>
