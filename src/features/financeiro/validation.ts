@@ -72,6 +72,57 @@ export const TIPO_CANAL_OPCOES = [
   { value: "personalizado", label: "Canal personalizado" },
 ] as const;
 
+/** Plano de contas criado automaticamente para toda empresa nova (ver criarEmpresa) — mesmo seed aplicado a empresas já existentes na migration 0040. Contas de nível 2 (código com ponto) referenciam a conta-pai pelo código do nível 1. */
+export const PLANO_CONTAS_PADRAO = [
+  { codigo: "1", nome: "Receitas", tipo: "receita" as const, contaPaiCodigo: null },
+  { codigo: "1.1", nome: "Vendas de Produtos", tipo: "receita" as const, contaPaiCodigo: "1" },
+  { codigo: "1.2", nome: "Receitas Financeiras", tipo: "receita" as const, contaPaiCodigo: "1" },
+  { codigo: "2", nome: "Custos e Despesas", tipo: "despesa" as const, contaPaiCodigo: null },
+  { codigo: "2.1", nome: "CMV - Custo da Mercadoria Vendida", tipo: "despesa" as const, contaPaiCodigo: "2" },
+  { codigo: "2.2", nome: "Despesas com Pessoal", tipo: "despesa" as const, contaPaiCodigo: "2" },
+  { codigo: "2.3", nome: "Despesas Operacionais", tipo: "despesa" as const, contaPaiCodigo: "2" },
+  { codigo: "2.4", nome: "Despesas Financeiras", tipo: "despesa" as const, contaPaiCodigo: "2" },
+  { codigo: "2.5", nome: "Impostos e Taxas", tipo: "despesa" as const, contaPaiCodigo: "2" },
+  { codigo: "3", nome: "Ativo Circulante", tipo: "ativo" as const, contaPaiCodigo: null },
+  { codigo: "4", nome: "Passivo Circulante", tipo: "passivo" as const, contaPaiCodigo: null },
+] as const;
+
+/** Centros de custo criados automaticamente para toda empresa nova (ver criarEmpresa). */
+export const CENTROS_CUSTO_PADRAO = [
+  { codigo: "COZ", nome: "Cozinha" },
+  { codigo: "SAL", nome: "Salão" },
+  { codigo: "DEL", nome: "Delivery" },
+  { codigo: "ADM", nome: "Administrativo" },
+] as const;
+
+function uuidOpcional() {
+  return z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : null));
+}
+
+export const planoContaSchema = z.object({
+  codigo: z.string().trim().min(1, { error: "Informe o código da conta." }),
+  nome: z.string().trim().min(1, { error: "Informe o nome da conta." }),
+  tipo: z.enum(["receita", "despesa", "ativo", "passivo"], {
+    error: "Selecione o tipo da conta.",
+  }),
+  contaPaiId: uuidOpcional(),
+});
+
+export type PlanoContaInput = z.infer<typeof planoContaSchema>;
+
+export const centroCustoSchema = z.object({
+  codigo: z.string().trim().min(1, { error: "Informe o código do centro de custo." }),
+  nome: z.string().trim().min(1, { error: "Informe o nome do centro de custo." }),
+});
+
+export type CentroCustoInput = z.infer<typeof centroCustoSchema>;
+
 export const canalVendaSchema = z.object({
   tipo: z.enum(["ifood", "99food", "keeta", "proprio", "personalizado"], {
     error: "Selecione o tipo do canal.",

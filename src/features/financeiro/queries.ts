@@ -143,6 +143,36 @@ export async function listarFichasTecnicasParaFinanceiro(): Promise<
   return data as unknown as FichaTecnicaParaFinanceiro[];
 }
 
+export async function listarPlanoContas(): Promise<Tables<"plano_contas">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("plano_contas")
+    .select("*")
+    .eq("empresa_id", empresa.id)
+    .order("codigo", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function listarCentrosCusto(): Promise<Tables<"centros_custo">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("centros_custo")
+    .select("*")
+    .eq("empresa_id", empresa.id)
+    .order("codigo", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export interface FichaCustoDesatualizado {
   fichaTecnicaId: string;
   fichaTecnicaNome: string;

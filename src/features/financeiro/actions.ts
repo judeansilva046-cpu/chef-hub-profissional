@@ -7,9 +7,11 @@ import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 
 import {
   canalVendaSchema,
+  centroCustoSchema,
   custoFixoSchema,
   custoVariavelSchema,
   metaVendasSchema,
+  planoContaSchema,
 } from "./validation";
 
 export interface FinanceiroActionState {
@@ -375,4 +377,88 @@ export async function excluirCanalVenda(id: string) {
   }
 
   revalidarFinanceiro();
+}
+
+export async function criarPlanoConta(
+  _prevState: FinanceiroActionState | undefined,
+  formData: FormData,
+): Promise<FinanceiroActionState> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return { formError: "Nenhuma empresa ativa." };
+
+  const validated = planoContaSchema.safeParse({
+    codigo: formData.get("codigo"),
+    nome: formData.get("nome"),
+    tipo: formData.get("tipo"),
+    contaPaiId: formData.get("contaPaiId"),
+  });
+  if (!validated.success) {
+    return { fieldErrors: validated.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("plano_contas").insert({
+    empresa_id: empresa.id,
+    codigo: validated.data.codigo,
+    nome: validated.data.nome,
+    tipo: validated.data.tipo,
+    conta_pai_id: validated.data.contaPaiId,
+  });
+
+  if (error) {
+    return {
+      formError: error.code === "23505" ? "Esse código já está em uso." : "Não foi possível salvar a conta.",
+    };
+  }
+
+  revalidatePath("/financeiro/plano-de-contas");
+  return { success: true };
+}
+
+export async function alternarAtivoPlanoConta(id: string, ativo: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("plano_contas").update({ ativo }).eq("id", id);
+
+  if (error) throw new Error("Não foi possível atualizar a conta.");
+  revalidatePath("/financeiro/plano-de-contas");
+}
+
+export async function criarCentroCusto(
+  _prevState: FinanceiroActionState | undefined,
+  formData: FormData,
+): Promise<FinanceiroActionState> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return { formError: "Nenhuma empresa ativa." };
+
+  const validated = centroCustoSchema.safeParse({
+    codigo: formData.get("codigo"),
+    nome: formData.get("nome"),
+  });
+  if (!validated.success) {
+    return { fieldErrors: validated.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("centros_custo").insert({
+    empresa_id: empresa.id,
+    codigo: validated.data.codigo,
+    nome: validated.data.nome,
+  });
+
+  if (error) {
+    return {
+      formError: error.code === "23505" ? "Esse código já está em uso." : "Não foi possível salvar o centro de custo.",
+    };
+  }
+
+  revalidatePath("/financeiro/centros-de-custo");
+  return { success: true };
+}
+
+export async function alternarAtivoCentroCusto(id: string, ativo: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("centros_custo").update({ ativo }).eq("id", id);
+
+  if (error) throw new Error("Não foi possível atualizar o centro de custo.");
+  revalidatePath("/financeiro/centros-de-custo");
 }

@@ -9,11 +9,14 @@ import { DashboardComparativoCanal } from "@/features/dashboard/components/dashb
 import { DashboardMetaRealizado } from "@/features/dashboard/components/dashboard-meta-realizado";
 import { DashboardProdutosRentaveis } from "@/features/dashboard/components/dashboard-produtos-rentaveis";
 import { DashboardResumoCards } from "@/features/dashboard/components/dashboard-resumo-cards";
+import { resumirContasPagar } from "@/features/contas-pagar/queries";
+import { resumirContasReceber } from "@/features/contas-receber/queries";
 import {
   analisarFichasEmAlerta,
   calcularMargemNecessariaPercentual,
   calcularPontoEquilibrioReceita,
 } from "@/features/financeiro/calculations";
+import { DashboardFinanceiroIndicadores } from "@/features/financeiro/components/dashboard-financeiro-indicadores";
 import { PainelAlertas } from "@/features/financeiro/components/painel-alertas";
 import {
   calcularCustosFixosTotais,
@@ -60,6 +63,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     pedidosEnviado,
     pedidosParcial,
     producoesSemana,
+    contasPagar,
+    contasReceber,
   ] = await Promise.all([
     buscarVendasPorPeriodo({ dataInicio, dataFim, canalVendaId: params.canalVendaId }),
     listarFichasTecnicasParaFinanceiro(),
@@ -75,6 +80,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       dataInicio: semanaAtual.inicio,
       dataFim: semanaAtual.fim,
     }),
+    resumirContasPagar(),
+    resumirContasReceber(),
   ]);
 
   const canaisPorId = new Map(canais.map((canal) => [canal.id, canal]));
@@ -132,6 +139,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           faturamentoRealizado={resumo.faturamentoRealizado}
           faturamentoProjetado={faturamentoProjetado}
         />
+
+        <div className="min-w-0">
+          <Heading level={3} className="mb-3">
+            Contas a pagar e a receber
+          </Heading>
+          <DashboardFinanceiroIndicadores contasPagar={contasPagar} contasReceber={contasReceber} />
+        </div>
 
         <PainelAlertas
           fichasNoVermelho={fichasNoVermelho}
