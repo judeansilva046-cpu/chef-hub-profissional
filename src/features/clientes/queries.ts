@@ -101,12 +101,21 @@ export interface PedidoDoCliente {
   valorTotal: number;
 }
 
+export interface ProdutoFavorito {
+  nome: string;
+  quantidade: number;
+}
+
 export interface EstatisticasCliente {
   totalGasto: number;
   quantidadeCompras: number;
   ticketMedio: number;
   ultimaCompra: string | null;
   pedidos: PedidoDoCliente[];
+  /** Top 3 fichas técnicas por quantidade comprada — perfil 360 (item 2 do escopo da Sprint 07). */
+  produtosFavoritos: ProdutoFavorito[];
+  /** Canal de venda mais frequente nas compras do cliente; null se nunca comprou por um canal registrado. */
+  canalPreferido: string | null;
 }
 
 /**
@@ -120,7 +129,15 @@ export async function buscarEstatisticasCliente(
 ): Promise<EstatisticasCliente> {
   const empresa = await getEmpresaAtual();
   if (!empresa) {
-    return { totalGasto: 0, quantidadeCompras: 0, ticketMedio: 0, ultimaCompra: null, pedidos: [] };
+    return {
+      totalGasto: 0,
+      quantidadeCompras: 0,
+      ticketMedio: 0,
+      ultimaCompra: null,
+      pedidos: [],
+      produtosFavoritos: [],
+      canalPreferido: null,
+    };
   }
 
   const supabase = await createClient();
@@ -156,11 +173,33 @@ export async function buscarEstatisticasCliente(
   const totalGasto = pedidos.reduce((total, pedido) => total + pedido.valorTotal, 0);
   const quantidadeCompras = pedidos.length;
 
+  const quantidadePorProduto = new Map<string, number>();
+  for (const pedido of pedidos) {
+    quantidadePorProduto.set(
+      pedido.fichaTecnicaNome,
+      (quantidadePorProduto.get(pedido.fichaTecnicaNome) ?? 0) + pedido.quantidade,
+    );
+  }
+  const produtosFavoritos: ProdutoFavorito[] = Array.from(quantidadePorProduto.entries())
+    .map(([nome, quantidade]) => ({ nome, quantidade }))
+    .sort((a, b) => b.quantidade - a.quantidade)
+    .slice(0, 3);
+
+  const contagemPorCanal = new Map<string, number>();
+  for (const pedido of pedidos) {
+    if (!pedido.canalNome) continue;
+    contagemPorCanal.set(pedido.canalNome, (contagemPorCanal.get(pedido.canalNome) ?? 0) + 1);
+  }
+  const canalPreferido =
+    Array.from(contagemPorCanal.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
   return {
     totalGasto,
     quantidadeCompras,
     ticketMedio: quantidadeCompras > 0 ? totalGasto / quantidadeCompras : 0,
     ultimaCompra: pedidos[0]?.dataVenda ?? null,
     pedidos,
+    produtosFavoritos,
+    canalPreferido,
   };
 }

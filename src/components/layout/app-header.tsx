@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: "/fichas-tecnicas", label: "Fichas técnicas" },
   { href: "/vendas", label: "Vendas" },
   { href: "/clientes", label: "Clientes" },
+  { href: "/crm/dashboard", label: "CRM" },
   { href: "/estoque", label: "Estoque" },
   { href: "/compras", label: "Compras" },
   { href: "/producao", label: "Produção" },
