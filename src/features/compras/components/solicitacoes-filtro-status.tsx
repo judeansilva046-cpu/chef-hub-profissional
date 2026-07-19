@@ -31,6 +31,7 @@ export function SolicitacoesFiltroStatus() {
     >
       <option value="todos">Todos os status</option>
       <option value="pendente">Pendente</option>
+      <option value="ajuste_solicitado">Ajuste solicitado</option>
       <option value="aprovada">Aprovada</option>
       <option value="rejeitada">Rejeitada</option>
       <option value="convertida">Convertida em pedido</option>

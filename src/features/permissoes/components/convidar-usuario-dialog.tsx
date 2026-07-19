@@ -49,6 +49,10 @@ export function ConvidarUsuarioDialog({ open, onOpenChange }: ConvidarUsuarioDia
               <option value="financeiro">Financeiro (lança e edita)</option>
               <option value="operacional">Operacional (uso do dia a dia)</option>
               <option value="leitura">Somente leitura</option>
+              <option value="comprador">Comprador (compras)</option>
+              <option value="aprovador">Aprovador (compras)</option>
+              <option value="recebedor">Recebedor (compras)</option>
+              <option value="solicitante">Solicitante (compras)</option>
             </Select>
             {state?.fieldErrors?.papel && (
               <Text size="sm" tone="danger">

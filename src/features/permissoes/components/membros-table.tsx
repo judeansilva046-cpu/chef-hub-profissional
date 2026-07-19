@@ -19,6 +19,10 @@ const PAPEL_LABEL: Record<string, string> = {
   financeiro: "Financeiro",
   operacional: "Operacional",
   leitura: "Somente leitura",
+  comprador: "Comprador",
+  aprovador: "Aprovador",
+  recebedor: "Recebedor",
+  solicitante: "Solicitante",
 };
 
 export interface MembrosTableProps {
@@ -103,6 +107,10 @@ export function MembrosTable({ membros, souDono }: MembrosTableProps) {
                       <option value="financeiro">Financeiro</option>
                       <option value="operacional">Operacional</option>
                       <option value="leitura">Somente leitura</option>
+                      <option value="comprador">Comprador</option>
+                      <option value="aprovador">Aprovador</option>
+                      <option value="recebedor">Recebedor</option>
+                      <option value="solicitante">Solicitante</option>
                     </Select>
                   ) : (
                     (PAPEL_LABEL[membro.papel] ?? membro.papel)

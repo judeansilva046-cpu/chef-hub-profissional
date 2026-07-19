@@ -437,6 +437,705 @@ export type Database = {
           },
         ];
       };
+      compras_anexos: {
+        Row: {
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          id: string;
+          nome_arquivo: string;
+          referencia_id: string;
+          referencia_tipo: string;
+          tipo: string;
+          url: string;
+        };
+        Insert: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          id?: string;
+          nome_arquivo: string;
+          referencia_id: string;
+          referencia_tipo: string;
+          tipo?: string;
+          url: string;
+        };
+        Update: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          id?: string;
+          nome_arquivo?: string;
+          referencia_id?: string;
+          referencia_tipo?: string;
+          tipo?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_anexos_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_anexos_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_auditoria: {
+        Row: {
+          acao: string;
+          criado_em: string;
+          dados_antigos: Json | null;
+          dados_novos: Json | null;
+          empresa_id: string;
+          id: string;
+          registro_id: string;
+          tabela: string;
+          usuario_id: string | null;
+        };
+        Insert: {
+          acao: string;
+          criado_em?: string;
+          dados_antigos?: Json | null;
+          dados_novos?: Json | null;
+          empresa_id: string;
+          id?: string;
+          registro_id: string;
+          tabela: string;
+          usuario_id?: string | null;
+        };
+        Update: {
+          acao?: string;
+          criado_em?: string;
+          dados_antigos?: Json | null;
+          dados_novos?: Json | null;
+          empresa_id?: string;
+          id?: string;
+          registro_id?: string;
+          tabela?: string;
+          usuario_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_auditoria_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_auditoria_usuario_id_fkey";
+            columns: ["usuario_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_avaliacoes_fornecedor: {
+        Row: {
+          atendimento: number;
+          comentario: string | null;
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          fornecedor_id: string;
+          id: string;
+          pedido_id: string | null;
+          pontualidade: number;
+          preco: number;
+          qualidade: number;
+        };
+        Insert: {
+          atendimento: number;
+          comentario?: string | null;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          fornecedor_id: string;
+          id?: string;
+          pedido_id?: string | null;
+          pontualidade: number;
+          preco: number;
+          qualidade: number;
+        };
+        Update: {
+          atendimento?: number;
+          comentario?: string | null;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          fornecedor_id?: string;
+          id?: string;
+          pedido_id?: string | null;
+          pontualidade?: number;
+          preco?: number;
+          qualidade?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_avaliacoes_fornecedor_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_avaliacoes_fornecedor_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_avaliacoes_fornecedor_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
+          },
+          {
+            foreignKeyName: "compras_avaliacoes_fornecedor_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "fornecedores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_avaliacoes_fornecedor_pedido_id_fkey";
+            columns: ["pedido_id"];
+            isOneToOne: false;
+            referencedRelation: "pedidos_compra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_cotacoes: {
+        Row: {
+          atualizado_em: string;
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          escolha_automatica: boolean;
+          finalizado_em: string | null;
+          fornecedor_vencedor_id: string | null;
+          id: string;
+          justificativa_escolha: string | null;
+          numero: number | null;
+          observacao: string | null;
+          solicitacao_origem_id: string | null;
+          status: string;
+        };
+        Insert: {
+          atualizado_em?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          escolha_automatica?: boolean;
+          finalizado_em?: string | null;
+          fornecedor_vencedor_id?: string | null;
+          id?: string;
+          justificativa_escolha?: string | null;
+          numero?: number | null;
+          observacao?: string | null;
+          solicitacao_origem_id?: string | null;
+          status?: string;
+        };
+        Update: {
+          atualizado_em?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          escolha_automatica?: boolean;
+          finalizado_em?: string | null;
+          fornecedor_vencedor_id?: string | null;
+          id?: string;
+          justificativa_escolha?: string | null;
+          numero?: number | null;
+          observacao?: string | null;
+          solicitacao_origem_id?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_cotacoes_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_fornecedor_vencedor_id_fkey";
+            columns: ["fornecedor_vencedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_fornecedor_vencedor_id_fkey";
+            columns: ["fornecedor_vencedor_id"];
+            isOneToOne: false;
+            referencedRelation: "fornecedores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_solicitacao_origem_id_fkey";
+            columns: ["solicitacao_origem_id"];
+            isOneToOne: false;
+            referencedRelation: "solicitacoes_compra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_cotacoes_fornecedores: {
+        Row: {
+          condicao_pagamento: string | null;
+          cotacao_id: string;
+          criado_em: string;
+          empresa_id: string;
+          fornecedor_id: string;
+          id: string;
+          observacao: string | null;
+          pedido_minimo: number | null;
+          prazo_entrega_dias: number | null;
+          respondido_em: string | null;
+          status: string;
+          valor_frete: number;
+          valor_impostos: number;
+        };
+        Insert: {
+          condicao_pagamento?: string | null;
+          cotacao_id: string;
+          criado_em?: string;
+          empresa_id: string;
+          fornecedor_id: string;
+          id?: string;
+          observacao?: string | null;
+          pedido_minimo?: number | null;
+          prazo_entrega_dias?: number | null;
+          respondido_em?: string | null;
+          status?: string;
+          valor_frete?: number;
+          valor_impostos?: number;
+        };
+        Update: {
+          condicao_pagamento?: string | null;
+          cotacao_id?: string;
+          criado_em?: string;
+          empresa_id?: string;
+          fornecedor_id?: string;
+          id?: string;
+          observacao?: string | null;
+          pedido_minimo?: number | null;
+          prazo_entrega_dias?: number | null;
+          respondido_em?: string | null;
+          status?: string;
+          valor_frete?: number;
+          valor_impostos?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_cotacoes_fornecedores_cotacao_id_fkey";
+            columns: ["cotacao_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_cotacoes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_fornecedores_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_fornecedores_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_fornecedores_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "fornecedores";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_cotacoes_itens: {
+        Row: {
+          cotacao_id: string;
+          empresa_id: string;
+          id: string;
+          ingrediente_id: string;
+          quantidade: number;
+        };
+        Insert: {
+          cotacao_id: string;
+          empresa_id: string;
+          id?: string;
+          ingrediente_id: string;
+          quantidade: number;
+        };
+        Update: {
+          cotacao_id?: string;
+          empresa_id?: string;
+          id?: string;
+          ingrediente_id?: string;
+          quantidade?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_cotacoes_itens_cotacao_id_fkey";
+            columns: ["cotacao_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_cotacoes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_itens_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_itens_ingrediente_id_fkey";
+            columns: ["ingrediente_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredientes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_cotacoes_propostas_itens: {
+        Row: {
+          atende_pedido_minimo: boolean;
+          cotacao_fornecedor_id: string;
+          cotacao_item_id: string;
+          empresa_id: string;
+          id: string;
+          preco_unitario: number;
+        };
+        Insert: {
+          atende_pedido_minimo?: boolean;
+          cotacao_fornecedor_id: string;
+          cotacao_item_id: string;
+          empresa_id: string;
+          id?: string;
+          preco_unitario: number;
+        };
+        Update: {
+          atende_pedido_minimo?: boolean;
+          cotacao_fornecedor_id?: string;
+          cotacao_item_id?: string;
+          empresa_id?: string;
+          id?: string;
+          preco_unitario?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_cotacoes_propostas_itens_cotacao_fornecedor_id_fkey";
+            columns: ["cotacao_fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_cotacoes_fornecedores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_propostas_itens_cotacao_item_id_fkey";
+            columns: ["cotacao_item_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_cotacoes_itens";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_cotacoes_propostas_itens_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_niveis_aprovacao: {
+        Row: {
+          ativo: boolean;
+          atualizado_em: string;
+          centro_custo_id: string | null;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          nome: string;
+          ordem: number;
+          papel_aprovador: string | null;
+          usuario_aprovador_id: string | null;
+          valor_maximo: number | null;
+          valor_minimo: number;
+        };
+        Insert: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          centro_custo_id?: string | null;
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          nome: string;
+          ordem?: number;
+          papel_aprovador?: string | null;
+          usuario_aprovador_id?: string | null;
+          valor_maximo?: number | null;
+          valor_minimo?: number;
+        };
+        Update: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          centro_custo_id?: string | null;
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          nome?: string;
+          ordem?: number;
+          papel_aprovador?: string | null;
+          usuario_aprovador_id?: string | null;
+          valor_maximo?: number | null;
+          valor_minimo?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_niveis_aprovacao_centro_custo_id_fkey";
+            columns: ["centro_custo_id"];
+            isOneToOne: false;
+            referencedRelation: "centros_custo";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_niveis_aprovacao_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_niveis_aprovacao_usuario_aprovador_id_fkey";
+            columns: ["usuario_aprovador_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_notificacoes: {
+        Row: {
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          lida: boolean;
+          mensagem: string;
+          referencia_id: string | null;
+          referencia_tipo: string | null;
+          tipo: string;
+          usuario_id: string;
+        };
+        Insert: {
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          lida?: boolean;
+          mensagem: string;
+          referencia_id?: string | null;
+          referencia_tipo?: string | null;
+          tipo: string;
+          usuario_id: string;
+        };
+        Update: {
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          lida?: boolean;
+          mensagem?: string;
+          referencia_id?: string | null;
+          referencia_tipo?: string | null;
+          tipo?: string;
+          usuario_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_notificacoes_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_notificacoes_usuario_id_fkey";
+            columns: ["usuario_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_recebimentos: {
+        Row: {
+          criado_em: string;
+          data_recebimento: string;
+          empresa_id: string;
+          id: string;
+          observacao: string | null;
+          pedido_id: string;
+          responsavel_id: string | null;
+        };
+        Insert: {
+          criado_em?: string;
+          data_recebimento?: string;
+          empresa_id: string;
+          id?: string;
+          observacao?: string | null;
+          pedido_id: string;
+          responsavel_id?: string | null;
+        };
+        Update: {
+          criado_em?: string;
+          data_recebimento?: string;
+          empresa_id?: string;
+          id?: string;
+          observacao?: string | null;
+          pedido_id?: string;
+          responsavel_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_recebimentos_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_recebimentos_pedido_id_fkey";
+            columns: ["pedido_id"];
+            isOneToOne: false;
+            referencedRelation: "pedidos_compra";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_recebimentos_responsavel_id_fkey";
+            columns: ["responsavel_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compras_recebimentos_itens: {
+        Row: {
+          data_fabricacao: string | null;
+          data_validade: string | null;
+          divergencia: boolean;
+          empresa_id: string;
+          id: string;
+          motivo_divergencia: string | null;
+          numero_lote: string | null;
+          pedido_item_id: string;
+          preco_conferido: number | null;
+          quantidade_recebida: number;
+          quantidade_recusada: number;
+          recebimento_id: string;
+        };
+        Insert: {
+          data_fabricacao?: string | null;
+          data_validade?: string | null;
+          divergencia?: boolean;
+          empresa_id: string;
+          id?: string;
+          motivo_divergencia?: string | null;
+          numero_lote?: string | null;
+          pedido_item_id: string;
+          preco_conferido?: number | null;
+          quantidade_recebida?: number;
+          quantidade_recusada?: number;
+          recebimento_id: string;
+        };
+        Update: {
+          data_fabricacao?: string | null;
+          data_validade?: string | null;
+          divergencia?: boolean;
+          empresa_id?: string;
+          id?: string;
+          motivo_divergencia?: string | null;
+          numero_lote?: string | null;
+          pedido_item_id?: string;
+          preco_conferido?: number | null;
+          quantidade_recebida?: number;
+          quantidade_recusada?: number;
+          recebimento_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compras_recebimentos_itens_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_recebimentos_itens_pedido_item_id_fkey";
+            columns: ["pedido_item_id"];
+            isOneToOne: false;
+            referencedRelation: "pedidos_compra_itens";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compras_recebimentos_itens_recebimento_id_fkey";
+            columns: ["recebimento_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_recebimentos";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      contadores_compras: {
+        Row: {
+          empresa_id: string;
+          proximo_numero: number;
+          tipo: string;
+        };
+        Insert: {
+          empresa_id: string;
+          proximo_numero?: number;
+          tipo: string;
+        };
+        Update: {
+          empresa_id?: string;
+          proximo_numero?: number;
+          tipo?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contadores_compras_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       contadores_pedidos: {
         Row: {
           empresa_id: string;
@@ -567,6 +1266,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "empresas";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contas_pagar_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
           },
           {
             foreignKeyName: "contas_pagar_fornecedor_id_fkey";
@@ -2663,27 +3369,57 @@ export type Database = {
       fornecedor_ingredientes: {
         Row: {
           atualizado_em: string;
+          codigo_fornecedor: string | null;
+          embalagem: string | null;
           empresa_id: string;
+          fator_conversao: number;
           fornecedor_id: string;
           id: string;
           ingrediente_id: string;
+          marca: string | null;
+          pedido_minimo: number | null;
+          prazo_entrega_dias: number | null;
+          preco_anterior: number | null;
           preco_unitario: number;
+          preferencial: boolean;
+          quantidade_embalagem: number;
+          unidade_compra_id: string | null;
         };
         Insert: {
           atualizado_em?: string;
+          codigo_fornecedor?: string | null;
+          embalagem?: string | null;
           empresa_id: string;
+          fator_conversao?: number;
           fornecedor_id: string;
           id?: string;
           ingrediente_id: string;
+          marca?: string | null;
+          pedido_minimo?: number | null;
+          prazo_entrega_dias?: number | null;
+          preco_anterior?: number | null;
           preco_unitario: number;
+          preferencial?: boolean;
+          quantidade_embalagem?: number;
+          unidade_compra_id?: string | null;
         };
         Update: {
           atualizado_em?: string;
+          codigo_fornecedor?: string | null;
+          embalagem?: string | null;
           empresa_id?: string;
+          fator_conversao?: number;
           fornecedor_id?: string;
           id?: string;
           ingrediente_id?: string;
+          marca?: string | null;
+          pedido_minimo?: number | null;
+          prazo_entrega_dias?: number | null;
+          preco_anterior?: number | null;
           preco_unitario?: number;
+          preferencial?: boolean;
+          quantidade_embalagem?: number;
+          unidade_compra_id?: string | null;
         };
         Relationships: [
           {
@@ -2692,6 +3428,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "empresas";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fornecedor_ingredientes_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
           },
           {
             foreignKeyName: "fornecedor_ingredientes_fornecedor_id_fkey";
@@ -2707,47 +3450,133 @@ export type Database = {
             referencedRelation: "ingredientes";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "fornecedor_ingredientes_unidade_compra_id_fkey";
+            columns: ["unidade_compra_id"];
+            isOneToOne: false;
+            referencedRelation: "unidades_medida";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fornecedor_ingredientes_historico_precos: {
+        Row: {
+          criado_por: string | null;
+          data_referencia: string;
+          empresa_id: string;
+          fornecedor_ingrediente_id: string;
+          id: string;
+          preco_unitario: number;
+        };
+        Insert: {
+          criado_por?: string | null;
+          data_referencia?: string;
+          empresa_id: string;
+          fornecedor_ingrediente_id: string;
+          id?: string;
+          preco_unitario: number;
+        };
+        Update: {
+          criado_por?: string | null;
+          data_referencia?: string;
+          empresa_id?: string;
+          fornecedor_ingrediente_id?: string;
+          id?: string;
+          preco_unitario?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fornecedor_ingredientes_historic_fornecedor_ingrediente_id_fkey";
+            columns: ["fornecedor_ingrediente_id"];
+            isOneToOne: false;
+            referencedRelation: "fornecedor_ingredientes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fornecedor_ingredientes_historico_precos_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fornecedor_ingredientes_historico_precos_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
         ];
       };
       fornecedores: {
         Row: {
           ativo: boolean;
+          categorias: string[];
+          chave_pix: string | null;
+          condicoes_pagamento: string | null;
+          contato_nome: string | null;
           created_at: string;
+          dados_bancarios: Json | null;
           documento: string | null;
           email: string | null;
           empresa_id: string;
           endereco: string | null;
           id: string;
+          inscricao_estadual: string | null;
           nome: string;
+          nome_fantasia: string | null;
           observacoes: string | null;
+          pedido_minimo: number | null;
+          prazo_medio_entrega_dias: number | null;
           telefone: string | null;
           updated_at: string;
+          whatsapp: string | null;
         };
         Insert: {
           ativo?: boolean;
+          categorias?: string[];
+          chave_pix?: string | null;
+          condicoes_pagamento?: string | null;
+          contato_nome?: string | null;
           created_at?: string;
+          dados_bancarios?: Json | null;
           documento?: string | null;
           email?: string | null;
           empresa_id: string;
           endereco?: string | null;
           id?: string;
+          inscricao_estadual?: string | null;
           nome: string;
+          nome_fantasia?: string | null;
           observacoes?: string | null;
+          pedido_minimo?: number | null;
+          prazo_medio_entrega_dias?: number | null;
           telefone?: string | null;
           updated_at?: string;
+          whatsapp?: string | null;
         };
         Update: {
           ativo?: boolean;
+          categorias?: string[];
+          chave_pix?: string | null;
+          condicoes_pagamento?: string | null;
+          contato_nome?: string | null;
           created_at?: string;
+          dados_bancarios?: Json | null;
           documento?: string | null;
           email?: string | null;
           empresa_id?: string;
           endereco?: string | null;
           id?: string;
+          inscricao_estadual?: string | null;
           nome?: string;
+          nome_fantasia?: string | null;
           observacoes?: string | null;
+          pedido_minimo?: number | null;
+          prazo_medio_entrega_dias?: number | null;
           telefone?: string | null;
           updated_at?: string;
+          whatsapp?: string | null;
         };
         Relationships: [
           {
@@ -3072,6 +3901,13 @@ export type Database = {
           valor_previsto?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "listas_compra_itens_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
+          },
           {
             foreignKeyName: "listas_compra_itens_fornecedor_id_fkey";
             columns: ["fornecedor_id"];
@@ -3552,45 +4388,108 @@ export type Database = {
       };
       pedidos_compra: {
         Row: {
+          aprovado_em: string | null;
+          aprovado_por: string | null;
           atualizado_em: string;
+          centro_custo_id: string | null;
+          condicao_pagamento: string | null;
+          cotacao_origem_id: string | null;
           criado_em: string;
           criado_por: string | null;
           data_pedido: string;
           data_prevista_entrega: string | null;
+          desconto_percentual: number;
+          desconto_valor_fixo: number;
           empresa_id: string;
           fornecedor_id: string;
           id: string;
+          numero: number | null;
+          numero_parcelas: number;
           observacao: string | null;
+          plano_conta_id: string | null;
           solicitacao_origem_id: string | null;
           status: string;
+          subtotal: number;
+          total: number;
+          valor_frete: number;
+          valor_impostos: number;
         };
         Insert: {
+          aprovado_em?: string | null;
+          aprovado_por?: string | null;
           atualizado_em?: string;
+          centro_custo_id?: string | null;
+          condicao_pagamento?: string | null;
+          cotacao_origem_id?: string | null;
           criado_em?: string;
           criado_por?: string | null;
           data_pedido?: string;
           data_prevista_entrega?: string | null;
+          desconto_percentual?: number;
+          desconto_valor_fixo?: number;
           empresa_id: string;
           fornecedor_id: string;
           id?: string;
+          numero?: number | null;
+          numero_parcelas?: number;
           observacao?: string | null;
+          plano_conta_id?: string | null;
           solicitacao_origem_id?: string | null;
           status?: string;
+          subtotal?: number;
+          total?: number;
+          valor_frete?: number;
+          valor_impostos?: number;
         };
         Update: {
+          aprovado_em?: string | null;
+          aprovado_por?: string | null;
           atualizado_em?: string;
+          centro_custo_id?: string | null;
+          condicao_pagamento?: string | null;
+          cotacao_origem_id?: string | null;
           criado_em?: string;
           criado_por?: string | null;
           data_pedido?: string;
           data_prevista_entrega?: string | null;
+          desconto_percentual?: number;
+          desconto_valor_fixo?: number;
           empresa_id?: string;
           fornecedor_id?: string;
           id?: string;
+          numero?: number | null;
+          numero_parcelas?: number;
           observacao?: string | null;
+          plano_conta_id?: string | null;
           solicitacao_origem_id?: string | null;
           status?: string;
+          subtotal?: number;
+          total?: number;
+          valor_frete?: number;
+          valor_impostos?: number;
         };
         Relationships: [
+          {
+            foreignKeyName: "pedidos_compra_aprovado_por_fkey";
+            columns: ["aprovado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_centro_custo_id_fkey";
+            columns: ["centro_custo_id"];
+            isOneToOne: false;
+            referencedRelation: "centros_custo";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_cotacao_origem_id_fkey";
+            columns: ["cotacao_origem_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_cotacoes";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "pedidos_compra_criado_por_fkey";
             columns: ["criado_por"];
@@ -3609,7 +4508,21 @@ export type Database = {
             foreignKeyName: "pedidos_compra_fornecedor_id_fkey";
             columns: ["fornecedor_id"];
             isOneToOne: false;
+            referencedRelation: "compras_fornecedores_score";
+            referencedColumns: ["fornecedor_id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_fornecedor_id_fkey";
+            columns: ["fornecedor_id"];
+            isOneToOne: false;
             referencedRelation: "fornecedores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_plano_conta_id_fkey";
+            columns: ["plano_conta_id"];
+            isOneToOne: false;
+            referencedRelation: "plano_contas";
             referencedColumns: ["id"];
           },
           {
@@ -3617,6 +4530,61 @@ export type Database = {
             columns: ["solicitacao_origem_id"];
             isOneToOne: false;
             referencedRelation: "solicitacoes_compra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pedidos_compra_historico: {
+        Row: {
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          id: string;
+          motivo: string | null;
+          pedido_id: string;
+          status_anterior: string | null;
+          status_novo: string;
+        };
+        Insert: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          id?: string;
+          motivo?: string | null;
+          pedido_id: string;
+          status_anterior?: string | null;
+          status_novo: string;
+        };
+        Update: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          id?: string;
+          motivo?: string | null;
+          pedido_id?: string;
+          status_anterior?: string | null;
+          status_novo?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_compra_historico_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_historico_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pedidos_compra_historico_pedido_id_fkey";
+            columns: ["pedido_id"];
+            isOneToOne: false;
+            referencedRelation: "pedidos_compra";
             referencedColumns: ["id"];
           },
         ];
@@ -3629,6 +4597,7 @@ export type Database = {
           preco_unitario: number;
           quantidade_pedida: number;
           quantidade_recebida: number;
+          quantidade_recusada: number;
           valor_total: number | null;
         };
         Insert: {
@@ -3638,6 +4607,7 @@ export type Database = {
           preco_unitario: number;
           quantidade_pedida: number;
           quantidade_recebida?: number;
+          quantidade_recusada?: number;
           valor_total?: number | null;
         };
         Update: {
@@ -3647,6 +4617,7 @@ export type Database = {
           preco_unitario?: number;
           quantidade_pedida?: number;
           quantidade_recebida?: number;
+          quantidade_recusada?: number;
           valor_total?: number | null;
         };
         Relationships: [
@@ -3840,32 +4811,57 @@ export type Database = {
       solicitacoes_compra: {
         Row: {
           atualizado_em: string;
+          centro_custo_id: string | null;
           criado_em: string;
           criado_por: string | null;
+          data_necessaria: string | null;
           empresa_id: string;
           id: string;
+          justificativa: string | null;
+          numero: number | null;
           observacao: string | null;
+          prioridade: string;
+          setor: string | null;
           status: string;
         };
         Insert: {
           atualizado_em?: string;
+          centro_custo_id?: string | null;
           criado_em?: string;
           criado_por?: string | null;
+          data_necessaria?: string | null;
           empresa_id: string;
           id?: string;
+          justificativa?: string | null;
+          numero?: number | null;
           observacao?: string | null;
+          prioridade?: string;
+          setor?: string | null;
           status?: string;
         };
         Update: {
           atualizado_em?: string;
+          centro_custo_id?: string | null;
           criado_em?: string;
           criado_por?: string | null;
+          data_necessaria?: string | null;
           empresa_id?: string;
           id?: string;
+          justificativa?: string | null;
+          numero?: number | null;
           observacao?: string | null;
+          prioridade?: string;
+          setor?: string | null;
           status?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "solicitacoes_compra_centro_custo_id_fkey";
+            columns: ["centro_custo_id"];
+            isOneToOne: false;
+            referencedRelation: "centros_custo";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "solicitacoes_compra_criado_por_fkey";
             columns: ["criado_por"];
@@ -3882,11 +4878,129 @@ export type Database = {
           },
         ];
       };
+      solicitacoes_compra_aprovacoes: {
+        Row: {
+          acao: string;
+          aprovador_id: string | null;
+          comentario: string | null;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          nivel_id: string | null;
+          solicitacao_id: string;
+        };
+        Insert: {
+          acao: string;
+          aprovador_id?: string | null;
+          comentario?: string | null;
+          criado_em?: string;
+          empresa_id: string;
+          id?: string;
+          nivel_id?: string | null;
+          solicitacao_id: string;
+        };
+        Update: {
+          acao?: string;
+          aprovador_id?: string | null;
+          comentario?: string | null;
+          criado_em?: string;
+          empresa_id?: string;
+          id?: string;
+          nivel_id?: string | null;
+          solicitacao_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_compra_aprovacoes_aprovador_id_fkey";
+            columns: ["aprovador_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "solicitacoes_compra_aprovacoes_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "solicitacoes_compra_aprovacoes_nivel_id_fkey";
+            columns: ["nivel_id"];
+            isOneToOne: false;
+            referencedRelation: "compras_niveis_aprovacao";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "solicitacoes_compra_aprovacoes_solicitacao_id_fkey";
+            columns: ["solicitacao_id"];
+            isOneToOne: false;
+            referencedRelation: "solicitacoes_compra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      solicitacoes_compra_historico: {
+        Row: {
+          criado_em: string;
+          criado_por: string | null;
+          empresa_id: string;
+          id: string;
+          motivo: string | null;
+          solicitacao_id: string;
+          status_anterior: string | null;
+          status_novo: string;
+        };
+        Insert: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id: string;
+          id?: string;
+          motivo?: string | null;
+          solicitacao_id: string;
+          status_anterior?: string | null;
+          status_novo: string;
+        };
+        Update: {
+          criado_em?: string;
+          criado_por?: string | null;
+          empresa_id?: string;
+          id?: string;
+          motivo?: string | null;
+          solicitacao_id?: string;
+          status_anterior?: string | null;
+          status_novo?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_compra_historico_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "solicitacoes_compra_historico_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "solicitacoes_compra_historico_solicitacao_id_fkey";
+            columns: ["solicitacao_id"];
+            isOneToOne: false;
+            referencedRelation: "solicitacoes_compra";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       solicitacoes_compra_itens: {
         Row: {
           id: string;
           ingrediente_id: string;
           observacao: string | null;
+          preco_estimado: number;
           quantidade: number;
           solicitacao_id: string;
         };
@@ -3894,6 +5008,7 @@ export type Database = {
           id?: string;
           ingrediente_id: string;
           observacao?: string | null;
+          preco_estimado?: number;
           quantidade: number;
           solicitacao_id: string;
         };
@@ -3901,6 +5016,7 @@ export type Database = {
           id?: string;
           ingrediente_id?: string;
           observacao?: string | null;
+          preco_estimado?: number;
           quantidade?: number;
           solicitacao_id?: string;
         };
@@ -4110,6 +5226,30 @@ export type Database = {
       };
     };
     Views: {
+      compras_fornecedores_score: {
+        Row: {
+          atendimento_media: number | null;
+          empresa_id: string | null;
+          fornecedor_id: string | null;
+          nome: string | null;
+          pontualidade_media: number | null;
+          preco_media: number | null;
+          qualidade_media: number | null;
+          score_geral: number | null;
+          taxa_entrega_completa: number | null;
+          total_avaliacoes: number | null;
+          total_pedidos_recebidos: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fornecedores_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       crm_cashback_saldos: {
         Row: {
           cliente_id: string | null;
@@ -4205,6 +5345,14 @@ export type Database = {
         Args: { p_mesa_id: string; p_quantidade_pessoas?: number };
         Returns: string;
       };
+      fn_aprovar_pedido_compra: {
+        Args: { p_pedido_id: string };
+        Returns: undefined;
+      };
+      fn_aprovar_solicitacao_compra: {
+        Args: { p_comentario?: string; p_solicitacao_id: string };
+        Returns: undefined;
+      };
       fn_buscar_usuario_por_email: {
         Args: { p_email: string };
         Returns: {
@@ -4298,6 +5446,10 @@ export type Database = {
         };
         Returns: string;
       };
+      fn_escolher_melhor_proposta_cotacao: {
+        Args: { p_cotacao_id: string };
+        Returns: string;
+      };
       fn_estornar_movimentacao_cashback: {
         Args: { p_movimentacao_id: string; p_observacao?: string };
         Returns: undefined;
@@ -4321,6 +5473,15 @@ export type Database = {
         Returns: undefined;
       };
       fn_fechar_comanda: { Args: { p_comanda_id: string }; Returns: undefined };
+      fn_finalizar_cotacao: {
+        Args: {
+          p_cotacao_id: string;
+          p_escolha_automatica?: boolean;
+          p_fornecedor_vencedor_id: string;
+          p_justificativa?: string;
+        };
+        Returns: string;
+      };
       fn_gerar_contas_pagar_do_mes: {
         Args: { p_empresa_id: string; p_mes_referencia: string };
         Returns: number;
@@ -4338,6 +5499,45 @@ export type Database = {
         Args: { p_pedido_id: string };
         Returns: undefined;
       };
+      fn_nivel_aprovacao_aplicavel: {
+        Args: {
+          p_centro_custo_id: string;
+          p_empresa_id: string;
+          p_valor: number;
+        };
+        Returns: {
+          ativo: boolean;
+          atualizado_em: string;
+          centro_custo_id: string | null;
+          criado_em: string;
+          empresa_id: string;
+          id: string;
+          nome: string;
+          ordem: number;
+          papel_aprovador: string | null;
+          usuario_aprovador_id: string | null;
+          valor_maximo: number | null;
+          valor_minimo: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "compras_niveis_aprovacao";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      fn_notificar_divergencia_recebimento: {
+        Args: { p_empresa_id: string; p_mensagem: string; p_pedido_id: string };
+        Returns: undefined;
+      };
+      fn_perfis_visiveis_compras: {
+        Args: { p_empresa_id: string };
+        Returns: {
+          email: string;
+          id: string;
+          nome_completo: string;
+        }[];
+      };
       fn_perfis_visiveis_financeiro: {
         Args: { p_empresa_id: string };
         Returns: {
@@ -4345,6 +5545,14 @@ export type Database = {
           id: string;
           nome_completo: string;
         }[];
+      };
+      fn_pode_aprovar_solicitacao: {
+        Args: { p_solicitacao_id: string };
+        Returns: boolean;
+      };
+      fn_proximo_numero_compras: {
+        Args: { p_empresa_id: string; p_tipo: string };
+        Returns: number;
       };
       fn_proximo_numero_pedido: {
         Args: { p_empresa_id: string };
@@ -4408,12 +5616,34 @@ export type Database = {
         };
         Returns: string;
       };
+      fn_registrar_recebimento_item: {
+        Args: {
+          p_data_fabricacao?: string;
+          p_data_validade?: string;
+          p_motivo_divergencia?: string;
+          p_numero_lote?: string;
+          p_pedido_item_id: string;
+          p_preco_conferido?: number;
+          p_quantidade_recebida?: number;
+          p_quantidade_recusada?: number;
+          p_recebimento_id?: string;
+        };
+        Returns: string;
+      };
       fn_registrar_recebimento_parcela: {
         Args: {
           p_data_recebimento?: string;
           p_forma_pagamento: string;
           p_parcela_id: string;
           p_valor_recebido: number;
+        };
+        Returns: undefined;
+      };
+      fn_registrar_recusa_item_pedido_compra: {
+        Args: {
+          p_motivo: string;
+          p_pedido_item_id: string;
+          p_quantidade: number;
         };
         Returns: undefined;
       };
@@ -4428,6 +5658,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      fn_rejeitar_solicitacao_compra: {
+        Args: { p_motivo: string; p_solicitacao_id: string };
+        Returns: undefined;
+      };
       fn_resgatar_cashback: {
         Args: { p_cliente_id: string; p_observacao?: string; p_valor: number };
         Returns: undefined;
@@ -4435,6 +5669,14 @@ export type Database = {
       fn_resgatar_pontos_fidelidade: {
         Args: { p_cliente_id: string; p_observacao?: string; p_pontos: number };
         Returns: undefined;
+      };
+      fn_solicitar_ajuste_solicitacao_compra: {
+        Args: { p_comentario: string; p_solicitacao_id: string };
+        Returns: undefined;
+      };
+      fn_tem_acesso_compras: {
+        Args: { p_empresa_id: string; p_exigir_escrita?: boolean };
+        Returns: boolean;
       };
       fn_tem_acesso_financeiro: {
         Args: { p_empresa_id: string; p_exigir_escrita?: boolean };
@@ -4472,6 +5714,10 @@ export type Database = {
         Returns: undefined;
       };
       recalcular_subtotal_pedido: {
+        Args: { p_pedido_id: string };
+        Returns: undefined;
+      };
+      recalcular_subtotal_pedido_compra: {
         Args: { p_pedido_id: string };
         Returns: undefined;
       };

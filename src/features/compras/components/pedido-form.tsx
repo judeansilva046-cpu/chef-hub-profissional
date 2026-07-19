@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,13 +22,23 @@ import { PedidoItemRow } from "./pedido-item-row";
 export interface PedidoFormProps {
   ingredientes: IngredienteParaSelecao[];
   fornecedores: Tables<"fornecedores">[];
+  centrosCusto: Tables<"centros_custo">[];
+  planoContas: Tables<"plano_contas">[];
 }
 
-export function PedidoForm({ ingredientes, fornecedores }: PedidoFormProps) {
+export function PedidoForm({ ingredientes, fornecedores, centrosCusto, planoContas }: PedidoFormProps) {
   const router = useRouter();
   const [fornecedorId, setFornecedorId] = useState("");
   const [dataPrevistaEntrega, setDataPrevistaEntrega] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [centroCustoId, setCentroCustoId] = useState("");
+  const [planoContaId, setPlanoContaId] = useState("");
+  const [descontoPercentual, setDescontoPercentual] = useState<number | null>(null);
+  const [descontoValorFixo, setDescontoValorFixo] = useState<number | null>(null);
+  const [valorFrete, setValorFrete] = useState<number | null>(null);
+  const [valorImpostos, setValorImpostos] = useState<number | null>(null);
+  const [condicaoPagamento, setCondicaoPagamento] = useState("");
+  const [numeroParcelas, setNumeroParcelas] = useState("1");
   const [itens, setItens] = useState<PedidoItemFormState[]>([
     criarItemPedidoVazio(),
   ]);
@@ -58,6 +69,14 @@ export function PedidoForm({ ingredientes, fornecedores }: PedidoFormProps) {
           fornecedorId,
           dataPrevistaEntrega: dataPrevistaEntrega || null,
           observacao,
+          centroCustoId: centroCustoId || null,
+          planoContaId: planoContaId || null,
+          descontoPercentual,
+          descontoValorFixo,
+          valorFrete,
+          valorImpostos,
+          condicaoPagamento,
+          numeroParcelas: numeroParcelas ? Number(numeroParcelas) : 1,
           itens,
         });
         router.push(`/compras/pedidos/${id}`);
@@ -110,6 +129,31 @@ export function PedidoForm({ ingredientes, fornecedores }: PedidoFormProps) {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="centroCustoId">Centro de custo (opcional)</Label>
+              <Select id="centroCustoId" value={centroCustoId} onChange={(event) => setCentroCustoId(event.target.value)}>
+                <option value="">Nenhum</option>
+                {centrosCusto.map((centro) => (
+                  <option key={centro.id} value={centro.id}>
+                    {centro.nome}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="planoContaId">Plano de contas (opcional)</Label>
+              <Select id="planoContaId" value={planoContaId} onChange={(event) => setPlanoContaId(event.target.value)}>
+                <option value="">Nenhum</option>
+                {planoContas.map((conta) => (
+                  <option key={conta.id} value={conta.id}>
+                    {conta.nome}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="observacao">Observação (opcional)</Label>
             <Textarea
@@ -156,6 +200,63 @@ export function PedidoForm({ ingredientes, fornecedores }: PedidoFormProps) {
             <Plus className="h-4 w-4" />
             Adicionar item
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Descontos, frete e pagamento</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="descontoPercentual">Desconto, %</Label>
+              <Input
+                id="descontoPercentual"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={descontoPercentual ?? ""}
+                onChange={(event) => setDescontoPercentual(event.target.value ? Number(event.target.value) : null)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="descontoValorFixo">Desconto, R$</Label>
+              <CurrencyInput id="descontoValorFixo" value={descontoValorFixo} onChange={setDescontoValorFixo} min={0} placeholder="R$ 0,00" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="valorFrete">Frete</Label>
+              <CurrencyInput id="valorFrete" value={valorFrete} onChange={setValorFrete} min={0} placeholder="R$ 0,00" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="valorImpostos">Impostos</Label>
+              <CurrencyInput id="valorImpostos" value={valorImpostos} onChange={setValorImpostos} min={0} placeholder="R$ 0,00" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="condicaoPagamento">Condição de pagamento (opcional)</Label>
+              <Input
+                id="condicaoPagamento"
+                value={condicaoPagamento}
+                onChange={(event) => setCondicaoPagamento(event.target.value)}
+                placeholder="Ex: 28 dias"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="numeroParcelas">Número de parcelas</Label>
+              <Input
+                id="numeroParcelas"
+                type="number"
+                step="1"
+                min="1"
+                value={numeroParcelas}
+                onChange={(event) => setNumeroParcelas(event.target.value)}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 

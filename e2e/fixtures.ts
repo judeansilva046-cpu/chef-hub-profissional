@@ -17,6 +17,7 @@ export const E2E_USER = {
 export const E2E_EMPRESA_ID = "fa43de88-a47d-4758-b137-7ee49fa40394";
 export const E2E_PRODUTO_NOME = "Produto E2E";
 export const E2E_ADICIONAL_NOME = "Adicional E2E";
+export const E2E_INGREDIENTE_NOME = "Ingrediente E2E";
 
 /**
  * Ruído conhecido do Chromium automatizado via CDP (Playwright), confirmado

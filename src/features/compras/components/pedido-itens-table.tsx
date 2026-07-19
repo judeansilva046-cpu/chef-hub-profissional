@@ -29,6 +29,7 @@ export function PedidoItensTable({
           <TableHead>Ingrediente</TableHead>
           <TableHead>Pedido</TableHead>
           <TableHead>Recebido</TableHead>
+          <TableHead>Recusado</TableHead>
           <TableHead>Preço unitário</TableHead>
           <TableHead className="text-right">Total</TableHead>
           {podeReceber && <TableHead className="text-right">Ações</TableHead>}
@@ -36,7 +37,8 @@ export function PedidoItensTable({
       </TableHeader>
       <TableBody>
         {itens.map((item) => {
-          const pendente = item.quantidade_pedida - item.quantidade_recebida;
+          const pendente =
+            item.quantidade_pedida - item.quantidade_recebida - item.quantidade_recusada;
           return (
             <TableRow key={item.id}>
               <TableCell className="text-foreground font-medium">
@@ -49,6 +51,11 @@ export function PedidoItensTable({
               <TableCell className="text-muted-foreground">
                 {formatarDecimal(item.quantidade_recebida)}{" "}
                 {item.ingredientes.unidades_medida.sigla}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {item.quantidade_recusada > 0
+                  ? `${formatarDecimal(item.quantidade_recusada)} ${item.ingredientes.unidades_medida.sigla}`
+                  : "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {formatarMoeda(item.preco_unitario)}

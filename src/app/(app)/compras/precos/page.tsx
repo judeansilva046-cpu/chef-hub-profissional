@@ -10,6 +10,7 @@ import { ComparativoPrecosList } from "@/features/compras/components/comparativo
 import { COMPRAS_SUB_NAV_LINKS } from "@/features/compras/components/compras-sub-nav-links";
 import { listarComparativoPrecos } from "@/features/compras/queries";
 import { listarFornecedoresAtivosParaSelecao } from "@/features/fornecedores/queries";
+import { listarUnidadesMedida } from "@/features/unidades-medida/queries";
 
 export const metadata: Metadata = {
   title: "Comparativo de preços — Chef Hub Profissional",
@@ -22,9 +23,10 @@ interface PrecosPageProps {
 export default async function PrecosPage({ searchParams }: PrecosPageProps) {
   const params = await searchParams;
 
-  const [ingredientes, fornecedores] = await Promise.all([
+  const [ingredientes, fornecedores, unidadesMedida] = await Promise.all([
     listarComparativoPrecos({ busca: params.busca }),
     listarFornecedoresAtivosParaSelecao(),
+    listarUnidadesMedida(),
   ]);
 
   return (
@@ -49,6 +51,7 @@ export default async function PrecosPage({ searchParams }: PrecosPageProps) {
         <ComparativoPrecosList
           ingredientes={ingredientes}
           fornecedores={fornecedores}
+          unidadesMedida={unidadesMedida}
         />
       </Container>
     </Section>

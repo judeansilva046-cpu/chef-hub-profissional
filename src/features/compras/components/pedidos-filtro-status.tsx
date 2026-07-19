@@ -31,6 +31,8 @@ export function PedidosFiltroStatus() {
     >
       <option value="todos">Todos os status</option>
       <option value="rascunho">Rascunho</option>
+      <option value="aguardando_aprovacao">Aguardando aprovação</option>
+      <option value="aprovado">Aprovado</option>
       <option value="enviado">Enviado</option>
       <option value="parcialmente_recebido">Parcialmente recebido</option>
       <option value="recebido">Recebido</option>

@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const PAPEIS_CONVITE = ["financeiro", "operacional", "leitura"] as const;
+export const PAPEIS_CONVITE = [
+  "financeiro",
+  "operacional",
+  "leitura",
+  "comprador",
+  "aprovador",
+  "recebedor",
+  "solicitante",
+] as const;
 
 export const convidarUsuarioSchema = z.object({
   email: z.string().trim().min(1, "Informe o e-mail.").email("E-mail inválido."),

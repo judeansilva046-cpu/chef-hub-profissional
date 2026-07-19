@@ -5,20 +5,26 @@ import { FileSpreadsheet, FileText } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 export interface ExportarRelatorioButtonsProps {
-  tipo: "contas-pagar" | "contas-receber" | "fluxo-caixa" | "dre";
+  tipo: string;
+  /** Base do Route Handler de exportação — um por módulo (Financeiro, Compras...), mesmo componente de botões. */
+  endpoint?: string;
   /** Filtros/período atuais da tela, repassados como querystring para a exportação bater com o que está na tela. */
   searchParams?: Record<string, string | undefined>;
 }
 
-/** Botões de exportação reaproveitados por Contas a Pagar, Contas a Receber, Fluxo de Caixa e DRE — um único componente, um único endpoint (/api/financeiro/exportar/[tipo]). */
-export function ExportarRelatorioButtons({ tipo, searchParams = {} }: ExportarRelatorioButtonsProps) {
+/** Botões de exportação reaproveitados por todo relatório com Route Handler PDF/Excel (Financeiro: Contas a Pagar, Contas a Receber, Fluxo de Caixa, DRE; Compras: solicitações, cotações, pedidos, divergências, histórico de preços, avaliações, compras por centro de custo) — um único componente para todos os módulos. */
+export function ExportarRelatorioButtons({
+  tipo,
+  endpoint = "/api/financeiro/exportar",
+  searchParams = {},
+}: ExportarRelatorioButtonsProps) {
   function montarUrl(formato: "xlsx" | "pdf") {
     const query = new URLSearchParams();
     for (const [chave, valor] of Object.entries(searchParams)) {
       if (valor) query.set(chave, valor);
     }
     query.set("formato", formato);
-    return `/api/financeiro/exportar/${tipo}?${query.toString()}`;
+    return `${endpoint}/${tipo}?${query.toString()}`;
   }
 
   return (
