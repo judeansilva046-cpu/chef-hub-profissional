@@ -163,6 +163,19 @@ Rodados via `get_advisors` do Supabase após cada migration:
 - `fn_recalcular_estoque_saldo` (ver abaixo) é `SECURITY DEFINER` e chamável
   por `authenticated` pelo mesmo motivo — validação manual de posse dentro
   da função (migration `0022`).
+- As funções do CRM que escrevem em ledgers (`fn_conceder_pontos_manual`,
+  `fn_resgatar_pontos_fidelidade`, `fn_estornar_movimentacao_fidelidade`,
+  `fn_expirar_pontos_fidelidade` e os equivalentes de cashback/cupom,
+  migrations `0047`-`0049`) são `SECURITY DEFINER` e chamáveis por
+  `authenticated` pelo mesmo motivo de `fn_recalcular_estoque_saldo` —
+  cada uma valida manualmente que o `cliente_id`/`empresa_id` recebido
+  pertence ao usuário autenticado antes de escrever. `fn_registrar_auditoria_crm`
+  e `vendas_after_insert_conceder_pontos`/`vendas_after_insert_creditar_cashback`
+  aparecem como "chamáveis por anon" no advisor pelo mesmo motivo de
+  `fn_registrar_auditoria_financeira` (Sprint 06): são funções de trigger —
+  o Postgres rejeita a chamada fora do contexto de trigger (`NEW`/`OLD`
+  indisponíveis), então a exposição via `/rest/v1/rpc/...` é inofensiva na
+  prática.
 
 ## Sprint 02 — Estoque, Compras, Produção e Lista de Compras
 
@@ -496,3 +509,148 @@ padrão de `ingredientes_historico_precos`).
   cifradas e marca `status_conexao = 'pendente_homologacao'`; "testar
   conexão" sempre volta essa mesma mensagem. Isso é intencional: nenhuma
   dessas integrações tem credencial de parceiro homologado.
+
+## Sprint 07 — CRM e Fidelização
+
+Nove migrations (`0045`-`0053`). Estende `clientes` (0026, Sprint 04) em vez
+de recriar; todo o resto é schema novo. RLS de todas as tabelas novas segue
+o padrão simples "dono da empresa" já usado em `clientes`/`vendas`/`pedidos`
+— o CRM **não** introduz um segundo sistema de papéis além do
+`usuarios_empresa` do Financeiro (Sprint 06); reaproveitar aquele exigiria
+acoplar dois domínios sem necessidade real nesta sprint.
+
+### `clientes` — extensão + `crm_clientes_metricas` (migration `0045`)
+
+Novas colunas: `whatsapp`, `data_nascimento`, `restricoes_alimentares`,
+`tags text[]`, `origem`, `opt_in_whatsapp`/`opt_in_email`/`opt_in_sms`,
+`consentimento_lgpd` + `consentimento_lgpd_em` (LGPD é só um booleano com
+carimbo de quando foi concedido — sem histórico de termos versionados,
+fora do escopo). `segmento` (rótulo manual, Sprint 04) continua existindo
+sem alteração; segmentação **calculada** é um conceito novo e separado (ver
+abaixo), não substitui o rótulo manual.
+
+`crm_clientes_metricas` é uma **view** (`security_invoker = true`, para
+respeitar a RLS de quem consulta, não do dono da view) que agrega
+`total_gasto`/`quantidade_compras`/`ticket_medio`/`dias_desde_ultima_compra`
+por cliente a partir de `vendas` — mesmo princípio de nunca duplicar em
+coluna o que já é derivável, agora centralizado num único lugar (antes só
+existia em `buscarEstatisticasCliente`, TypeScript) para ser reaproveitado
+por Segmentação, Perfil 360 e Dashboard CRM sem repetir a agregação.
+
+### Segmentação (migration `0046`)
+
+Os segmentos automáticos (Novo, Recorrente, Inativo, VIP, Alto ticket,
+Baixa frequência, Risco de abandono, Aniversariante) **não são tabela** —
+são calculados em `src/features/crm-segmentacao/calculations.ts` a partir
+de `crm_clientes_metricas`, com os limiares (ex: VIP = top 10% de gasto)
+documentados no próprio arquivo. `crm_segmentos_personalizados` guarda só a
+**definição do filtro** (`criterios jsonb`) de segmentos customizados — a
+lista de membros também é sempre recalculada em leitura
+(`avaliarSegmentoPersonalizado`), nunca uma tabela de associação.
+
+### Fidelidade e Cashback (migrations `0047`, `0048`)
+
+Dois ledgers assinados independentes — `crm_fidelidade_movimentacoes`
+(`pontos`) e `crm_cashback_movimentacoes` (`valor`, R$) — mesmo padrão de
+`estoque_movimentacoes`: toda linha é imutável, todo ajuste (resgate,
+estorno, expiração) é uma nova linha com sinal oposto, saldo é sempre
+`sum(pontos)`/`sum(valor)`. Nenhuma das duas tabelas tem policy de
+`INSERT`/`UPDATE` para `authenticated` — todo lançamento passa por uma
+função `SECURITY DEFINER` (mesmo motivo de `pedido_status_historico`).
+
+- **Concessão automática**: triggers `vendas_after_insert_fidelidade` /
+  `vendas_after_insert_cashback` (`AFTER INSERT ON vendas`) — como
+  `fn_concluir_pedido` (0033, Sprint 05) já insere em `vendas` ao concluir
+  um pedido, fidelidade/cashback são creditados automaticamente em
+  qualquer venda com `cliente_id`, sem alterar nenhum caminho existente de
+  pedidos/PDV/mesas/expedição.
+- **Expiração é sob demanda, não agendada** — este projeto não tem
+  `pg_cron`/job scheduler. `fn_expirar_pontos_fidelidade`/`fn_expirar_cashback`
+  percorrem os lançamentos vencidos em ordem (FIFO) e expiram o menor entre
+  "pontos daquele lançamento" e "saldo atual restante", disparadas por um
+  botão ("Processar pontos/cashback expirados") em vez de automaticamente à
+  meia-noite. **Risco/pendência real**: um operador que nunca clicar nesse
+  botão nunca expira pontos vencidos.
+- Níveis de fidelidade (`crm_fidelidade_niveis`) são só metadado — em qual
+  nível um cliente está é sempre comparado contra o saldo em leitura, nunca
+  gravado no cliente.
+
+### Cupons (migration `0049`)
+
+`crm_cupons` é CRUD normal; `crm_cupons_usos` é ledger de uso (sem `INSERT`
+direto). `fn_validar_e_aplicar_cupom` faz `select ... for update` na linha
+do cupom antes de checar limites — trava a corrida de dois PDVs aplicando o
+mesmo cupom no limite exato ao mesmo tempo. Só `percentual`/`fixo` calculam
+desconto monetário; `frete_gratis`/`produto_gratis` devolvem `valor_desconto
+= 0` mais o `tipo`, deixando a aplicação decidir como zerar a taxa de
+entrega ou adicionar o item grátis — **frete_gratis/produto_gratis não
+estão integrados ao PDV nesta sprint** (só `percentual`/`fixo`, ver
+`src/features/pedidos/components/pdv-workspace.tsx`), risco documentado no
+relatório da sprint. `fn_estornar_uso_cupom` **apaga** a linha de uso (não
+lança estorno) — diferente dos ledgers financeiros, "uso de cupom" é
+contagem de controle, não valor monetário próprio.
+
+### Comunicação e Campanhas (migration `0050`)
+
+`crm_interacoes` é um **registro** de contato (WhatsApp/e-mail/SMS/
+ligação/presencial/nota/reclamação), não um disparador — **este projeto
+não tem nenhuma integração de envio real** (confirmado: nenhum SDK de
+WhatsApp Business API/Twilio/provedor de e-mail existe em
+`src/features/integracoes` nem em variável de ambiente), então
+`status_entrega` fica `'pendente'` para canais externos até uma integração
+real existir. `crm_campanhas` (gatilho: aniversário/inatividade/primeira
+compra/manual) é disparada sob demanda por Server Action
+(`dispararCampanha`, sem `pg_cron`, mesmo motivo da expiração de
+pontos/cashback acima) — busca clientes elegíveis no momento do clique,
+grava uma `crm_interacao` por cliente ainda não contatado por aquela
+campanha (dedup por `campanha_id`+`cliente_id`, para clicar de novo não
+reenviar).
+
+### Funil comercial (migration `0051`)
+
+Lead e Oportunidade são o **mesmo registro** (`crm_leads`) avançando por
+etapas configuráveis (`crm_funil_etapas`, seedadas por empresa: Novo Lead →
+Contato Feito → Proposta → Negociação → Ganho/Perdido) — mesmo princípio de
+`pedidos` usar um único registro + histórico de status em vez de uma tabela
+por estado. `crm_leads_historico` é append-only via trigger (mesmo padrão
+de `pedido_status_historico`). `fn_converter_lead_em_cliente` é
+`SECURITY INVOKER` (não `DEFINER`): tanto o `INSERT` em `clientes` quanto o
+`UPDATE` em `crm_leads` já são permitidos pela RLS do próprio usuário, a
+função só garante que as duas escritas acontecem atomicamente — mesmo
+motivo de `fn_criar_conta_receber` (Sprint 06).
+
+### Tarefas (migration `0052`)
+
+`crm_tarefas` usa `referencia_tipo`/`referencia_id` (polimórfico-leve, mesmo
+padrão de `estoque_movimentacoes`) para associar a um cliente OU um lead
+sem duas colunas de FK nullable. `concluida_em` é gravado por trigger na
+transição para `status = 'concluida'` — nunca aceito do cliente da API,
+mesmo princípio dos timestamps de transição de `pedidos`.
+
+### Auditoria e Realtime (migration `0053`)
+
+`crm_auditoria` + `fn_registrar_auditoria_crm()` reaproveitam exatamente o
+padrão genérico de `financeiro_auditoria`/`fn_registrar_auditoria_financeira`
+(Sprint 06) — tabela própria porque o RLS de leitura aqui é ownership
+simples (sem o `fn_tem_acesso_financeiro` multiusuário do Financeiro).
+Ledgers já append-only (fidelidade, cashback, usos de cupom, histórico de
+leads) não recebem trigger de auditoria — eles já **são** o próprio rastro.
+Realtime habilitado só em `crm_leads` (Kanban) e `crm_tarefas` — mesmo
+critério seletivo da 0037, não uma extensão geral do Realtime para o CRM
+inteiro.
+
+### Riscos e pendências conhecidas desta sprint
+
+- Expiração de pontos/cashback e disparo de campanhas dependem de um
+  clique manual — sem `pg_cron`, nada expira/dispara sozinho.
+- Cupons `frete_gratis`/`produto_gratis` não têm aplicação automática no
+  PDV (só `percentual`/`fixo`).
+- `crm_interacoes` registra o envio mas não envia de verdade — nenhuma
+  integração de mensageria existe no projeto.
+- Cupons com `segmento` preenchido validam contra `clientes.segmento`
+  (rótulo manual), não contra os segmentos calculados — um cupom "só para
+  VIP calculado" não é reforçado no banco, só a lista de destinatários
+  filtrada manualmente na tela de campanhas.
+- Este projeto não tem conceito de múltiplas unidades/lojas por empresa —
+  os itens do escopo original que mencionavam "unidade preferida"/"unidade
+  permitida" não têm onde ancorar e ficaram de fora.

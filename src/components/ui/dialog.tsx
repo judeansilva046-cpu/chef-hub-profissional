@@ -20,7 +20,7 @@ export function DialogContent({
       <DialogPrimitive.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
       <DialogPrimitive.Content
         className={cn(
-          "border-border bg-card text-card-foreground fixed top-1/2 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl border p-6 shadow-lg focus:outline-none",
+          "border-border bg-card text-card-foreground fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border p-6 shadow-lg focus:outline-none",
           className,
         )}
         {...props}

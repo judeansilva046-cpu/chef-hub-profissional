@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Tables } from "@/lib/supabase/database.types";
 
 import { atualizarCliente, criarCliente } from "../actions";
+import { ORIGEM_CLIENTE_SUGESTOES } from "../validation";
 
 export interface ClienteDialogProps {
   open: boolean;
@@ -75,6 +76,18 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
               />
             </div>
             <div className="flex flex-col gap-1.5">
+              <Label htmlFor="whatsapp">WhatsApp (opcional)</Label>
+              <Input
+                id="whatsapp"
+                name="whatsapp"
+                placeholder="Ex: (11) 99999-9999"
+                defaultValue={cliente?.whatsapp ?? ""}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">E-mail (opcional)</Label>
               <Input
                 id="email"
@@ -88,9 +101,6 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
                 </Text>
               )}
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="documento">CPF/CNPJ (opcional)</Label>
               <Input
@@ -99,6 +109,9 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
                 defaultValue={cliente?.documento ?? ""}
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="segmento">Segmento (opcional)</Label>
               <Input
@@ -115,6 +128,42 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
                 <option value="Inativo" />
               </datalist>
             </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="origem">Origem (opcional)</Label>
+              <Input
+                id="origem"
+                name="origem"
+                list="origem-sugestoes"
+                placeholder="Ex: Indicação, Instagram"
+                defaultValue={cliente?.origem ?? ""}
+              />
+              <datalist id="origem-sugestoes">
+                {ORIGEM_CLIENTE_SUGESTOES.map((origem) => (
+                  <option key={origem} value={origem} />
+                ))}
+              </datalist>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="dataNascimento">Data de nascimento (opcional)</Label>
+              <Input
+                id="dataNascimento"
+                name="dataNascimento"
+                type="date"
+                defaultValue={cliente?.data_nascimento ?? ""}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="tags">Tags (opcional)</Label>
+              <Input
+                id="tags"
+                name="tags"
+                placeholder="Separadas por vírgula"
+                defaultValue={cliente?.tags?.join(", ") ?? ""}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -123,6 +172,17 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
               id="endereco"
               name="endereco"
               defaultValue={cliente?.endereco ?? ""}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="restricoesAlimentares">Restrições alimentares (opcional)</Label>
+            <Textarea
+              id="restricoesAlimentares"
+              name="restricoesAlimentares"
+              rows={2}
+              placeholder="Ex: sem lactose, sem glúten"
+              defaultValue={cliente?.restricoes_alimentares ?? ""}
             />
           </div>
 
@@ -145,6 +205,36 @@ export function ClienteDialog({ open, onOpenChange, cliente }: ClienteDialogProp
               rows={2}
               defaultValue={cliente?.observacoes ?? ""}
             />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Preferências de comunicação</Label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="optInWhatsapp"
+                  defaultChecked={cliente ? cliente.opt_in_whatsapp : true}
+                />
+                WhatsApp
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="optInEmail"
+                  defaultChecked={cliente ? cliente.opt_in_email : true}
+                />
+                E-mail
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="optInSms"
+                  defaultChecked={cliente ? cliente.opt_in_sms : true}
+                />
+                SMS
+              </label>
+            </div>
           </div>
 
           {state?.formError && (

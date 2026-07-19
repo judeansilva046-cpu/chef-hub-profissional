@@ -7,15 +7,18 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
+import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
+import { aplicarCupom } from "@/features/cupons/actions";
 import type { Tables } from "@/lib/supabase/database.types";
 import { formatarMoeda } from "@/lib/format";
 
 import {
   adicionarItemPedido,
   atualizarQuantidadeItem,
+  atualizarValoresPedido,
   criarPedido,
   finalizarVendaPdv,
   registrarPagamentoPedido,
@@ -44,6 +47,8 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
   const [formaPagamento, setFormaPagamento] = useState<(typeof FORMAS_PAGAMENTO)[number]>("dinheiro");
   const [valorPagamento, setValorPagamento] = useState<number | null>(pedidoAtual?.pedido.total ?? null);
   const [trocoPara, setTrocoPara] = useState<number | null>(null);
+  const [codigoCupom, setCodigoCupom] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState<string | null>(null);
 
   const fichasItens = fichas.filter((f) => !f.disponivel_como_adicional);
   const fichasFiltradas = useMemo(() => {
@@ -110,6 +115,47 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
 
   function novaVenda() {
     router.push("/pdv");
+  }
+
+  /**
+   * Cupom exige cliente identificado (o uso é sempre registrado por cliente,
+   * ver fn_validar_e_aplicar_cupom, 0049) — aplica o desconto no MESMO campo
+   * desconto_valor_fixo que a tela de valores do pedido já usa
+   * (atualizarValoresPedido), sem introduzir um caminho de cálculo paralelo.
+   * Só trata os tipos percentual/fixo aqui: frete_gratis/produto_gratis
+   * exigiriam alterar taxa_entrega/itens do pedido e ficam fora desta
+   * integração inicial (ver relatório da Sprint 07).
+   */
+  function aplicarCupomNoPedido() {
+    if (!pedidoAtual || !clienteId || !codigoCupom.trim()) return;
+    setErro(null);
+    startTransition(async () => {
+      try {
+        const resultado = await aplicarCupom({
+          codigo: codigoCupom.trim(),
+          clienteId,
+          valorCompra: pedidoAtual.pedido.subtotal,
+          canalVendaId: canalVendaId || undefined,
+        });
+
+        if (resultado.tipo !== "percentual" && resultado.tipo !== "fixo") {
+          setErro("Este tipo de cupom ainda não é aplicado automaticamente no PDV.");
+          return;
+        }
+
+        await atualizarValoresPedido(pedidoAtual.pedido.id, {
+          descontoPercentual: pedidoAtual.pedido.desconto_percentual,
+          descontoValorFixo: resultado.valorDesconto,
+          acrescimoValor: pedidoAtual.pedido.acrescimo_valor,
+          taxaEntrega: pedidoAtual.pedido.taxa_entrega,
+        });
+
+        setCupomAplicado(codigoCupom.trim().toUpperCase());
+        router.refresh();
+      } catch (error) {
+        setErro(error instanceof Error ? error.message : "Não foi possível aplicar o cupom.");
+      }
+    });
   }
 
   return (
@@ -254,7 +300,35 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
               <Text>{formatarMoeda(totalPago)}</Text>
             </div>
           )}
+          {pedidoAtual && (pedidoAtual.pedido.desconto_valor_fixo > 0 || pedidoAtual.pedido.desconto_percentual > 0) && (
+            <div className="flex justify-between">
+              <Text tone="success">Desconto{cupomAplicado ? ` (${cupomAplicado})` : ""}</Text>
+              <Text tone="success">
+                -{formatarMoeda(pedidoAtual.pedido.desconto_valor_fixo)}
+              </Text>
+            </div>
+          )}
         </div>
+
+        {pedidoAtual && (
+          <div className="flex gap-2">
+            <Input
+              value={codigoCupom}
+              onChange={(event) => setCodigoCupom(event.target.value)}
+              placeholder="Código do cupom"
+              disabled={!clienteId || pending}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!clienteId || !codigoCupom.trim() || pending}
+              onClick={aplicarCupomNoPedido}
+            >
+              Aplicar cupom
+            </Button>
+          </div>
+        )}
 
         {pedidoAtual && (
           <div className="flex flex-col gap-2">
