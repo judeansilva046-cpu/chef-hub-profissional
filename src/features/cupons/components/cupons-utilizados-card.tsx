@@ -9,14 +9,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
+import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { formatarData, formatarMoeda } from "@/lib/format";
 
+/** empresa_id filtrado explicitamente além de cliente_id — defesa em profundidade, RLS já isola por empresa. */
 async function listarUsosCupomPorCliente(clienteId: string) {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_cupons_usos")
     .select("id, valor_desconto, criado_em, crm_cupons(codigo)")
     .eq("cliente_id", clienteId)
+    .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 
   if (error) throw error;

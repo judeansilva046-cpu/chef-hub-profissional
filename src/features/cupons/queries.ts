@@ -32,12 +32,17 @@ export interface UsoCupomComRelacoes {
   criadoEm: string;
 }
 
+/** empresa_id filtrado explicitamente além de cupom_id — defesa em profundidade, RLS já isola por empresa. */
 export async function listarUsosCupom(cupomId: string): Promise<UsoCupomComRelacoes[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_cupons_usos")
     .select("id, valor_compra, valor_desconto, criado_em, clientes(nome)")
     .eq("cupom_id", cupomId)
+    .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 
   if (error) throw error;

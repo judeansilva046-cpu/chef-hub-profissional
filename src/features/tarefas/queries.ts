@@ -23,16 +23,21 @@ export async function listarTarefas({ status }: ListarTarefasParams = {}): Promi
   return data ?? [];
 }
 
+/** empresa_id filtrado explicitamente além de referencia_id — defesa em profundidade, RLS já isola por empresa. */
 export async function listarTarefasPorReferencia(
   referenciaTipo: "cliente" | "lead",
   referenciaId: string,
 ): Promise<Tables<"crm_tarefas">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_tarefas")
     .select("*")
     .eq("referencia_tipo", referenciaTipo)
     .eq("referencia_id", referenciaId)
+    .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 
   if (error) throw error;

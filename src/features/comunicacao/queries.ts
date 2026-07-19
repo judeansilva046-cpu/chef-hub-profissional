@@ -19,12 +19,17 @@ export async function listarTemplates(): Promise<Tables<"crm_templates_mensagem"
   return data ?? [];
 }
 
+/** empresa_id filtrado explicitamente além de cliente_id — defesa em profundidade, RLS já isola por empresa. */
 export async function listarInteracoesCliente(clienteId: string): Promise<Tables<"crm_interacoes">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_interacoes")
     .select("*")
     .eq("cliente_id", clienteId)
+    .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 
   if (error) throw error;

@@ -47,12 +47,17 @@ export async function listarClientesComSaldoCashback(): Promise<ClienteComSaldoC
     .sort((a, b) => b.saldo - a.saldo);
 }
 
+/** empresa_id filtrado explicitamente além de cliente_id — defesa em profundidade (mesmo padrão de buscarContaPagarPorId), RLS já isola por empresa. */
 export async function buscarSaldoCashbackCliente(clienteId: string): Promise<number> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return 0;
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_cashback_saldos")
     .select("saldo")
     .eq("cliente_id", clienteId)
+    .eq("empresa_id", empresa.id)
     .maybeSingle();
 
   if (error) throw error;
@@ -60,11 +65,15 @@ export async function buscarSaldoCashbackCliente(clienteId: string): Promise<num
 }
 
 export async function listarExtratoCashback(clienteId: string): Promise<Tables<"crm_cashback_movimentacoes">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("crm_cashback_movimentacoes")
     .select("*")
     .eq("cliente_id", clienteId)
+    .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 
   if (error) throw error;
