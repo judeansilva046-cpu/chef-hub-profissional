@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Pencil, Power } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +78,9 @@ export function FornecedoresTable({ fornecedores }: FornecedoresTableProps) {
           {fornecedores.map((fornecedor) => (
             <TableRow key={fornecedor.id}>
               <TableCell className="text-foreground font-medium">
-                {fornecedor.nome}
+                <Link href={`/compras/fornecedores/${fornecedor.id}`} className="hover:underline">
+                  {fornecedor.nome}
+                </Link>
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {fornecedor.documento ?? "—"}

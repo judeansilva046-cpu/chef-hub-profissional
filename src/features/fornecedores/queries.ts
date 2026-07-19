@@ -73,3 +73,73 @@ export async function listarFornecedoresAtivosParaSelecao(): Promise<
   if (error) throw error;
   return data;
 }
+
+export async function buscarFornecedorPorId(id: string): Promise<Tables<"fornecedores"> | null> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("fornecedores")
+    .select("*")
+    .eq("id", id)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export type FornecedorScore = Tables<"compras_fornecedores_score">;
+
+export async function buscarScoreFornecedor(fornecedorId: string): Promise<FornecedorScore | null> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("compras_fornecedores_score")
+    .select("*")
+    .eq("fornecedor_id", fornecedorId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function listarAvaliacoesFornecedor(fornecedorId: string): Promise<Tables<"compras_avaliacoes_fornecedor">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("compras_avaliacoes_fornecedor")
+    .select("*")
+    .eq("fornecedor_id", fornecedorId)
+    .eq("empresa_id", empresa.id)
+    .order("criado_em", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function listarAnexos(
+  referenciaTipo: "fornecedor" | "solicitacao_compra" | "pedido_compra" | "recebimento",
+  referenciaId: string,
+): Promise<Tables<"compras_anexos">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("compras_anexos")
+    .select("*")
+    .eq("referencia_tipo", referenciaTipo)
+    .eq("referencia_id", referenciaId)
+    .eq("empresa_id", empresa.id)
+    .order("criado_em", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}

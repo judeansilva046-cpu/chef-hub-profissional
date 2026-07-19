@@ -176,6 +176,17 @@ Rodados via `get_advisors` do Supabase após cada migration:
   o Postgres rejeita a chamada fora do contexto de trigger (`NEW`/`OLD`
   indisponíveis), então a exposição via `/rest/v1/rpc/...` é inofensiva na
   prática.
+- As funções de Compras que decidem/escrevem (`fn_aprovar_solicitacao_compra`,
+  `fn_rejeitar_solicitacao_compra`, `fn_solicitar_ajuste_solicitacao_compra`,
+  `fn_aprovar_pedido_compra`, `fn_registrar_recebimento_item`,
+  `fn_pode_aprovar_solicitacao`, `fn_tem_acesso_compras`,
+  `fn_perfis_visiveis_compras`, `fn_proximo_numero_compras`, Sprint 08) são
+  `SECURITY DEFINER` chamáveis por `authenticated` pelo mesmo motivo das
+  funções do CRM/Financeiro acima — cada uma valida manualmente posse/papel
+  antes de escrever. `fn_registrar_auditoria_compras` aparece como
+  "chamável por anon" pelo mesmo motivo de `fn_registrar_auditoria_crm`/
+  `fn_registrar_auditoria_financeira`: é função de trigger, inofensiva fora
+  do contexto de trigger.
 
 ## Sprint 02 — Estoque, Compras, Produção e Lista de Compras
 
@@ -654,3 +665,181 @@ inteiro.
 - Este projeto não tem conceito de múltiplas unidades/lojas por empresa —
   os itens do escopo original que mencionavam "unidade preferida"/"unidade
   permitida" não têm onde ancorar e ficaram de fora.
+
+## Sprint 08 — Compras, Fornecedores e Cotação Inteligente
+
+Doze migrations (`0054`-`0065`, as duas últimas são correções pós-teste).
+Estende `fornecedores`/`fornecedor_ingredientes`/`solicitacoes_compra`/
+`pedidos_compra` (0016/0017, Sprint 02) em vez de recriar; reaproveita
+`usuarios_empresa` (0043, Financeiro) só estendendo os papéis aceitos, em
+vez de um segundo sistema de permissões para Compras.
+
+```
+fornecedores (1) ─┬─< fornecedor_ingredientes ─< fornecedor_ingredientes_historico_precos
+                   ├─< compras_anexos (polimórfico: fornecedor/solicitação/pedido/recebimento)
+                   ├─< compras_avaliacoes_fornecedor ─(view)─> compras_fornecedores_score
+                   └─< compras_cotacoes_fornecedores ─< compras_cotacoes_propostas_itens
+
+empresas (1) ─┬─< solicitacoes_compra ─┬─< solicitacoes_compra_itens
+              │                        ├─< solicitacoes_compra_historico
+              │                        └─< solicitacoes_compra_aprovacoes
+              ├─< compras_niveis_aprovacao
+              ├─< compras_cotacoes ─┬─< compras_cotacoes_itens
+              │                     └─< compras_cotacoes_fornecedores
+              ├─< pedidos_compra ─┬─< pedidos_compra_itens
+              │                   └─< pedidos_compra_historico
+              ├─< compras_recebimentos ─< compras_recebimentos_itens
+              ├─< compras_notificacoes (RLS por usuario_id, não por empresa)
+              ├─< compras_auditoria
+              └─< contadores_compras (numeração de solicitação/cotação/pedido)
+```
+
+### Fornecedores e produtos por fornecedor (migrations `0054`, `0055`)
+
+`fornecedores` ganha campos cadastrais completos (nome fantasia, IE,
+WhatsApp, contato, endereço, `categorias text[]`, condições de pagamento,
+prazo médio, pedido mínimo, avaliação agregada via view, `dados_bancarios
+jsonb`, chave PIX) — um blob `jsonb` para os 4 campos bancários porque são
+só exibição, nunca filtrados/unidos. `compras_anexos` é o mesmo padrão
+polimórfico-leve de `estoque_movimentacoes`/`fila_impressao`/
+`crm_interacoes` (`referencia_tipo`/`referencia_id`, sem FK real) — **não
+há upload de arquivo real neste projeto** (nenhuma sprint integra Supabase
+Storage): "anexo" é sempre um link colado (Drive/Dropbox/etc.).
+
+`fornecedor_ingredientes` ganha código do fornecedor, unidade de compra +
+fator de conversão (só um número fixo por fornecedor/ingrediente — este
+projeto não tem motor de conversão entre unidades, mesma limitação de
+`unidades_medida`, 0004), marca, embalagem, `preco_anterior` (mantido por
+trigger a cada mudança de preço, para a UI mostrar variação sem consultar o
+histórico completo), prazo de entrega, pedido mínimo e `preferencial`
+(único por `empresa_id`+`ingrediente_id` via índice único parcial).
+`fornecedor_ingredientes_historico_precos` é o ledger completo, gravado só
+por trigger. **Correção pós-E2E (migration `0065`)**: o trigger que grava
+`preco_anterior` e o que grava o histórico estavam fundidos num único
+trigger `BEFORE`, e o histórico tentava referenciar `new.id` antes da
+linha existir de fato em `fornecedor_ingredientes` — violava a FK em
+**todo** cadastro/edição de preço. Separados em dois triggers (`BEFORE` só
+define `preco_anterior`; `AFTER` grava o histórico, quando a linha já
+existe).
+
+### Solicitação de compra e numeração compartilhada (migration `0056`)
+
+`contadores_compras` generaliza `contadores_pedidos` (0030) para 3
+sequências independentes (`solicitacao`/`cotacao`/`pedido`) numa única
+tabela composta por `(empresa_id, tipo)`, em vez de 3 tabelas quase
+idênticas. `solicitacoes_compra` ganha número automático, setor, centro de
+custo, prioridade, justificativa e data necessária; `..._itens` ganha
+`preco_estimado` (usado para decidir a faixa de aprovação antes de existir
+cotação ou pedido). `solicitacoes_compra_historico` é o mesmo padrão
+append-only de `pedido_status_historico` (0030).
+
+### Fluxo de aprovação (migration `0057`)
+
+`compras_niveis_aprovacao` define faixas por valor (opcionalmente por
+centro de custo) exigindo um papel (`owner`/`aprovador`) ou um usuário
+específico — **sem faixa configurada, o fallback é "dono ou qualquer
+usuário com papel `aprovador`"**, então o fluxo funciona sem exigir
+configuração prévia. `fn_pode_aprovar_solicitacao` centraliza a decisão;
+`fn_aprovar_solicitacao_compra`/`fn_rejeitar_solicitacao_compra`/
+`fn_solicitar_ajuste_solicitacao_compra` gravam o log em
+`solicitacoes_compra_aprovacoes` (append-only) e notificam quem criou a
+solicitação. **Correção pós-teste SQL (migration `0064`)**: quando o
+chamador não tinha nenhuma linha em `usuarios_empresa` para a empresa,
+`fn_pode_aprovar_solicitacao` comparava `NULL = 'aprovador'` e retornava
+`NULL` em vez de `false` — inofensivo na prática (o app já tratava com
+`?? false`, e `fn_aprovar_solicitacao_compra` já bloqueia antes disso no
+gate de posse/vínculo), mas corrigido para a função nunca devolver um
+boolean nulo. `compras_notificacoes` é lista real gravada no banco (sino no
+cabeçalho de Compras) — mesma limitação de `crm_interacoes`: **nenhuma
+integração de e-mail/push existe**, é só in-app.
+
+### Cotação (migrations `0058`, `0060`)
+
+`compras_cotacoes`/`..._itens`/`..._fornecedores`/`..._propostas_itens`
+carregam `empresa_id` diretamente em cada tabela (convenção mais recente do
+projeto, RLS mais simples que o join usado em `solicitacoes_compra_itens`,
+anterior a esse padrão se firmar). O "mapa comparativo" nunca é persistido
+— é sempre montado em leitura (join das 4 tabelas). Duplicidade de
+fornecedor convidado é bloqueada por `unique(cotacao_id, fornecedor_id)`.
+`fn_escolher_melhor_proposta_cotacao` só considera fornecedores que
+propuseram **todos** os itens da cotação (comparação justa); um fornecedor
+parcial fica de fora da escolha automática mas pode ser escolhido
+manualmente. `fn_finalizar_cotacao` (SECURITY INVOKER — toda escrita já é
+permitida pela RLS do próprio usuário) cria o pedido de compra com os
+preços/condições do vencedor, marca a cotação como `finalizada` e a
+solicitação de origem (se houver) como `convertida`, tudo numa única
+transação.
+
+### Pedido de compra estendido (migration `0059`)
+
+Ganha número automático, origem por cotação, centro de custo/plano de
+conta, desconto (percentual + valor fixo), frete, impostos, condição de
+pagamento, parcelas e uma aprovação leve própria (distinta da aprovação da
+solicitação de origem — o pedido já nasce de uma solicitação aprovada ou
+cotação finalizada, esta é só uma checagem final antes de enviar ao
+fornecedor). `pedidos_compra_criar_conta_pagar` (0041, lump-sum) é
+**substituída** (não duplicada) por `pedidos_compra_sincronizar_conta_pagar`
+— gera 1..N parcelas (última absorve o arredondamento) já classificadas
+por centro de custo/plano de conta, e cancela as contas a pagar pendentes
+vinculadas se o pedido for cancelado.
+
+### Recebimento de mercadorias (migration `0061`)
+
+Enriquece o recebimento simples da 0017 (só quantidade + lote + validade)
+com conferência de preço, data de fabricação, recusa parcial e
+responsável, sem duplicar a entrada em estoque já resolvida por
+`fn_registrar_entrada_estoque` (0014). `quantidade_recusada` em
+`pedidos_compra_itens` entra no critério de "pedido totalmente resolvido"
+junto com `quantidade_recebida` — um item 100% recusado fecha o pedido
+sem nunca ter entrado em estoque. `fn_registrar_recebimento_item` é o
+**único caminho de escrita** do recebimento detalhado (cria/reaproveita o
+cabeçalho `compras_recebimentos`, aciona recebimento/recusa via as funções
+já existentes, grava a linha de conferência e notifica em caso de
+divergência) — `compras_recebimentos_itens` não tem policy de `INSERT`
+para `authenticated` por isso.
+
+### Avaliação de fornecedores (migration `0062`)
+
+`compras_avaliacoes_fornecedor` só tem policy de `INSERT`/`SELECT` (sem
+`UPDATE`/`DELETE` — uma correção é uma nova avaliação, não uma edição).
+`compras_fornecedores_score` é uma **view** (`security_invoker = true`)
+combinando médias de avaliação com taxa de entrega completa e divergência
+de recebimento — mesmo princípio de nunca duplicar em coluna o que é
+derivável, já usado por `crm_clientes_metricas` (Sprint 07).
+
+### Permissões, auditoria e Realtime (migration `0063`)
+
+`usuarios_empresa` ganha 4 papéis novos (`comprador`/`aprovador`/
+`recebedor`/`solicitante`) — um usuário continua com **um único papel por
+empresa** (mesma limitação já aceita pelo Financeiro); `owner` sempre tem
+acesso total. `fn_tem_acesso_compras`/`fn_perfis_visiveis_compras`
+reaproveitam exatamente o formato de `fn_tem_acesso_financeiro`/
+`fn_perfis_visiveis_financeiro` (0043/0044). Todas as tabelas de Compras
+migram de RLS "só dono" para `fn_tem_acesso_compras`-gated (13 conjuntos de
+policies). `compras_auditoria` + `fn_registrar_auditoria_compras()`
+reaproveitam o padrão genérico de `financeiro_auditoria`/`crm_auditoria`.
+Realtime habilitado em `solicitacoes_compra`, `compras_cotacoes`,
+`pedidos_compra` e `compras_notificacoes` — telas colaborativas onde
+múltiplos operadores mudando ao mesmo tempo é visível na prática (mesmo
+critério seletivo da 0037/0053).
+
+### Riscos e pendências conhecidas desta sprint
+
+- `compras_anexos` não tem upload de arquivo real — é sempre um link
+  colado, mesma limitação de todo o projeto (nenhuma sprint integra
+  Supabase Storage).
+- `compras_notificacoes` é uma lista in-app real, não um disparo externo —
+  nenhuma integração de e-mail/push existe.
+- "Compras por categoria" no dashboard usa a(s) categoria(s) do
+  **fornecedor** (`fornecedores.categorias`), não uma categoria por
+  ingrediente/item comprado — este projeto não tem categoria de compra por
+  item, só por fornecedor; é uma aproximação razoável, documentada aqui
+  para não ser lida como um bug.
+- `atende_pedido_minimo` em `compras_cotacoes_propostas_itens` existe no
+  schema mas a UI sempre grava `true` — não há fluxo para o
+  comprador marcar manualmente que um item específico não atende o pedido
+  mínimo do fornecedor (o pedido mínimo em si, como valor de corte, já é
+  comparado no mapa da cotação).
+- Este projeto não tem `pg_cron` — não há lembrete automático de
+  solicitação parada há X dias nem expiração de cotação por prazo; teria
+  que ser um botão manual, como fidelidade/cashback (Sprint 07).

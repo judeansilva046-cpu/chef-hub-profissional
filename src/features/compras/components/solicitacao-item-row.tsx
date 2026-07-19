@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
-import { NumberField } from "@/components/ui/number-field";
+import { CurrencyInput, NumberField } from "@/components/ui/number-field";
 import type { IngredienteParaSelecao } from "@/features/ingredientes/queries";
 
 import type { SolicitacaoItemFormState } from "../types";
@@ -28,7 +28,7 @@ export function SolicitacaoItemRow({
 
   return (
     <div className="border-border grid grid-cols-12 items-center gap-3 border-b py-3 last:border-0">
-      <div className="col-span-8">
+      <div className="col-span-6">
         <Combobox
           options={ingredientes.map((i) => ({
             value: i.id,
@@ -43,12 +43,21 @@ export function SolicitacaoItemRow({
         />
       </div>
 
-      <div className="col-span-3">
+      <div className="col-span-2">
         <NumberField
           value={item.quantidade}
           onChange={(value) => onChange({ ...item, quantidade: value })}
           min={0}
           placeholder={ingrediente ? `Qtd. (${ingrediente.unidades_medida.sigla})` : "Quantidade"}
+        />
+      </div>
+
+      <div className="col-span-3">
+        <CurrencyInput
+          value={item.precoEstimado}
+          onChange={(value) => onChange({ ...item, precoEstimado: value })}
+          min={0}
+          placeholder="R$ 0,00"
         />
       </div>
 

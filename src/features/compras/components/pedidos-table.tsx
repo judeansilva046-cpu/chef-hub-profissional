@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatarData } from "@/lib/format";
+import { formatarData, formatarMoeda } from "@/lib/format";
 
 import type { PedidoComFornecedor } from "../queries";
 import { PEDIDO_STATUS_LABEL, PEDIDO_STATUS_VARIANT } from "./status-badges";
@@ -33,9 +33,11 @@ export function PedidosTable({ pedidos }: PedidosTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Número</TableHead>
           <TableHead>Fornecedor</TableHead>
           <TableHead>Data do pedido</TableHead>
           <TableHead>Previsão de entrega</TableHead>
+          <TableHead className="text-right">Total</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
@@ -47,9 +49,10 @@ export function PedidosTable({ pedidos }: PedidosTableProps) {
                 href={`/compras/pedidos/${pedido.id}`}
                 className="hover:underline"
               >
-                {pedido.fornecedores.nome}
+                {pedido.numero ? `#${pedido.numero}` : "—"}
               </Link>
             </TableCell>
+            <TableCell className="text-muted-foreground">{pedido.fornecedores.nome}</TableCell>
             <TableCell className="text-muted-foreground">
               {formatarData(pedido.data_pedido)}
             </TableCell>
@@ -57,6 +60,9 @@ export function PedidosTable({ pedidos }: PedidosTableProps) {
               {pedido.data_prevista_entrega
                 ? formatarData(pedido.data_prevista_entrega)
                 : "—"}
+            </TableCell>
+            <TableCell className="text-muted-foreground text-right">
+              {formatarMoeda(pedido.total)}
             </TableCell>
             <TableCell>
               <Badge variant={PEDIDO_STATUS_VARIANT[pedido.status]}>
