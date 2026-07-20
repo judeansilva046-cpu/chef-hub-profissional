@@ -119,12 +119,16 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
 
   /**
    * Cupom exige cliente identificado (o uso é sempre registrado por cliente,
-   * ver fn_validar_e_aplicar_cupom, 0049) — aplica o desconto no MESMO campo
-   * desconto_valor_fixo que a tela de valores do pedido já usa
-   * (atualizarValoresPedido), sem introduzir um caminho de cálculo paralelo.
-   * Só trata os tipos percentual/fixo aqui: frete_gratis/produto_gratis
-   * exigiriam alterar taxa_entrega/itens do pedido e ficam fora desta
-   * integração inicial (ver relatório da Sprint 07).
+   * ver fn_validar_e_aplicar_cupom, 0049). Quatro tipos, quatro efeitos
+   * diferentes no pedido — nenhum caminho de cálculo paralelo, todos usam
+   * as mesmas actions que a tela de valores/carrinho já usa:
+   * - percentual/fixo: desconto no MESMO campo desconto_valor_fixo que a
+   *   tela de valores do pedido usa (atualizarValoresPedido).
+   * - frete_gratis: zera taxa_entrega (mesma action, resto dos valores
+   *   preservado).
+   * - produto_gratis: adiciona a ficha técnica concedida como item do
+   *   pedido a R$ 0 (mesma action de adicionar item do carrinho,
+   *   adicionarItemPedido) — não precisa estar na grade de itens visível.
    */
   function aplicarCupomNoPedido() {
     if (!pedidoAtual || !clienteId || !codigoCupom.trim()) return;
@@ -138,17 +142,34 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
           canalVendaId: canalVendaId || undefined,
         });
 
-        if (resultado.tipo !== "percentual" && resultado.tipo !== "fixo") {
+        if (resultado.tipo === "percentual" || resultado.tipo === "fixo") {
+          await atualizarValoresPedido(pedidoAtual.pedido.id, {
+            descontoPercentual: pedidoAtual.pedido.desconto_percentual,
+            descontoValorFixo: resultado.valorDesconto,
+            acrescimoValor: pedidoAtual.pedido.acrescimo_valor,
+            taxaEntrega: pedidoAtual.pedido.taxa_entrega,
+          });
+        } else if (resultado.tipo === "frete_gratis") {
+          await atualizarValoresPedido(pedidoAtual.pedido.id, {
+            descontoPercentual: pedidoAtual.pedido.desconto_percentual,
+            descontoValorFixo: pedidoAtual.pedido.desconto_valor_fixo,
+            acrescimoValor: pedidoAtual.pedido.acrescimo_valor,
+            taxaEntrega: 0,
+          });
+        } else if (resultado.tipo === "produto_gratis") {
+          if (!resultado.fichaTecnicaGratisId) {
+            setErro("Cupom de produto grátis sem ficha técnica configurada.");
+            return;
+          }
+          await adicionarItemPedido(pedidoAtual.pedido.id, {
+            fichaTecnicaId: resultado.fichaTecnicaGratisId,
+            quantidade: 1,
+            precoUnitarioPraticado: 0,
+          });
+        } else {
           setErro("Este tipo de cupom ainda não é aplicado automaticamente no PDV.");
           return;
         }
-
-        await atualizarValoresPedido(pedidoAtual.pedido.id, {
-          descontoPercentual: pedidoAtual.pedido.desconto_percentual,
-          descontoValorFixo: resultado.valorDesconto,
-          acrescimoValor: pedidoAtual.pedido.acrescimo_valor,
-          taxaEntrega: pedidoAtual.pedido.taxa_entrega,
-        });
 
         setCupomAplicado(codigoCupom.trim().toUpperCase());
         router.refresh();

@@ -10,6 +10,7 @@ import {
   centroCustoSchema,
   custoFixoSchema,
   custoVariavelSchema,
+  funcionarioSchema,
   metaVendasSchema,
   planoContaSchema,
 } from "./validation";
@@ -28,6 +29,7 @@ function revalidarFinanceiro() {
   revalidatePath("/financeiro/custos-variaveis");
   revalidatePath("/financeiro/canais");
   revalidatePath("/financeiro/simulador-promocoes");
+  revalidatePath("/financeiro/funcionarios");
 }
 
 function parseCustoFixoForm(formData: FormData) {
@@ -461,4 +463,105 @@ export async function alternarAtivoCentroCusto(id: string, ativo: boolean) {
 
   if (error) throw new Error("Não foi possível atualizar o centro de custo.");
   revalidatePath("/financeiro/centros-de-custo");
+}
+
+function parseFuncionarioForm(formData: FormData) {
+  return funcionarioSchema.safeParse({
+    nome: formData.get("nome"),
+    cargo: formData.get("cargo"),
+    tipoContratacao: formData.get("tipoContratacao"),
+    salarioBase: formData.get("salarioBase"),
+    cargaHorariaSemanal: formData.get("cargaHorariaSemanal"),
+    encargosPercentual: formData.get("encargosPercentual"),
+    beneficiosValor: formData.get("beneficiosValor"),
+    dataAdmissao: formData.get("dataAdmissao"),
+    observacoes: formData.get("observacoes"),
+  });
+}
+
+export async function criarFuncionario(
+  _prevState: FinanceiroActionState | undefined,
+  formData: FormData,
+): Promise<FinanceiroActionState> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return { formError: "Nenhuma empresa ativa." };
+
+  const validated = parseFuncionarioForm(formData);
+  if (!validated.success) {
+    return { fieldErrors: validated.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("funcionarios").insert({
+    empresa_id: empresa.id,
+    nome: validated.data.nome,
+    cargo: validated.data.cargo,
+    tipo_contratacao: validated.data.tipoContratacao,
+    salario_base: validated.data.salarioBase,
+    carga_horaria_semanal: validated.data.cargaHorariaSemanal,
+    encargos_percentual: validated.data.encargosPercentual,
+    beneficios_valor: validated.data.beneficiosValor,
+    data_admissao: validated.data.dataAdmissao,
+    observacoes: validated.data.observacoes,
+  });
+
+  if (error) {
+    return { formError: "Não foi possível salvar o funcionário." };
+  }
+
+  revalidarFinanceiro();
+  return { success: true };
+}
+
+export async function atualizarFuncionario(
+  id: string,
+  _prevState: FinanceiroActionState | undefined,
+  formData: FormData,
+): Promise<FinanceiroActionState> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return { formError: "Nenhuma empresa ativa." };
+
+  const validated = parseFuncionarioForm(formData);
+  if (!validated.success) {
+    return { fieldErrors: validated.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("funcionarios")
+    .update({
+      nome: validated.data.nome,
+      cargo: validated.data.cargo,
+      tipo_contratacao: validated.data.tipoContratacao,
+      salario_base: validated.data.salarioBase,
+      carga_horaria_semanal: validated.data.cargaHorariaSemanal,
+      encargos_percentual: validated.data.encargosPercentual,
+      beneficios_valor: validated.data.beneficiosValor,
+      data_admissao: validated.data.dataAdmissao,
+      observacoes: validated.data.observacoes,
+    })
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
+
+  if (error) {
+    return { formError: "Não foi possível salvar o funcionário." };
+  }
+
+  revalidarFinanceiro();
+  return { success: true };
+}
+
+export async function alternarAtivoFuncionario(id: string, ativo: boolean) {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("funcionarios")
+    .update({ ativo, data_desligamento: ativo ? null : new Date().toISOString().slice(0, 10) })
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
+
+  if (error) throw new Error("Não foi possível atualizar o funcionário.");
+  revalidarFinanceiro();
 }

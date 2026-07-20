@@ -138,3 +138,48 @@ export const canalVendaSchema = z.object({
 });
 
 export type CanalVendaInput = z.infer<typeof canalVendaSchema>;
+
+export const TIPO_CONTRATACAO_OPCOES = [
+  { value: "clt", label: "CLT (salário mensal)" },
+  { value: "pj", label: "PJ (valor mensal)" },
+  { value: "horista", label: "Horista (valor por hora)" },
+] as const;
+
+export const funcionarioSchema = z.object({
+  nome: z.string().trim().min(1, { error: "Informe o nome." }),
+  cargo: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : null)),
+  tipoContratacao: z.enum(["clt", "pj", "horista"], {
+    error: "Selecione o tipo de contratação.",
+  }),
+  salarioBase: z.coerce
+    .number({ error: "Informe um valor válido." })
+    .min(0, { error: "O valor não pode ser negativo." }),
+  cargaHorariaSemanal: z.coerce
+    .number({ error: "Informe a carga horária semanal." })
+    .positive({ error: "A carga horária deve ser maior que zero." }),
+  encargosPercentual: z.coerce
+    .number({ error: "Informe um percentual válido." })
+    .min(0, { error: "O percentual não pode ser negativo." }),
+  beneficiosValor: z.coerce
+    .number({ error: "Informe um valor válido." })
+    .min(0, { error: "O valor não pode ser negativo." }),
+  dataAdmissao: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : null)),
+  observacoes: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => (value ? value : null)),
+});
+
+export type FuncionarioInput = z.infer<typeof funcionarioSchema>;

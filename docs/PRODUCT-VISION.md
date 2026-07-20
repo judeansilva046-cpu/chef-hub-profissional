@@ -31,7 +31,7 @@ aumentar a eficiência operacional.
       [AGENTE-LOCAL.md](./AGENTE-LOCAL.md))
 - [x] Planejamento de produção
 - [x] Lista de compras inteligente
-- [ ] Calculadora completa de custos de funcionários
+- [x] Calculadora completa de custos de funcionários
 - [x] Gestão de custos fixos e variáveis
 - [x] Ponto de equilíbrio
 - [x] Sugestão de metas mínimas de vendas para nunca operar no prejuízo
@@ -103,8 +103,13 @@ Ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
   [DATABASE.md](./DATABASE.md#sprint-04--dashboard-relatórios-crm-etiquetas-e-integrações),
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros) e
   [SPRINT-04.md](./SPRINT-04.md).
-- Ainda não implementados: calculadora completa de custos de funcionários,
-  exportação de relatórios em PDF, chamadas reais de integração externa
-  (iFood, 99Food, Keeta, Open Delivery, PDVs, ERPs) e o executável do
-  agente local de impressão — ver
+- Cleanup pré-Sprint 09: débito técnico de integrações (idempotência de
+  pedido externo, resolução de `empresa_id` no webhook), cupons
+  `frete_gratis`/`produto_gratis` aplicados no PDV e a calculadora de
+  custos de funcionários — ver
+  [DATABASE.md](./DATABASE.md#cleanup-pré-sprint-09--débito-técnico-de-integrações-cupons-grátis-no-pdv-e-funcionários).
+- Ainda não implementados: chamadas reais de integração externa (iFood,
+  99Food, Keeta, Open Delivery, PDVs, ERPs) — bloqueado por falta de
+  credencial de sandbox/homologação de qualquer parceiro — e o executável
+  do agente local de impressão — ver
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).

@@ -3588,6 +3588,68 @@ export type Database = {
           },
         ];
       };
+      funcionarios: {
+        Row: {
+          ativo: boolean;
+          atualizado_em: string;
+          beneficios_valor: number;
+          carga_horaria_semanal: number;
+          cargo: string | null;
+          criado_em: string;
+          data_admissao: string | null;
+          data_desligamento: string | null;
+          empresa_id: string;
+          encargos_percentual: number;
+          id: string;
+          nome: string;
+          observacoes: string | null;
+          salario_base: number;
+          tipo_contratacao: string;
+        };
+        Insert: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          beneficios_valor?: number;
+          carga_horaria_semanal?: number;
+          cargo?: string | null;
+          criado_em?: string;
+          data_admissao?: string | null;
+          data_desligamento?: string | null;
+          empresa_id: string;
+          encargos_percentual?: number;
+          id?: string;
+          nome: string;
+          observacoes?: string | null;
+          salario_base?: number;
+          tipo_contratacao?: string;
+        };
+        Update: {
+          ativo?: boolean;
+          atualizado_em?: string;
+          beneficios_valor?: number;
+          carga_horaria_semanal?: number;
+          cargo?: string | null;
+          criado_em?: string;
+          data_admissao?: string | null;
+          data_desligamento?: string | null;
+          empresa_id?: string;
+          encargos_percentual?: number;
+          id?: string;
+          nome?: string;
+          observacoes?: string | null;
+          salario_base?: number;
+          tipo_contratacao?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "funcionarios_empresa_id_fkey";
+            columns: ["empresa_id"];
+            isOneToOne: false;
+            referencedRelation: "empresas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ingredientes: {
         Row: {
           ativo: boolean;
@@ -3694,38 +3756,51 @@ export type Database = {
       integracoes_canais: {
         Row: {
           atualizado_em: string;
+          canal_venda_id: string | null;
           conectado_em: string | null;
           credenciais_criptografadas: string | null;
           criado_em: string;
           empresa_id: string;
           id: string;
+          identificador_externo: string | null;
           metadata: Json;
           provedor: string;
           status_conexao: string;
         };
         Insert: {
           atualizado_em?: string;
+          canal_venda_id?: string | null;
           conectado_em?: string | null;
           credenciais_criptografadas?: string | null;
           criado_em?: string;
           empresa_id: string;
           id?: string;
+          identificador_externo?: string | null;
           metadata?: Json;
           provedor: string;
           status_conexao?: string;
         };
         Update: {
           atualizado_em?: string;
+          canal_venda_id?: string | null;
           conectado_em?: string | null;
           credenciais_criptografadas?: string | null;
           criado_em?: string;
           empresa_id?: string;
           id?: string;
+          identificador_externo?: string | null;
           metadata?: Json;
           provedor?: string;
           status_conexao?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "integracoes_canais_canal_venda_id_fkey";
+            columns: ["canal_venda_id"];
+            isOneToOne: false;
+            referencedRelation: "canais_venda";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "integracoes_canais_empresa_id_fkey";
             columns: ["empresa_id"];
@@ -4274,9 +4349,11 @@ export type Database = {
           empresa_id: string;
           entregue_em: string | null;
           id: string;
+          id_externo: string | null;
           motivo_cancelamento: string | null;
           numero: number;
           observacoes: string | null;
+          provedor_origem: string | null;
           responsavel_id: string | null;
           status: string;
           subtotal: number;
@@ -4299,9 +4376,11 @@ export type Database = {
           empresa_id: string;
           entregue_em?: string | null;
           id?: string;
+          id_externo?: string | null;
           motivo_cancelamento?: string | null;
           numero?: number;
           observacoes?: string | null;
+          provedor_origem?: string | null;
           responsavel_id?: string | null;
           status?: string;
           subtotal?: number;
@@ -4324,9 +4403,11 @@ export type Database = {
           empresa_id?: string;
           entregue_em?: string | null;
           id?: string;
+          id_externo?: string | null;
           motivo_cancelamento?: string | null;
           numero?: number;
           observacoes?: string | null;
+          provedor_origem?: string | null;
           responsavel_id?: string | null;
           status?: string;
           subtotal?: number;
@@ -5669,6 +5750,10 @@ export type Database = {
       fn_resgatar_pontos_fidelidade: {
         Args: { p_cliente_id: string; p_observacao?: string; p_pontos: number };
         Returns: undefined;
+      };
+      fn_resolver_empresa_webhook_integracao: {
+        Args: { p_identificador_externo: string; p_provedor: string };
+        Returns: string;
       };
       fn_solicitar_ajuste_solicitacao_compra: {
         Args: { p_comentario: string; p_solicitacao_id: string };

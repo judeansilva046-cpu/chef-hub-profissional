@@ -843,3 +843,92 @@ critério seletivo da 0037/0053).
 - Este projeto não tem `pg_cron` — não há lembrete automático de
   solicitação parada há X dias nem expiração de cotação por prazo; teria
   que ser um botão manual, como fidelidade/cashback (Sprint 07).
+
+## Cleanup pré-Sprint 09 — débito técnico de integrações, cupons grátis no PDV e funcionários
+
+Duas migrations (`0066`-`0067`). Não é uma sprint de produto nova — é o
+fechamento de três pendências documentadas em sprints anteriores, antes de
+abrir a Sprint 09 (Integrações reais), que está bloqueada por falta de
+credencial de sandbox/homologação de qualquer parceiro (iFood/99Food/Keeta/
+Open Delivery) e por isso **não** foi atacada aqui.
+
+### Débito técnico de integrações (migration `0066`)
+
+Três lacunas que bloqueariam a ingestão de pedido por webhook mesmo depois
+de uma credencial real chegar — resolvidas agora enquanto o schema ainda é
+pequeno, em vez de na Sprint 09 junto com a integração em si:
+
+- **`pedidos.id_externo` + `provedor_origem`** — rastreabilidade e
+  idempotência de pedido vindo de fora (reentrega/retry do provedor nunca
+  duplica o pedido). Índice único parcial
+  `pedidos_empresa_provedor_id_externo_key` em
+  `(empresa_id, provedor_origem, id_externo) where id_externo is not null`
+  — pedido interno (balcão/PDV) continua com os dois campos nulos.
+- **`integracoes_canais.canal_venda_id` + `identificador_externo`** — antes
+  a conexão (`integracoes_canais`) e o canal que carrega a taxa daquele
+  provedor (`canais_venda`, 0025) só coincidiam por terem o mesmo texto em
+  `provedor`/`tipo`, sem FK nenhuma. `canal_venda_id` é preenchido
+  automaticamente ao conectar (`conectarIntegracao`, casando por tipo,
+  fica nulo se a empresa não tiver esse canal — nunca bloqueia o connect).
+  `identificador_externo` é o merchant/store ID da empresa naquela
+  plataforma; sem valor real de nenhum provedor ainda, mas o campo já
+  existe para quando a conexão for de verdade.
+- **`fn_resolver_empresa_webhook_integracao(provedor, identificador_externo)`**
+  — antes o `INSERT` em `integracoes_webhooks_recebidos` saía sempre com
+  `empresa_id` nulo (a única policy da tabela é `SELECT` por `empresa_id`,
+  então essas linhas eram estruturalmente invisíveis para qualquer
+  usuário). Chamada pela Route Handler do webhook com o client
+  service-role. Deliberadamente **sem** `security definer` nem `revoke
+  execute` — mesmo padrão de `fn_emitir_etiqueta` (0028): `stable`, só
+  devolve um `uuid` de lookup, e revogar de `public`/`anon`/`authenticated`
+  também revogaria do `service_role` (que depende do mesmo grant público),
+  quebrando o próprio caller do webhook.
+
+### Cupons `frete_gratis`/`produto_gratis` no PDV
+
+Pendência documentada na Sprint 07 (`fn_validar_e_aplicar_cupom` já existia
+e já devolvia `tipo` + `valor_desconto = 0` para esses dois tipos, mas
+`pdv-workspace.tsx` tinha um retorno antecipado que bloqueava os dois com
+"Este tipo de cupom ainda não é aplicado automaticamente no PDV."). Sem
+migration nova — só `aplicarCupomNoPedido` passou a ramificar por
+`resultado.tipo`: `produto_gratis` adiciona o `ficha_tecnica_gratis_id`
+como um segundo item do carrinho a R$ 0,00/un.; `frete_gratis` é aceito
+sem erro (pedido de balcão não expõe taxa de entrega na UI, então o efeito
+visual fica reservado para quando delivery existir de verdade).
+
+### Funcionários (migration `0067`)
+
+Único pilar do roadmap de produto ainda sem nenhuma implementação (ver
+`docs/PRODUCT-VISION.md`). CRUD simples vivendo dentro do módulo
+Financeiro compartilhado (`src/features/financeiro/{queries,actions,
+validation,calculations}.ts`), mesmo padrão de `custos_fixos`/
+`custos_variaveis`/`metas_vendas`/`canais_venda`/`plano_contas`/
+`centros_custo` — entidade pequena o bastante para não justificar um
+diretório de feature próprio. RLS "dono simples" (mesmo padrão de
+`custos_fixos`, **não** o padrão `fn_tem_acesso_financeiro` multiusuário
+do resto do Financeiro — funcionários não tem requisito de papel
+cross-módulo ainda). Sem policy de `DELETE` (só `ativo=false`, mesmo
+motivo de `custos_fixos`). `salario_base` serve tanto "salário mensal"
+(CLT/PJ) quanto "valor da hora" (horista) — mesma coluna rotulada
+diferente na UI conforme `tipo_contratacao`, mesmo princípio de
+`fornecedor_ingredientes.preco_unitario`. Custo mensal/hora estimado
+(`calcularCustoFuncionario`, considera `salario_base` +
+`encargos_percentual` + `beneficios_valor`, convertendo para hora via
+`carga_horaria_semanal * 52 / 12` quando `tipo_contratacao = 'horista'`) é
+sempre derivado em TypeScript, nunca gravado em coluna — mesmo princípio
+de `estoque_saldos`/`crm_clientes_metricas`.
+
+### Riscos e pendências conhecidas deste cleanup
+
+- Integrações reais com iFood/99Food/Keeta/Open Delivery continuam
+  bloqueadas por falta de credencial de sandbox/homologação — este
+  cleanup só remove obstáculos de schema que existiriam de qualquer forma,
+  não implementa nenhuma chamada de API real.
+- `encargos_percentual`/`beneficios_valor` de `funcionarios` são
+  estimativas agregadas — não é uma folha de pagamento com apuração legal
+  linha a linha (INSS/FGTS/13º/férias calculados separadamente), fora do
+  escopo desta calculadora.
+- `frete_gratis` aplicado no PDV não tem efeito visual observável em
+  pedido de balcão (a UI de balcão não exibe taxa de entrega) — validado
+  via ausência do erro de bloqueio antigo, não via um valor de frete
+  zerado na tela.

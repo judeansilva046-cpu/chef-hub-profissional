@@ -226,3 +226,18 @@ export async function listarFichasComCustoDesatualizado(): Promise<
       custoAtual: item.ingredientes.custo_unitario_atual,
     }));
 }
+
+export async function listarFuncionarios(): Promise<Tables<"funcionarios">[]> {
+  const empresa = await getEmpresaAtual();
+  if (!empresa) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("funcionarios")
+    .select("*")
+    .eq("empresa_id", empresa.id)
+    .order("nome", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}

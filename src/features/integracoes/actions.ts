@@ -33,6 +33,7 @@ export async function conectarIntegracao(
     provedor: formData.get("provedor"),
     clientId: formData.get("clientId"),
     clientSecret: formData.get("clientSecret"),
+    identificadorExterno: formData.get("identificadorExterno"),
   });
 
   if (!validated.success) {
@@ -50,12 +51,26 @@ export async function conectarIntegracao(
   }
 
   const supabase = await createClient();
+
+  // Liga a conexão ao canal de venda que já carrega a taxa daquele
+  // provedor (canais_venda, seedado automaticamente por empresa) — nunca
+  // bloqueia o connect se não encontrar (ex: open_delivery não tem canal
+  // correspondente ainda, canais_venda só tem ifood/99food/keeta/proprio).
+  const { data: canalCorrespondente } = await supabase
+    .from("canais_venda")
+    .select("id")
+    .eq("empresa_id", empresa.id)
+    .eq("tipo", validated.data.provedor)
+    .maybeSingle();
+
   const { error } = await supabase.from("integracoes_canais").upsert(
     {
       empresa_id: empresa.id,
       provedor: validated.data.provedor,
       credenciais_criptografadas: credenciaisCriptografadas,
       status_conexao: "pendente_homologacao",
+      canal_venda_id: canalCorrespondente?.id ?? null,
+      identificador_externo: validated.data.identificadorExterno,
     },
     { onConflict: "empresa_id,provedor" },
   );

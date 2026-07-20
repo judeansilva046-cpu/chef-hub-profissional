@@ -74,6 +74,17 @@ export function CredenciaisDialog({
             )}
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="identificadorExterno">
+              Identificador do estabelecimento na {provedorLabel} (opcional)
+            </Label>
+            <Input id="identificadorExterno" name="identificadorExterno" placeholder="Ex: merchant ID / store ID" />
+            <Text size="sm" tone="muted">
+              Usado para reconhecer os pedidos recebidos por webhook como
+              sendo desta empresa, quando a integração real existir.
+            </Text>
+          </div>
+
           {state?.formError && (
             <Text size="sm" tone="danger">
               {state.formError}

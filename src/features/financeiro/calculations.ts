@@ -253,3 +253,45 @@ export function calcularQuantidadeEquivalentePromocao(
   if (margemUnitariaPromocional <= 0) return null;
   return (quantidadeBase * margemUnitariaOriginal) / margemUnitariaPromocional;
 }
+
+/** Média de semanas por mês (52/12) — mesma constante usada nas duas
+ * direções do cálculo (mensal → hora e hora → mensal), para as duas nunca
+ * divergirem por arredondamentos diferentes. */
+const SEMANAS_POR_MES = 52 / 12;
+
+export interface CustoFuncionario {
+  custoMensalTotal: number;
+  horasMensais: number;
+  custoHora: number;
+}
+
+/**
+ * Custo real de um funcionário — não é a folha de pagamento legal (não
+ * apura INSS/FGTS/13º linha a linha), é uma estimativa de custo total para
+ * decisão de precificação/margem, mesmo espírito de custosVariaveis
+ * (agregado, não um motor fiscal). `salarioBase` significa coisas
+ * diferentes conforme `tipoContratacao`: para clt/pj é o valor mensal; para
+ * horista é o valor da hora — por isso o custo mensal base é calculado
+ * diferente em cada caso antes de aplicar encargos/benefícios.
+ */
+export function calcularCustoFuncionario(funcionario: {
+  tipoContratacao: string;
+  salarioBase: number;
+  cargaHorariaSemanal: number;
+  encargosPercentual: number;
+  beneficiosValor: number;
+}): CustoFuncionario {
+  const horasMensais = funcionario.cargaHorariaSemanal * SEMANAS_POR_MES;
+  const custoMensalBase =
+    funcionario.tipoContratacao === "horista"
+      ? funcionario.salarioBase * horasMensais
+      : funcionario.salarioBase;
+  const custoMensalTotal =
+    custoMensalBase * (1 + funcionario.encargosPercentual / 100) + funcionario.beneficiosValor;
+
+  return {
+    custoMensalTotal,
+    horasMensais,
+    custoHora: horasMensais > 0 ? custoMensalTotal / horasMensais : 0,
+  };
+}
