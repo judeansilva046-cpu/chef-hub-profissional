@@ -29,6 +29,9 @@ Cole e rode `supabase/tests/checkpoint3_hardening_0040.sql` (com
 `request.jwt.claim.sub` do usuário dono da empresa de teste). Deve retornar
 `OK: checkpoint 3 passou`.
 
+Após `0043`, rode também `supabase/tests/checkpoint4_rbac_0043.sql`
+(`OK: checkpoint 4 passou`).
+
 ## 2. Variáveis de ambiente (produção)
 
 ```bash
