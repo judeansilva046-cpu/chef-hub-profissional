@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { ingredienteSchema } from "./validation";
 
@@ -28,6 +29,7 @@ export async function criarIngrediente(
   _prevState: IngredienteActionState | undefined,
   formData: FormData,
 ): Promise<IngredienteActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -66,6 +68,7 @@ export async function atualizarIngrediente(
   _prevState: IngredienteActionState | undefined,
   formData: FormData,
 ): Promise<IngredienteActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseIngredienteForm(formData);
@@ -103,6 +106,7 @@ export async function atualizarIngrediente(
 }
 
 export async function alternarAtivoIngrediente(id: string, ativo: boolean) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

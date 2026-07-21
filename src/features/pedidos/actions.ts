@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  PAPEIS_CAIXA,
+  PAPEIS_COZINHA,
+  PAPEIS_SALA,
+} from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import {
   adicionalItemSchema,
@@ -40,6 +46,7 @@ async function assertPedidoDaEmpresa(
 }
 
 export async function criarPedido(input: unknown): Promise<string> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const validated = novoPedidoSchema.safeParse(input);
@@ -73,6 +80,7 @@ export async function criarPedido(input: unknown): Promise<string> {
 }
 
 export async function adicionarItemPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -97,6 +105,7 @@ export async function adicionarItemPedido(pedidoId: string, input: unknown): Pro
 }
 
 export async function removerItemPedido(pedidoId: string, itemId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -121,6 +130,7 @@ export async function atualizarQuantidadeItem(
 ): Promise<void> {
   if (quantidade <= 0) throw new Error("A quantidade deve ser maior que zero.");
 
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -143,6 +153,7 @@ export async function adicionarAdicionalItem(
   pedidoItemId: string,
   input: unknown,
 ): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -165,6 +176,7 @@ export async function adicionarAdicionalItem(
 }
 
 export async function removerAdicionalItem(pedidoId: string, adicionalId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -182,6 +194,7 @@ export async function removerAdicionalItem(pedidoId: string, adicionalId: string
 }
 
 export async function atualizarValoresPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -210,6 +223,7 @@ export async function atualizarValoresPedido(pedidoId: string, input: unknown): 
 }
 
 export async function confirmarPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -229,6 +243,7 @@ export async function confirmarPedido(pedidoId: string): Promise<void> {
 }
 
 export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -249,6 +264,7 @@ export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
 }
 
 export async function avancarStatusPedido(pedidoId: string, statusAtual: string): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA, ...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -274,6 +290,7 @@ export async function marcarItensProntos(
   pedidoId: string,
   pracaProducaoId?: string | null,
 ): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -295,6 +312,7 @@ export async function marcarItensProntos(
 }
 
 export async function concluirPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   const pedido = await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -318,6 +336,7 @@ export async function concluirPedido(pedidoId: string): Promise<void> {
 }
 
 export async function cancelarPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -343,6 +362,7 @@ export async function cancelarPedido(pedidoId: string, input: unknown): Promise<
 }
 
 export async function registrarPagamentoPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -378,6 +398,7 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
 }
 
 export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -393,6 +414,7 @@ export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
 }
 
 export async function duplicarPedido(pedidoId: string): Promise<string> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();

@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { PAPEIS_SALA } from "@/server/auth/papeis-acoes";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { vendaSchema } from "./validation";
 
@@ -25,6 +27,7 @@ export async function criarVenda(
   _prevState: VendaActionState | undefined,
   formData: FormData,
 ): Promise<VendaActionState> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -76,6 +79,7 @@ export async function atualizarVenda(
   _prevState: VendaActionState | undefined,
   formData: FormData,
 ): Promise<VendaActionState> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const validated = vendaSchema.safeParse({
@@ -115,6 +119,7 @@ export async function atualizarVenda(
 }
 
 export async function excluirVenda(id: string) {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { PAPEIS_CAIXA } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { abrirCaixaSchema, fecharCaixaSchema, movimentacaoCaixaSchema } from "./validation";
 
@@ -14,6 +16,7 @@ function revalidarCaixa() {
 }
 
 export async function abrirCaixa(input: unknown): Promise<string> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await getEmpresaAtual();
   if (!empresa) throw new Error("Nenhuma empresa ativa.");
 
@@ -38,6 +41,7 @@ export async function abrirCaixa(input: unknown): Promise<string> {
 }
 
 export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
 
   const validated = movimentacaoCaixaSchema.safeParse(input);
@@ -74,6 +78,7 @@ export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown
 }
 
 export async function fecharCaixa(caixaId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
 
   const validated = fecharCaixaSchema.safeParse(input);

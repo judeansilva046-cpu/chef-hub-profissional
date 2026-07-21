@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { PAPEIS_COZINHA } from "@/server/auth/papeis-acoes";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { adicionarDias } from "./date-range";
 import { producaoSchema } from "./validation";
@@ -19,6 +21,7 @@ export async function criarProducaoPlanejada(
   _prevState: ProducaoActionState | undefined,
   formData: FormData,
 ): Promise<ProducaoActionState> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -56,6 +59,7 @@ export async function atualizarStatusProducao(
   id: string,
   status: "em_producao" | "cancelada",
 ): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -77,6 +81,7 @@ export async function atualizarStatusProducao(
  * quantidade planejada — mesma transação, tudo ou nada.
  */
 export async function concluirProducao(id: string): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -120,6 +125,7 @@ export async function concluirProducao(id: string): Promise<void> {
 export async function repetirSemanaAnterior(
   dataInicioSemanaAtual: string,
 ): Promise<number> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");

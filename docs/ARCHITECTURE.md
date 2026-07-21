@@ -181,12 +181,17 @@ docs/                                   # Esta documentação
   única fonte de verdade sobre "quem está logado" no servidor — sempre
   redireciona para `/login` se não houver sessão, nunca retorna usuário nulo
   silenciosamente.
-- Um usuário pode ter **múltiplas empresas**. A "empresa ativa" da
-  requisição é resolvida por `src/server/auth/get-empresa-atual.ts`: lê o
-  cookie `empresa_ativa_id`, valida que pertence ao usuário, e cai para a
-  primeira empresa cadastrada se o cookie estiver ausente/inválido. Trocar de
-  empresa (`EmpresaSwitcher`) só regrava o cookie e redireciona — não há
-  tabela de "sessão de empresa" no banco.
+- Um usuário pode ter **múltiplas empresas**, e uma empresa pode ter
+  **múltiplos operadores** (`membros_empresa`, Sprint 06). A "empresa ativa"
+  da requisição é resolvida por `src/server/auth/get-empresa-atual.ts`: lê o
+  cookie `empresa_ativa_id`, valida que o usuário tem acesso (dono ou membro
+  ativo via RLS/`fn_empresas_acessiveis`), e cai para a primeira empresa
+  acessível se o cookie estiver ausente/inválido. Trocar de empresa
+  (`EmpresaSwitcher`) só regrava o cookie e redireciona — não há tabela de
+  "sessão de empresa" no banco. Papel na empresa ativa:
+  `getPapelNaEmpresaAtual` / `requirePapel` (`fn_papel_na_empresa`).
+  Gestão de equipe: `/equipe`. Rotas e Server Actions filtradas por papel
+  (`permissoes-rota.ts`, `papeis-acoes.ts`).
 - `(app)/layout.tsx` é o único lugar que decide "sem empresa → `/onboarding`"
   — as páginas de feature (fichas técnicas, ingredientes, etc.) assumem que
   já existe uma empresa ativa.
@@ -262,6 +267,7 @@ acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 | PWA                                           | `manifest.webmanifest` + `sw.js` + registro no layout raiz. |
 | PDVs externos, ERPs (adapters)             | Reserva de nome — o PDV **interno** (`/pdv`) já existe na Sprint 05; falta adapter para PDVs/ERPs de terceiros.                                                                                                                                                     |
 | Custos de funcionários                         | Implementado em `/financeiro/funcionarios` (migration `0042`). |
+| RBAC multi-operador                            | Implementado: `membros_empresa` (`0043`) + rotas/`requirePapel` + RLS escrita por papel (`0044`). |
 
 Quando uma dessas pendências for resolvida, atualize esta tabela.
 

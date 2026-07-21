@@ -107,6 +107,9 @@ Ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
 - **Pós-auditoria** — PWA, exportação PDF, calculadora de funcionários
   (`/financeiro/funcionarios`), agente local Node (`agents/impressao/`),
   hardening de segurança (`0040`–`0042`).
+- **Sprint 06 (RBAC)** — multi-operador por empresa (`membros_empresa`,
+  papéis owner/gerente/caixa/cozinha/garcom). Ver
+  [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md) e migration `0043`.
 - Ainda não implementados: chamadas reais de integração externa (iFood,
   99Food, Keeta, Open Delivery, ERPs) e adapters externos de PDV — exigem
   credenciais de parceiro homologado. Ver

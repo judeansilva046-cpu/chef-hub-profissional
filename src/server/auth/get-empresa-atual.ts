@@ -7,12 +7,15 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
 
 import { verifySession } from "./dal";
+import type { PapelEmpresa } from "./permissoes-rota";
 
 export const EMPRESA_ATIVA_COOKIE = "empresa_ativa_id";
 
+export type { PapelEmpresa };
+
 /**
- * Todas as empresas do usuário logado (um usuário pode ter mais de uma —
- * decisão de produto da Sprint 02). Ordenadas por criação para que a
+ * Todas as empresas do usuário logado (dono **ou** membro ativo — RLS em
+ * `empresas` usa `fn_empresas_acessiveis()`). Ordenadas por criação para que a
  * primeira empresa criada seja o fallback previsível quando não há cookie.
  */
 export const getEmpresasDoUsuario = cache(
@@ -58,5 +61,39 @@ export const getEmpresaAtual = cache(
     );
 
     return empresaValida ?? empresas[0];
+  },
+);
+
+/**
+ * Papel do usuário autenticado na empresa ativa (`fn_papel_na_empresa`).
+ * Owner primário (`empresas.usuario_id`) sempre resolve como `'owner'`.
+ */
+export const getPapelNaEmpresaAtual = cache(
+  async (): Promise<PapelEmpresa | null> => {
+    const empresa = await getEmpresaAtual();
+    if (!empresa) {
+      return null;
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("fn_papel_na_empresa", {
+      p_empresa_id: empresa.id,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      data === "owner" ||
+      data === "gerente" ||
+      data === "caixa" ||
+      data === "cozinha" ||
+      data === "garcom"
+    ) {
+      return data;
+    }
+
+    return null;
   },
 );
