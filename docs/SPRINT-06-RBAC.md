@@ -53,6 +53,8 @@ Home padrão: caixa → `/pdv`, cozinha → `/kds`, garçom → `/mesas`.
 
 ## Limitações desta entrega
 
-- E2E cobre só smoke da página (sem segundo usuário).
+- E2E de operadores (`e2e/13-rbac-papeis`) faz skip se os usuários
+  caixa/cozinha/garçom não estiverem seedados — ver
+  [`docs/sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql).
 - RLS do Postgres continua por tenant (empresa), não por papel — a barreira
   de papel é app-level (`requirePapel` + rotas).

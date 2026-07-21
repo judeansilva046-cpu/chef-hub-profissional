@@ -573,3 +573,7 @@ policies RLS para membros. Owner primário (`empresas.usuario_id`) não pode
 ser removido/desativado/demovido. Detalhe: [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md).
 
 Bundle: [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
+
+Teste SQL: [`supabase/tests/checkpoint4_rbac_0043.sql`](../supabase/tests/checkpoint4_rbac_0043.sql).
+
+Seed E2E operadores: [`docs/sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql).

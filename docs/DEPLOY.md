@@ -58,10 +58,14 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Specs novas: `e2e/08-kds`, `09-expedicao`, `10-financeiro-estoque`, `12-equipe`.
+Specs novas: `e2e/08-kds`, `09-expedicao`, `10-financeiro-estoque`,
+`12-equipe`, `13-rbac-papeis` (operadores opcionais — seed em
+[`sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql)).
+
+Validação SQL RBAC: `supabase/tests/checkpoint4_rbac_0043.sql`.
 
 ## 5. Depois do deploy estável
 
-- Expandir cobertura e2e de estoque/compras / segundo usuário RBAC
+- Seedar operadores E2E e rodar `e2e/13-rbac-papeis` sem skip
 - Homologar integrações marketplace (credenciais de parceiro)
 - Opcional: políticas RLS por papel no Postgres (hoje o gate é app-level)
