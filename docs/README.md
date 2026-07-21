@@ -21,8 +21,11 @@
   Relatórios, CRM, Etiquetas, Integrações): migrations, rotas e reuso.
 - [SPRINT-05.md](./SPRINT-05.md) — Pedidos, PDV, KDS, Caixa, Mesas,
   Expedição + hardening de segurança (`0030`–`0041`).
-- [AUDITORIA.md](./AUDITORIA.md) — auditoria completa (2026-07-21): estado
-  real das Sprints 01–05, segurança, gaps e roadmap de remediação.
+- [AUDITORIA.md](./AUDITORIA.md) — auditoria completa + remediação.
+- [AGENTE-LOCAL.md](./AGENTE-LOCAL.md) — contrato + CLI em `agents/impressao/`.
+
+Rotas novas pós-auditoria: `/financeiro/funcionarios`, PWA, PDF em
+`/api/relatorios/[tipo]?formato=pdf`.
 
 Cada sprint subsequente deve atualizar estes documentos conforme o sistema
 evolui — eles são a fonte de verdade para decisões de arquitetura e design.

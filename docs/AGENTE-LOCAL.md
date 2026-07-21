@@ -1,27 +1,28 @@
 # Agente Local de Impressão
 
 Contrato técnico da API consultada pelo agente instalado no computador
-Windows conectado à impressora térmica. **O executável do agente NÃO foi
-construído nesta sprint** — esta é a especificação para implementá-lo depois.
+conectado à impressora térmica. A implementação de referência em Node
+está em **`agents/impressao/`** (CLI `chef-hub-agente`).
 
 ## Fluxo
 
 ```
-Chef Hub Web  →  fila_impressao (Supabase)  →  Agente Local (Windows)  →  Impressora Térmica
+Chef Hub Web  →  fila_impressao (Supabase)  →  Agente Local  →  Impressora Térmica
 ```
 
-1. O usuário emite uma etiqueta na web (`/estoque/etiquetas`) — isso chama
-   `fn_emitir_etiqueta`, que grava um registro em `etiquetas_impressas`
-   (histórico) e cria um trabalho em `fila_impressao` com `status = 'pendente'`.
-2. O agente local, rodando como processo/serviço no Windows, faz *polling*
-   periódico (ex: a cada 5–10s) em `GET /api/agente-impressao/trabalhos`.
-3. Para cada trabalho retornado, o agente:
-   - marca como `processando` (`PATCH /api/agente-impressao/trabalhos/{id}`);
-   - renderiza a etiqueta a partir do `payload` (ver formato abaixo) no
-     tamanho indicado e envia para a impressora térmica (ex: via driver
-     Windows, ESC/POS, ou biblioteca de impressão térmica — escolha da
-     implementação do agente, fora do escopo desta API);
-   - marca como `concluido` ou `erro` (com `erroMensagem`) ao final.
+1. O usuário emite uma etiqueta (`/estoque/etiquetas`) ou o sistema enfileira
+   um comprovante (pedido, praça, expedição, fechamento de caixa) — isso
+   cria um trabalho em `fila_impressao` com `status = 'pendente'`.
+2. O agente local faz *polling* periódico (ex: a cada 5s) em
+   `GET /api/agente-impressao/trabalhos`.
+3. O **GET já claima** os trabalhos: o servidor marca como `processando` e
+   devolve apenas os claimados. O agente **não** precisa enviar
+   `PATCH { "status": "processando" }` antes de processar.
+4. Para cada trabalho retornado, o agente:
+   - renderiza / grava o `payload` (a referência em `agents/impressao/`
+     escreve `./outbox/{id}.json`);
+   - marca como `concluido` ou `erro` (com `erroMensagem`) via
+     `PATCH /api/agente-impressao/trabalhos/{id}`.
 
 ## Autenticação
 
@@ -43,8 +44,8 @@ requisição.
 
 ### `GET /api/agente-impressao/trabalhos`
 
-Retorna até 20 trabalhos pendentes da empresa do agente autenticado, mais
-antigos primeiro.
+Retorna até 20 trabalhos **já claimados como `processando`** da empresa do
+agente autenticado (antes estavam `pendente`), mais antigos primeiro.
 
 ```json
 {
@@ -60,7 +61,7 @@ antigos primeiro.
         "tamanho": "50x30",
         "quantidadeEtiquetas": 3
       },
-      "status": "pendente",
+      "status": "processando",
       "tentativas": 0,
       "criado_em": "2026-07-18T10:05:00Z"
     }
@@ -68,15 +69,17 @@ antigos primeiro.
 }
 ```
 
+Tipos de `tipo` aceitos na fila:
+
+- `etiqueta_validade`
+- `comprovante_pedido`
+- `comprovante_praca`
+- `comprovante_expedicao`
+- `fechamento_caixa`
+
 ### `PATCH /api/agente-impressao/trabalhos/{id}`
 
-Corpo:
-
-```json
-{ "status": "processando" }
-```
-
-ou, ao finalizar:
+Ao finalizar:
 
 ```json
 { "status": "concluido" }
@@ -88,9 +91,10 @@ ou, em caso de falha (impressora offline, papel, etc.):
 { "status": "erro", "erroMensagem": "Impressora não encontrada na porta USB001" }
 ```
 
-`status` aceita `"processando" | "concluido" | "erro"` (o agente nunca
-volta um trabalho para `"pendente"` — se falhar, fica `"erro"` e cabe ao
-usuário reemitir pela web).
+`status` aceita `"processando" | "concluido" | "erro"`. Como o GET já
+claima, o caminho normal do agente é só `concluido` / `erro`. O agente
+nunca volta um trabalho para `"pendente"` — se falhar, fica `"erro"` e cabe
+ao usuário reemitir pela web.
 
 ## Estados de um trabalho
 
@@ -99,14 +103,19 @@ pendente → processando → concluido
                        → erro
 ```
 
-## O que fica para uma implementação futura do agente
+(O salto `pendente → processando` é feito pelo próprio `GET`.)
 
-- Executável/serviço Windows real (linguagem/runtime em aberto — ex: um
-  binário .NET ou Node empacotado com `pkg`).
+## Implementação de referência
+
+Ver `agents/impressao/README.md`:
+
+- Variáveis: `CHEF_HUB_BASE_URL`, `CHEF_HUB_API_KEY`
+- Binário npm: `chef-hub-agente`
+- Outbox local: `agents/impressao/outbox/{id}.json`
+
+Ainda fora do escopo do CLI de referência (fica na instalação Windows):
+
 - Descoberta/configuração da impressora térmica local (driver, porta,
-  modelo — ESC/POS é o protocolo mais comum nesse tipo de impressora).
-- Renderização do layout físico da etiqueta a partir do `payload` (a
-  pré-visualização web em `EtiquetaPreview` mostra o layout esperado, mas
-  não gera o comando de impressão real).
-- Retentativa automática e backoff em caso de erro transitório.
-- Instalador e execução como serviço no boot do Windows.
+  ESC/POS).
+- Renderização do layout físico a partir do `payload`.
+- Retentativa automática / instalador como serviço no boot.

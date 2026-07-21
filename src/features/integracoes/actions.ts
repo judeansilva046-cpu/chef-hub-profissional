@@ -42,10 +42,13 @@ export async function conectarIntegracao(
 
   let credenciaisCriptografadas: string;
   try {
-    credenciaisCriptografadas = criptografarCredenciais({
-      clientId: validated.data.clientId,
-      clientSecret: validated.data.clientSecret,
-    });
+    credenciaisCriptografadas = criptografarCredenciais(
+      {
+        clientId: validated.data.clientId,
+        clientSecret: validated.data.clientSecret,
+      },
+      `${empresa.id}:${validated.data.provedor}`,
+    );
   } catch {
     return { formError: "Não foi possível criptografar as credenciais (configuração do servidor)." };
   }

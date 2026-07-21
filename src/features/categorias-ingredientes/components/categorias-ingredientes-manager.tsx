@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { FolderTree, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -33,7 +34,9 @@ export function CategoriasIngredientesManager({
   // (via `key`) — evita que erro de validação de uma tentativa anterior
   // vaze para a próxima abertura do diálogo.
   const [dialogKey, setDialogKey] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [categoriaParaExcluir, setCategoriaParaExcluir] = useState<
+    Tables<"categorias_ingredientes"> | null
+  >(null);
 
   function abrirCriacao() {
     setCategoriaEmEdicao(undefined);
@@ -45,20 +48,6 @@ export function CategoriasIngredientesManager({
     setCategoriaEmEdicao(categoria);
     setDialogAberto(true);
     setDialogKey((key) => key + 1);
-  }
-
-  function excluir(categoria: Tables<"categorias_ingredientes">) {
-    if (!window.confirm(`Excluir a categoria "${categoria.nome}"?`)) return;
-
-    startTransition(async () => {
-      try {
-        await excluirCategoriaIngrediente(categoria.id);
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : "Não foi possível excluir.",
-        );
-      }
-    });
   }
 
   return (
@@ -105,7 +94,6 @@ export function CategoriasIngredientesManager({
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled={pending}
                       onClick={() => abrirEdicao(categoria)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -114,8 +102,7 @@ export function CategoriasIngredientesManager({
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled={pending}
-                      onClick={() => excluir(categoria)}
+                      onClick={() => setCategoriaParaExcluir(categoria)}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Excluir</span>
@@ -133,6 +120,26 @@ export function CategoriasIngredientesManager({
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         categoria={categoriaEmEdicao}
+      />
+
+      <ConfirmDialog
+        open={categoriaParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setCategoriaParaExcluir(null);
+        }}
+        title="Excluir categoria"
+        description={
+          categoriaParaExcluir
+            ? `Excluir a categoria "${categoriaParaExcluir.nome}"?`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!categoriaParaExcluir) return;
+          await excluirCategoriaIngrediente(categoriaParaExcluir.id);
+          setCategoriaParaExcluir(null);
+        }}
       />
     </div>
   );

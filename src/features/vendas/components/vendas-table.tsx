@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -35,26 +36,12 @@ export function VendasTable({ vendas, fichas, canais, clientes }: VendasTablePro
   );
   const [dialogAberto, setDialogAberto] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [vendaParaExcluir, setVendaParaExcluir] = useState<VendaComRelacoes | null>(null);
 
   function abrirEdicao(venda: VendaComRelacoes) {
     setVendaEmEdicao(venda);
     setDialogAberto(true);
     setDialogKey((key) => key + 1);
-  }
-
-  function excluir(venda: VendaComRelacoes) {
-    if (!window.confirm(`Excluir a venda de "${venda.fichas_tecnicas.nome}"?`)) return;
-
-    startTransition(async () => {
-      try {
-        await excluirVenda(venda.id);
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : "Não foi possível excluir.",
-        );
-      }
-    });
   }
 
   if (vendas.length === 0) {
@@ -108,7 +95,6 @@ export function VendasTable({ vendas, fichas, canais, clientes }: VendasTablePro
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={pending}
                     onClick={() => abrirEdicao(venda)}
                   >
                     <Pencil className="h-4 w-4" />
@@ -117,8 +103,7 @@ export function VendasTable({ vendas, fichas, canais, clientes }: VendasTablePro
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={pending}
-                    onClick={() => excluir(venda)}
+                    onClick={() => setVendaParaExcluir(venda)}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Excluir</span>
@@ -138,6 +123,26 @@ export function VendasTable({ vendas, fichas, canais, clientes }: VendasTablePro
         canais={canais}
         clientes={clientes}
         venda={vendaEmEdicao}
+      />
+
+      <ConfirmDialog
+        open={vendaParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setVendaParaExcluir(null);
+        }}
+        title="Excluir venda"
+        description={
+          vendaParaExcluir
+            ? `Excluir a venda de "${vendaParaExcluir.fichas_tecnicas.nome}"?`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!vendaParaExcluir) return;
+          await excluirVenda(vendaParaExcluir.id);
+          setVendaParaExcluir(null);
+        }}
       />
     </>
   );

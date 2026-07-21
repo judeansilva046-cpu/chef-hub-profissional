@@ -5,6 +5,7 @@ import { Pencil, Plus, Power, Store, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -36,6 +37,7 @@ export function CanaisVendaManager({ canais }: CanaisVendaManagerProps) {
   >(undefined);
   const [dialogKey, setDialogKey] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [canalParaExcluir, setCanalParaExcluir] = useState<Tables<"canais_venda"> | null>(null);
 
   function abrirCriacao() {
     setCanalEmEdicao(undefined);
@@ -56,20 +58,6 @@ export function CanaisVendaManager({ canais }: CanaisVendaManagerProps) {
       } catch (error) {
         window.alert(
           error instanceof Error ? error.message : "Não foi possível atualizar.",
-        );
-      }
-    });
-  }
-
-  function excluir(canal: Tables<"canais_venda">) {
-    if (!window.confirm(`Excluir o canal "${canal.nome}"?`)) return;
-
-    startTransition(async () => {
-      try {
-        await excluirCanalVenda(canal.id);
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : "Não foi possível excluir.",
         );
       }
     });
@@ -150,7 +138,7 @@ export function CanaisVendaManager({ canais }: CanaisVendaManagerProps) {
                       variant="ghost"
                       size="sm"
                       disabled={pending}
-                      onClick={() => excluir(canal)}
+                      onClick={() => setCanalParaExcluir(canal)}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Excluir</span>
@@ -168,6 +156,24 @@ export function CanaisVendaManager({ canais }: CanaisVendaManagerProps) {
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         canal={canalEmEdicao}
+      />
+
+      <ConfirmDialog
+        open={canalParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setCanalParaExcluir(null);
+        }}
+        title="Excluir canal"
+        description={
+          canalParaExcluir ? `Excluir o canal "${canalParaExcluir.nome}"?` : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!canalParaExcluir) return;
+          await excluirCanalVenda(canalParaExcluir.id);
+          setCanalParaExcluir(null);
+        }}
       />
     </div>
   );

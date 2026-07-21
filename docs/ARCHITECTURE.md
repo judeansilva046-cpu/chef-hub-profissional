@@ -257,10 +257,11 @@ acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 | Pendência                                    | Propósito                                                                                                                                                                                                                            |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Chamadas reais em `src/integrations/*`        | Os 4 adapters (iFood, 99Food, Keeta, Open Delivery) existem como esqueleto (`IntegracaoAdapter`) mas todo método lança `IntegracaoNaoDisponivelError` — implementar de verdade requer credenciais de parceiro homologado com cada provedor, que este projeto não tem. |
-| Executável do agente local                    | O contrato da API está pronto e documentado (`docs/AGENTE-LOCAL.md`), mas o processo/serviço Windows que efetivamente imprime na térmica não foi construído nesta sprint.                                                          |
-| Exportação em PDF                             | `/api/relatorios/[tipo]?formato=pdf` já existe na assinatura e retorna 501 — geração real de PDF fica para uma sprint futura.                                                                                                       |
+| Agente local de impressão                     | CLI Node em `agents/impressao/` — polling + outbox JSON. Ligação ESC/POS física fica a cargo do ambiente Windows. Ver [AGENTE-LOCAL.md](./AGENTE-LOCAL.md). |
+| Exportação em PDF                             | Implementada em `/api/relatorios/[tipo]?formato=pdf` via `pdfkit`. |
+| PWA                                           | `manifest.webmanifest` + `sw.js` + registro no layout raiz. |
 | PDVs externos, ERPs (adapters)             | Reserva de nome — o PDV **interno** (`/pdv`) já existe na Sprint 05; falta adapter para PDVs/ERPs de terceiros.                                                                                                                                                     |
-| Custos de funcionários, relatórios de RH       | Ainda fora de escopo — ver [PRODUCT-VISION.md](./PRODUCT-VISION.md).                                                                                                                                                                 |
+| Custos de funcionários                         | Implementado em `/financeiro/funcionarios` (migration `0042`). |
 
 Quando uma dessas pendências for resolvida, atualize esta tabela.
 

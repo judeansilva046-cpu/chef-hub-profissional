@@ -75,16 +75,25 @@ export default async function RelatoriosPage({ searchParams }: RelatoriosPagePro
             <Heading level={2}>Relatórios Gerenciais</Heading>
             <Text tone="muted">
               Vendas, CMV, margem, estoque, compras, produção, por produto e
-              por canal — com exportação em CSV.
+              por canal — com exportação em CSV e PDF.
             </Text>
           </div>
-          <a
-            href={`/api/relatorios/${tipo}?${exportQuery.toString()}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            <Download className="h-4 w-4" />
-            Exportar CSV
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={`/api/relatorios/${tipo}?${exportQuery.toString()}`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </a>
+            <a
+              href={`/api/relatorios/${tipo}?${exportQuery.toString()}&formato=pdf`}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </a>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-4">

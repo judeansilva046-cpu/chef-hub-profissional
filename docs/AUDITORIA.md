@@ -233,7 +233,7 @@ Severidades: **Critical** / **High** / **Medium** / **Low**.
 
 ## 10. Roadmap de remediação
 
-### Concluído nesta rodada (P0/P1)
+### Concluído nesta rodada (P0/P1 + stubs internos)
 
 - [x] Ownership em `fn_proximo_numero_pedido` (`0040`)
 - [x] Máquina de estados + itens só em `rascunho` (triggers)
@@ -245,22 +245,18 @@ Severidades: **Critical** / **High** / **Medium** / **Low**.
 - [x] PDV atômico (`fn_finalizar_venda_pdv`)
 - [x] Sem ciphertext/`chave_api_hash` no client
 - [x] Claim atômico + transições da fila de impressão
-- [x] Nav agrupada + `ConfirmDialog` no barrel + `SPRINT-05.md` + Vitest
+- [x] Nav agrupada + `ConfirmDialog` + `SPRINT-05.md` + Vitest
+- [x] PWA (manifest + service worker)
+- [x] Exportação PDF dos relatórios
+- [x] Calculadora de custos de funcionários (`0042`)
+- [x] Agente local Node (`agents/impressao/`)
+- [x] Crypto AAD + migração `window.confirm` → `ConfirmDialog`
 
-### P2 — ainda aberto
+### Ainda aberto (parceiros externos)
 
-- Expandir e2e (KDS, expedição, estoque, financeiro)
-- Migrar restantes `window.confirm` → `ConfirmDialog`
-- Atualizar DATABASE.md com schema Sprint 05 completo
-- AAD/rotação em `INTEGRACOES_SECRET_KEY`
-
-### P3 — produto futuro
-
-- RBAC multi-operador
-- Integrações reais + agente Windows + PDF
-- PWA
-- Calculadora de funcionários
-
+- Chamadas reais iFood / 99Food / Keeta / Open Delivery (credenciais de homologação)
+- Adapters de PDV/ERP de terceiros
+- Driver ESC/POS nativo no Windows (agente grava outbox; impressão física é do ambiente)
 ---
 
 ## 11. Conclusão

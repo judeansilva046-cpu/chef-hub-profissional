@@ -10,47 +10,43 @@ import { listarProducoesPlanejadas } from "@/features/producao/queries";
 import { buscarVendasPorPeriodo } from "@/features/vendas/queries";
 import { listarSaldosEstoque } from "@/features/estoque/queries";
 import { gerarCsv } from "@/features/relatorios/csv";
+import { gerarPdfRelatorio } from "@/features/relatorios/pdf";
+import { RELATORIO_TIPOS, type RelatorioTipo } from "@/features/relatorios/tipos";
 import { relatorioCompras, relatorioVendas } from "@/features/relatorios/queries";
 import { formatarData } from "@/lib/format";
 import { primeiroDiaDoMesAtual, ultimoDiaDoMesAtual } from "@/lib/periodo";
 
-/**
- * Exportação CSV dos Relatórios Gerenciais. Um Route Handler (não Server
- * Action) porque o resultado é um arquivo para download, não uma mutação —
- * mesmo motivo de src/app/auth/confirm/route.ts ser um endpoint técnico
- * fora dos route groups de página. `formato` já aceita 'pdf' na assinatura
- * como estrutura preparada para exportação PDF futura — hoje retorna 501,
- * nenhuma geração de PDF foi implementada nesta sprint.
- */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ tipo: string }> },
-) {
-  const { tipo } = await params;
-  const searchParams = request.nextUrl.searchParams;
-  const dataInicio = searchParams.get("dataInicio") || primeiroDiaDoMesAtual();
-  const dataFim = searchParams.get("dataFim") || ultimoDiaDoMesAtual();
-  const canalVendaId = searchParams.get("canalVendaId") ?? undefined;
-  const formato = searchParams.get("formato") ?? "csv";
+interface RelatorioDados {
+  titulo: string;
+  colunas: string[];
+  linhas: (string | number)[][];
+}
 
-  if (formato === "pdf") {
-    return NextResponse.json(
-      {
-        erro:
-          "Exportação em PDF ainda não implementada nesta sprint — estrutura preparada (parâmetro formato), geração real fica para uma sprint futura.",
-      },
-      { status: 501 },
-    );
-  }
-
-  let csv: string;
+async function montarDadosRelatorio(
+  tipo: string,
+  dataInicio: string,
+  dataFim: string,
+  canalVendaId?: string,
+): Promise<RelatorioDados | null> {
+  const label =
+    RELATORIO_TIPOS.find((item) => item.value === tipo)?.label ?? tipo;
 
   switch (tipo) {
     case "vendas": {
       const linhas = await relatorioVendas({ dataInicio, dataFim, canalVendaId });
-      csv = gerarCsv(
-        ["Data", "Ficha técnica", "Canal", "Cliente", "Quantidade", "Preço unitário", "Valor total", "Margem"],
-        linhas.map((linha) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: [
+          "Data",
+          "Ficha técnica",
+          "Canal",
+          "Cliente",
+          "Quantidade",
+          "Preço unitário",
+          "Valor total",
+          "Margem",
+        ],
+        linhas: linhas.map((linha) => [
           formatarData(linha.dataVenda),
           linha.fichaTecnicaNome,
           linha.canalNome ?? "",
@@ -60,8 +56,7 @@ export async function GET(
           linha.valorTotal,
           linha.margemTotal,
         ]),
-      );
-      break;
+      };
     }
     case "cmv":
     case "margem":
@@ -75,17 +70,17 @@ export async function GET(
       const nomesPorFicha = new Map(fichas.map((ficha) => [ficha.id, ficha.nome]));
       const canaisPorId = new Map(canais.map((canal) => [canal.id, canal]));
       const { porProduto } = analisarVendas(vendas, custosVariaveis, canaisPorId);
-      csv = gerarCsv(
-        ["Produto", "Quantidade vendida", "Faturamento", "Custo (CMV)", "Margem"],
-        porProduto.map((linha) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: ["Produto", "Quantidade vendida", "Faturamento", "Custo (CMV)", "Margem"],
+        linhas: porProduto.map((linha) => [
           nomesPorFicha.get(linha.fichaTecnicaId) ?? "—",
           linha.quantidadeVendida,
           linha.faturamento,
           linha.custoTotal,
           linha.margem,
         ]),
-      );
-      break;
+      };
     }
     case "canal": {
       const [vendas, canais, custosVariaveis] = await Promise.all([
@@ -96,66 +91,116 @@ export async function GET(
       const nomesPorCanal = new Map(canais.map((canal) => [canal.id, canal.nome]));
       const canaisPorId = new Map(canais.map((canal) => [canal.id, canal]));
       const { porCanal } = analisarVendas(vendas, custosVariaveis, canaisPorId);
-      csv = gerarCsv(
-        ["Canal", "Quantidade vendida", "Faturamento", "Custo (CMV)", "Margem"],
-        porCanal.map((linha) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: ["Canal", "Quantidade vendida", "Faturamento", "Custo (CMV)", "Margem"],
+        linhas: porCanal.map((linha) => [
           linha.canalVendaId ? (nomesPorCanal.get(linha.canalVendaId) ?? "—") : "Sem canal",
           linha.quantidadeVendida,
           linha.faturamento,
           linha.custoTotal,
           linha.margem,
         ]),
-      );
-      break;
+      };
     }
     case "estoque": {
       const saldos = await listarSaldosEstoque();
-      csv = gerarCsv(
-        ["Ingrediente", "Saldo atual", "Estoque mínimo", "Custo médio ponderado", "Valor em estoque"],
-        saldos.map((item) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: [
+          "Ingrediente",
+          "Saldo atual",
+          "Estoque mínimo",
+          "Custo médio ponderado",
+          "Valor em estoque",
+        ],
+        linhas: saldos.map((item) => [
           item.ingrediente.nome,
           item.quantidadeAtual,
           item.ingrediente.estoque_minimo,
           item.custoMedioPonderado,
           item.valorEmEstoque,
         ]),
-      );
-      break;
+      };
     }
     case "compras": {
       const linhas = await relatorioCompras({ dataInicio, dataFim });
-      csv = gerarCsv(
-        ["Data do pedido", "Fornecedor", "Status", "Valor total"],
-        linhas.map((linha) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: ["Data do pedido", "Fornecedor", "Status", "Valor total"],
+        linhas: linhas.map((linha) => [
           formatarData(linha.dataPedido),
           linha.fornecedorNome,
           linha.status,
           linha.valorTotal,
         ]),
-      );
-      break;
+      };
     }
     case "producao": {
       const producoes = await listarProducoesPlanejadas({ dataInicio, dataFim });
-      csv = gerarCsv(
-        ["Data", "Ficha técnica", "Quantidade planejada", "Status"],
-        producoes.map((producao) => [
+      return {
+        titulo: `Relatório de ${label}`,
+        colunas: ["Data", "Ficha técnica", "Quantidade planejada", "Status"],
+        linhas: producoes.map((producao) => [
           formatarData(producao.data_producao),
           producao.fichas_tecnicas.nome,
           producao.quantidade_planejada,
           producao.status,
         ]),
-      );
-      break;
+      };
     }
     default:
-      return NextResponse.json({ erro: "Tipo de relatório desconhecido." }, { status: 400 });
+      return null;
+  }
+}
+
+/**
+ * Exportação CSV/PDF dos Relatórios Gerenciais. Route Handler (não Server
+ * Action) porque o resultado é um arquivo para download.
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ tipo: string }> },
+) {
+  const { tipo } = await params;
+  const searchParams = request.nextUrl.searchParams;
+  const dataInicio = searchParams.get("dataInicio") || primeiroDiaDoMesAtual();
+  const dataFim = searchParams.get("dataFim") || ultimoDiaDoMesAtual();
+  const canalVendaId = searchParams.get("canalVendaId") ?? undefined;
+  const formato = searchParams.get("formato") ?? "csv";
+
+  if (formato !== "csv" && formato !== "pdf") {
+    return NextResponse.json({ erro: "Formato inválido. Use csv ou pdf." }, { status: 400 });
   }
 
+  const dados = await montarDadosRelatorio(tipo, dataInicio, dataFim, canalVendaId);
+  if (!dados) {
+    return NextResponse.json({ erro: "Tipo de relatório desconhecido." }, { status: 400 });
+  }
+
+  const periodoLabel = `Período: ${formatarData(dataInicio)} a ${formatarData(dataFim)}`;
+  const tipoSeguro = tipo as RelatorioTipo;
+
+  if (formato === "pdf") {
+    const pdf = await gerarPdfRelatorio({
+      titulo: dados.titulo,
+      colunas: dados.colunas,
+      linhas: dados.linhas,
+      periodoLabel,
+    });
+    return new NextResponse(new Uint8Array(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="relatorio-${tipoSeguro}-${dataInicio}-a-${dataFim}.pdf"`,
+      },
+    });
+  }
+
+  const csv = gerarCsv(dados.colunas, dados.linhas);
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="relatorio-${tipo}-${dataInicio}-a-${dataFim}.csv"`,
+      "Content-Disposition": `attachment; filename="relatorio-${tipoSeguro}-${dataInicio}-a-${dataFim}.csv"`,
     },
   });
 }
