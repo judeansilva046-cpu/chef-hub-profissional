@@ -12,6 +12,10 @@ const TELAS_AUTENTICADAS: { nome: string; url: string; heading: RegExp }[] = [
   { nome: "pedidos", url: "/pedidos", heading: /Pedidos/ },
   { nome: "caixa", url: "/caixa", heading: /Caixa/ },
   { nome: "mesas", url: "/mesas", heading: /Mesas/ },
+  { nome: "estoque", url: "/estoque", heading: /Controle de estoque/ },
+  { nome: "expedicao", url: "/expedicao", heading: /Expedição/ },
+  { nome: "funcionarios", url: "/financeiro/funcionarios", heading: /Funcionários/ },
+  { nome: "relatorios", url: "/relatorios", heading: /Relatórios/ },
 ];
 
 for (const tela of TELAS_AUTENTICADAS) {

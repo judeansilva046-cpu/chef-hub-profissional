@@ -23,6 +23,7 @@
   Expedição + hardening de segurança (`0030`–`0041`).
 - [AUDITORIA.md](./AUDITORIA.md) — auditoria completa + remediação.
 - [AGENTE-LOCAL.md](./AGENTE-LOCAL.md) — contrato + CLI em `agents/impressao/`.
+- [DEPLOY.md](./DEPLOY.md) — aplicar migrations `0040`–`0042`, smoke test e e2e.
 
 Rotas novas pós-auditoria: `/financeiro/funcionarios`, PWA, PDF em
 `/api/relatorios/[tipo]?formato=pdf`.

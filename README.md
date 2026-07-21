@@ -44,6 +44,8 @@ Abra [http://localhost:3010](http://localhost:3010).
 | `npm test`             | Testes unitários (Vitest)                |
 | `npm run test:e2e`     | Testes e2e (Playwright)                  |
 
+Deploy e smoke test: [`docs/DEPLOY.md`](./docs/DEPLOY.md).
+
 ## Documentação
 
 Toda a documentação técnica está em [`docs/`](./docs/README.md):
