@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { PAPEIS_SALA } from "@/server/auth/papeis-acoes";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { clienteSchema } from "./validation";
 
@@ -31,6 +33,7 @@ export async function criarCliente(
   _prevState: ClienteActionState | undefined,
   formData: FormData,
 ): Promise<ClienteActionState> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -60,6 +63,7 @@ export async function atualizarCliente(
   _prevState: ClienteActionState | undefined,
   formData: FormData,
 ): Promise<ClienteActionState> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const validated = parseClienteForm(formData);
@@ -84,6 +88,7 @@ export async function atualizarCliente(
 }
 
 export async function alternarAtivoCliente(id: string, ativo: boolean) {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
