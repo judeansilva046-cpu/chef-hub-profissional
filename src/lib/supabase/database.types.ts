@@ -1144,7 +1144,9 @@ export type Database = {
           empresa_id: string
           id: string
           nome: string
+          setor: string | null
           status: string
+          tipo: string
         }
         Insert: {
           concluido_em?: string | null
@@ -1153,7 +1155,9 @@ export type Database = {
           empresa_id: string
           id?: string
           nome: string
+          setor?: string | null
           status?: string
+          tipo?: string
         }
         Update: {
           concluido_em?: string | null
@@ -1162,7 +1166,9 @@ export type Database = {
           empresa_id?: string
           id?: string
           nome?: string
+          setor?: string | null
           status?: string
+          tipo?: string
         }
         Relationships: [
           {
@@ -1183,9 +1189,11 @@ export type Database = {
       }
       estoque_lotes: {
         Row: {
+          codigo_rastreabilidade: string | null
           created_at: string
           custo_unitario: number
           data_entrada: string
+          data_fabricacao: string | null
           data_validade: string | null
           empresa_id: string
           id: string
@@ -1195,9 +1203,11 @@ export type Database = {
           quantidade_inicial: number
         }
         Insert: {
+          codigo_rastreabilidade?: string | null
           created_at?: string
           custo_unitario: number
           data_entrada?: string
+          data_fabricacao?: string | null
           data_validade?: string | null
           empresa_id: string
           id?: string
@@ -1207,9 +1217,11 @@ export type Database = {
           quantidade_inicial: number
         }
         Update: {
+          codigo_rastreabilidade?: string | null
           created_at?: string
           custo_unitario?: number
           data_entrada?: string
+          data_fabricacao?: string | null
           data_validade?: string | null
           empresa_id?: string
           id?: string
@@ -2504,6 +2516,405 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "integracoes_webhooks_recebidos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_analytics: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          metric_date: string
+          metric_type: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          metric_date?: string
+          metric_type: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          metric_date?: string
+          metric_type?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_analytics_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_batches: {
+        Row: {
+          batch_code: string | null
+          created_at: string
+          empresa_id: string
+          estoque_lote_id: string | null
+          expires_at: string | null
+          id: string
+          ingrediente_id: string
+          manufactured_at: string | null
+          notes: string | null
+          quantity_current: number
+          quantity_initial: number
+          status: string
+          traceability_code: string | null
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          batch_code?: string | null
+          created_at?: string
+          empresa_id: string
+          estoque_lote_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ingrediente_id: string
+          manufactured_at?: string | null
+          notes?: string | null
+          quantity_current?: number
+          quantity_initial?: number
+          status?: string
+          traceability_code?: string | null
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          batch_code?: string | null
+          created_at?: string
+          empresa_id?: string
+          estoque_lote_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ingrediente_id?: string
+          manufactured_at?: string | null
+          notes?: string | null
+          quantity_current?: number
+          quantity_initial?: number
+          status?: string
+          traceability_code?: string | null
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_batches_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_batches_ingrediente_id_fkey"
+            columns: ["ingrediente_id"]
+            isOneToOne: false
+            referencedRelation: "ingredientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_batches_estoque_lote_id_fkey"
+            columns: ["estoque_lote_id"]
+            isOneToOne: false
+            referencedRelation: "estoque_lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_count_items: {
+        Row: {
+          count_id: string
+          counted_qty: number | null
+          created_at: string
+          empresa_id: string
+          id: string
+          ingrediente_id: string
+          notes: string | null
+          system_qty: number
+          unit_cost: number
+          variance_qty: number | null
+        }
+        Insert: {
+          count_id: string
+          counted_qty?: number | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          ingrediente_id: string
+          notes?: string | null
+          system_qty?: number
+          unit_cost?: number
+        }
+        Update: {
+          count_id?: string
+          counted_qty?: number | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          ingrediente_id?: string
+          notes?: string | null
+          system_qty?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_count_items_count_id_fkey"
+            columns: ["count_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_counts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_counts: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          estoque_inventario_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          setor: string | null
+          started_at: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          estoque_inventario_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          setor?: string | null
+          started_at?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          estoque_inventario_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          setor?: string | null
+          started_at?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_counts_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_forecasts: {
+        Row: {
+          avg_daily_qty: number
+          confidence: number
+          created_at: string
+          empresa_id: string
+          forecast_qty: number
+          horizon_days: number
+          id: string
+          ingrediente_id: string
+          metadata: Json
+          method: string
+          period_end: string
+          period_start: string
+          seasonality_factor: number
+        }
+        Insert: {
+          avg_daily_qty?: number
+          confidence?: number
+          created_at?: string
+          empresa_id: string
+          forecast_qty?: number
+          horizon_days?: number
+          id?: string
+          ingrediente_id: string
+          metadata?: Json
+          method?: string
+          period_end: string
+          period_start: string
+          seasonality_factor?: number
+        }
+        Update: {
+          avg_daily_qty?: number
+          confidence?: number
+          created_at?: string
+          empresa_id?: string
+          forecast_qty?: number
+          horizon_days?: number
+          id?: string
+          ingrediente_id?: string
+          metadata?: Json
+          method?: string
+          period_end?: string
+          period_start?: string
+          seasonality_factor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_forecasts_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_losses: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          estoque_lote_id: string | null
+          id: string
+          ingrediente_id: string
+          lost_at: string
+          movimentacao_id: string | null
+          notes: string | null
+          quantity: number
+          reason: string
+          total_cost: number | null
+          unit_cost: number
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          estoque_lote_id?: string | null
+          id?: string
+          ingrediente_id: string
+          lost_at?: string
+          movimentacao_id?: string | null
+          notes?: string | null
+          quantity: number
+          reason: string
+          unit_cost?: number
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          estoque_lote_id?: string | null
+          id?: string
+          ingrediente_id?: string
+          lost_at?: string
+          movimentacao_id?: string | null
+          notes?: string | null
+          quantity?: number
+          reason?: string
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_losses_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_suggestions: {
+        Row: {
+          avg_daily_consumption: number
+          buy_by: string | null
+          created_at: string
+          days_of_cover: number | null
+          empresa_id: string
+          estimated_total: number | null
+          fornecedor_id: string | null
+          id: string
+          ingrediente_id: string
+          lista_compra_id: string | null
+          metadata: Json
+          priority: string
+          reason: string
+          source: string
+          status: string
+          stock_on_hand: number
+          suggested_qty: number
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_daily_consumption?: number
+          buy_by?: string | null
+          created_at?: string
+          days_of_cover?: number | null
+          empresa_id: string
+          estimated_total?: number | null
+          fornecedor_id?: string | null
+          id?: string
+          ingrediente_id: string
+          lista_compra_id?: string | null
+          metadata?: Json
+          priority?: string
+          reason?: string
+          source?: string
+          status?: string
+          stock_on_hand?: number
+          suggested_qty: number
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_daily_consumption?: number
+          buy_by?: string | null
+          created_at?: string
+          days_of_cover?: number | null
+          empresa_id?: string
+          estimated_total?: number | null
+          fornecedor_id?: string | null
+          id?: string
+          ingrediente_id?: string
+          lista_compra_id?: string | null
+          metadata?: Json
+          priority?: string
+          reason?: string
+          source?: string
+          status?: string
+          stock_on_hand?: number
+          suggested_qty?: number
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_suggestions_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -3951,6 +4362,19 @@ export type Database = {
       fn_seed_kds_config: {
         Args: { p_empresa_id: string }
         Returns: undefined
+      }
+      fn_registrar_perda_estoque: {
+        Args: {
+          p_empresa_id: string
+          p_ingrediente_id: string
+          p_quantity: number
+          p_reason: string
+          p_notes?: string
+          p_estoque_lote_id?: string
+          p_batch_id?: string
+          p_lost_at?: string
+        }
+        Returns: string
       }
       fn_papel_na_empresa: {
         Args: { p_empresa_id: string }
