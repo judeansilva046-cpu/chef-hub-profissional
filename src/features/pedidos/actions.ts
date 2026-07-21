@@ -3,7 +3,16 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  PAPEIS_CAIXA,
+  PAPEIS_COZINHA,
+  PAPEIS_SALA,
+} from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
+import { criarAlerta } from "@/server/observabilidade/alerts";
+import { registrarLog } from "@/server/observabilidade/logs";
 
 import {
   adicionalItemSchema,
@@ -40,6 +49,7 @@ async function assertPedidoDaEmpresa(
 }
 
 export async function criarPedido(input: unknown): Promise<string> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const validated = novoPedidoSchema.safeParse(input);
@@ -68,11 +78,19 @@ export async function criarPedido(input: unknown): Promise<string> {
 
   if (error) throw new Error("Não foi possível criar o pedido.");
 
+  void registrarAuditoria({
+    acao: "criar",
+    entidade: "pedidos",
+    registroId: data.id,
+    valorNovo: { status: "rascunho", tipo: validated.data.tipo },
+  });
+
   revalidatePath("/pedidos");
   return data.id;
 }
 
 export async function adicionarItemPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -97,6 +115,7 @@ export async function adicionarItemPedido(pedidoId: string, input: unknown): Pro
 }
 
 export async function removerItemPedido(pedidoId: string, itemId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -121,6 +140,7 @@ export async function atualizarQuantidadeItem(
 ): Promise<void> {
   if (quantidade <= 0) throw new Error("A quantidade deve ser maior que zero.");
 
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -143,6 +163,7 @@ export async function adicionarAdicionalItem(
   pedidoItemId: string,
   input: unknown,
 ): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -165,6 +186,7 @@ export async function adicionarAdicionalItem(
 }
 
 export async function removerAdicionalItem(pedidoId: string, adicionalId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -182,6 +204,7 @@ export async function removerAdicionalItem(pedidoId: string, adicionalId: string
 }
 
 export async function atualizarValoresPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -210,6 +233,7 @@ export async function atualizarValoresPedido(pedidoId: string, input: unknown): 
 }
 
 export async function confirmarPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -217,6 +241,12 @@ export async function confirmarPedido(pedidoId: string): Promise<void> {
   const { error } = await supabase.rpc("fn_confirmar_pedido", { p_pedido_id: pedidoId });
 
   if (error) {
+    void registrarLog({
+      nivel: "ERROR",
+      modulo: "pedidos",
+      mensagem: "Falha ao confirmar pedido",
+      detalhes: { pedidoId, error: error.message },
+    });
     throw new Error(
       error.message.includes("Estoque insuficiente") || error.message.includes("Pedido")
         ? error.message
@@ -224,11 +254,20 @@ export async function confirmarPedido(pedidoId: string): Promise<void> {
     );
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorAnterior: { status: "rascunho" },
+    valorNovo: { status: "confirmado" },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/kds");
 }
 
 export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -243,12 +282,20 @@ export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
     );
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "em_preparo" },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/estoque");
   revalidatePath("/kds");
 }
 
 export async function avancarStatusPedido(pedidoId: string, statusAtual: string): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA, ...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -264,6 +311,15 @@ export async function avancarStatusPedido(pedidoId: string, statusAtual: string)
       : "Não foi possível avançar o status do pedido.");
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorAnterior: { status: statusAtual },
+    valorNovo: { status: "avancado" },
+    metadados: { statusAtual },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/kds");
   revalidatePath("/expedicao");
@@ -274,6 +330,7 @@ export async function marcarItensProntos(
   pedidoId: string,
   pracaProducaoId?: string | null,
 ): Promise<void> {
+  await requirePapel(...PAPEIS_COZINHA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -295,6 +352,7 @@ export async function marcarItensProntos(
 }
 
 export async function concluirPedido(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   const pedido = await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -311,6 +369,13 @@ export async function concluirPedido(pedidoId: string): Promise<void> {
       : "Não foi possível concluir o pedido.");
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "entregue" },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/vendas");
   revalidatePath("/dashboard");
@@ -318,6 +383,7 @@ export async function concluirPedido(pedidoId: string): Promise<void> {
 }
 
 export async function cancelarPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -336,6 +402,14 @@ export async function cancelarPedido(pedidoId: string, input: unknown): Promise<
     throw new Error(error.message.includes("Pedido") ? error.message : "Não foi possível cancelar o pedido.");
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "cancelado" },
+    metadados: { motivo: validated.data.motivo },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/estoque");
   revalidatePath("/kds");
@@ -343,6 +417,7 @@ export async function cancelarPedido(pedidoId: string, input: unknown): Promise<
 }
 
 export async function registrarPagamentoPedido(pedidoId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
@@ -362,6 +437,20 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
   });
 
   if (error) {
+    void criarAlerta({
+      tipo: "falha_pagamento",
+      severidade: "error",
+      titulo: "Falha no pagamento",
+      mensagem: error.message,
+      entidade: "pagamentos",
+      registroId: pedidoId,
+    });
+    void registrarLog({
+      nivel: "ERROR",
+      modulo: "pagamentos",
+      mensagem: "Falha ao registrar pagamento",
+      detalhes: { pedidoId, error: error.message },
+    });
     throw new Error(
       error.message.includes("Pedido") ||
         error.message.includes("Pagamento") ||
@@ -373,11 +462,22 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
     );
   }
 
+  void registrarAuditoria({
+    acao: "pagamento",
+    entidade: "pagamentos",
+    registroId: pedidoId,
+    valorNovo: {
+      formaPagamento: validated.data.formaPagamento,
+      valor: validated.data.valor,
+    },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/caixa");
 }
 
 export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
   await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
@@ -393,6 +493,7 @@ export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
 }
 
 export async function duplicarPedido(pedidoId: string): Promise<string> {
+  await requirePapel(...PAPEIS_SALA);
   const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();

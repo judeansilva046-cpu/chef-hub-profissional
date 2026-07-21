@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { agenteImpressaoSchema, emitirEtiquetaSchema } from "./validation";
 
@@ -20,6 +21,7 @@ export async function emitirEtiqueta(
   _prevState: EtiquetaActionState | undefined,
   formData: FormData,
 ): Promise<EtiquetaActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -88,6 +90,7 @@ export async function criarAgenteImpressao(
   _prevState: CriarAgenteResult | undefined,
   formData: FormData,
 ): Promise<CriarAgenteResult> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -115,6 +118,7 @@ export async function criarAgenteImpressao(
 }
 
 export async function alternarAtivoAgenteImpressao(id: string, ativo: boolean) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -131,6 +135,7 @@ export async function alternarAtivoAgenteImpressao(id: string, ativo: boolean) {
 }
 
 export async function excluirAgenteImpressao(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -147,6 +152,7 @@ export async function excluirAgenteImpressao(id: string) {
 }
 
 export async function cancelarTrabalhoImpressao(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

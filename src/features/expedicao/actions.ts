@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { PAPEIS_EXPEDICAO } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { entregadorSchema } from "./validation";
 
@@ -14,6 +16,7 @@ function revalidarExpedicao() {
 }
 
 export async function criarEntregador(input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_EXPEDICAO);
   const empresa = await getEmpresaAtual();
   if (!empresa) throw new Error("Nenhuma empresa ativa.");
 
@@ -52,6 +55,7 @@ export async function avancarStatusExpedicao(
   statusAtual: string,
   opts?: { entregadorId?: string | null },
 ): Promise<void> {
+  await requirePapel(...PAPEIS_EXPEDICAO);
   const empresa = await requireEmpresaAtual();
   const proximoStatus = PROXIMOS_STATUS_EXPEDICAO[statusAtual];
   if (!proximoStatus) {

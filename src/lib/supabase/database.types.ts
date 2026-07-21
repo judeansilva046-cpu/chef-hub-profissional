@@ -14,6 +14,484 @@ export type Database = {
   }
   public: {
     Tables: {
+
+      accounts_payable: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          bank_account_id: string | null
+          category_id: string | null
+          competence_date: string
+          cost_center_id: string | null
+          created_at: string
+          description: string
+          due_date: string
+          empresa_id: string
+          fine_amount: number
+          fornecedor_id: string | null
+          id: string
+          installment_number: number
+          installment_total: number
+          interest_amount: number
+          metadata: Json
+          notes: string | null
+          paid_amount: number
+          paid_at: string | null
+          parent_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          bank_account_id?: string | null
+          category_id?: string | null
+          competence_date: string
+          cost_center_id?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          empresa_id: string
+          fine_amount?: number
+          fornecedor_id?: string | null
+          id?: string
+          installment_number?: number
+          installment_total?: number
+          interest_amount?: number
+          metadata?: Json
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          parent_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          bank_account_id?: string | null
+          category_id?: string | null
+          competence_date?: string
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          empresa_id?: string
+          fine_amount?: number
+          fornecedor_id?: string | null
+          id?: string
+          installment_number?: number
+          installment_total?: number
+          interest_amount?: number
+          metadata?: Json
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          parent_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounts_receivable: {
+        Row: {
+          amount: number
+          auto_settle: boolean
+          bank_account_id: string | null
+          category_id: string | null
+          cliente_id: string | null
+          competence_date: string
+          cost_center_id: string | null
+          created_at: string
+          description: string
+          due_date: string
+          empresa_id: string
+          fine_amount: number
+          id: string
+          installment_number: number
+          installment_total: number
+          interest_amount: number
+          metadata: Json
+          notes: string | null
+          parent_id: string | null
+          pedido_id: string | null
+          received_amount: number
+          received_at: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          auto_settle?: boolean
+          bank_account_id?: string | null
+          category_id?: string | null
+          cliente_id?: string | null
+          competence_date: string
+          cost_center_id?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          empresa_id: string
+          fine_amount?: number
+          id?: string
+          installment_number?: number
+          installment_total?: number
+          interest_amount?: number
+          metadata?: Json
+          notes?: string | null
+          parent_id?: string | null
+          pedido_id?: string | null
+          received_amount?: number
+          received_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          auto_settle?: boolean
+          bank_account_id?: string | null
+          category_id?: string | null
+          cliente_id?: string | null
+          competence_date?: string
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          empresa_id?: string
+          fine_amount?: number
+          id?: string
+          installment_number?: number
+          installment_total?: number
+          interest_amount?: number
+          metadata?: Json
+          notes?: string | null
+          parent_id?: string | null
+          pedido_id?: string | null
+          received_amount?: number
+          received_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_accounts: {
+        Row: {
+          account_number: string | null
+          active: boolean
+          agency: string | null
+          bank_name: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          name: string
+          opening_balance: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          active?: boolean
+          agency?: string | null
+          bank_name?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          name: string
+          opening_balance?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          active?: boolean
+          agency?: string | null
+          bank_name?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          name?: string
+          opening_balance?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          created_at: string
+          description: string
+          empresa_id: string
+          id: string
+          metadata: Json
+          reconciled: boolean
+          reconciled_at: string | null
+          reference_id: string | null
+          reference_type: string | null
+          source: string
+          tipo: string
+          tx_date: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          created_at?: string
+          description: string
+          empresa_id: string
+          id?: string
+          metadata?: Json
+          reconciled?: boolean
+          reconciled_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          source?: string
+          tipo: string
+          tx_date: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          created_at?: string
+          description?: string
+          empresa_id?: string
+          id?: string
+          metadata?: Json
+          reconciled?: boolean
+          reconciled_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          source?: string
+          tipo?: string
+          tx_date?: string
+        }
+        Relationships: []
+      }
+      cash_flow: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          category_id: string | null
+          cost_center_id: string | null
+          created_at: string
+          description: string
+          empresa_id: string
+          flow_date: string
+          id: string
+          metadata: Json
+          reference_id: string | null
+          reference_type: string | null
+          tipo: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id?: string | null
+          category_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description: string
+          empresa_id: string
+          flow_date: string
+          id?: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          tipo: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          category_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string
+          empresa_id?: string
+          flow_date?: string
+          id?: string
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
+      cost_centers: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          empresa_id: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          empresa_id: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_accounts: {
+        Row: {
+          active: boolean
+          category_id: string | null
+          code: string
+          cost_center_id: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          name: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id?: string | null
+          code: string
+          cost_center_id?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          name: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string | null
+          code?: string
+          cost_center_id?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          name?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          empresa_id: string
+          id: string
+          name: string
+          parent_id: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          empresa_id: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_forecasts: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          metadata: Json
+          period_end: string
+          period_start: string
+          projected_balance: number
+          projected_in: number
+          projected_out: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          metadata?: Json
+          period_end: string
+          period_start: string
+          projected_balance?: number
+          projected_in?: number
+          projected_out?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          metadata?: Json
+          period_end?: string
+          period_start?: string
+          projected_balance?: number
+          projected_in?: number
+          projected_out?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_reports: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          generated_by: string | null
+          id: string
+          payload: Json
+          period_end: string
+          period_start: string
+          report_type: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          generated_by?: string | null
+          id?: string
+          payload?: Json
+          period_end: string
+          period_start: string
+          report_type: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          generated_by?: string | null
+          id?: string
+          payload?: Json
+          period_end?: string
+          period_start?: string
+          report_type?: string
+        }
+        Relationships: []
+      }
       agentes_impressao: {
         Row: {
           ativo: boolean
@@ -51,6 +529,69 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditoria_eventos: {
+        Row: {
+          acao: string
+          criado_em: string
+          empresa_id: string | null
+          entidade: string
+          id: string
+          ip: string | null
+          metadados: Json
+          papel: string | null
+          registro_id: string | null
+          user_agent: string | null
+          usuario_id: string | null
+          valor_anterior: Json | null
+          valor_novo: Json | null
+        }
+        Insert: {
+          acao: string
+          criado_em?: string
+          empresa_id?: string | null
+          entidade: string
+          id?: string
+          ip?: string | null
+          metadados?: Json
+          papel?: string | null
+          registro_id?: string | null
+          user_agent?: string | null
+          usuario_id?: string | null
+          valor_anterior?: Json | null
+          valor_novo?: Json | null
+        }
+        Update: {
+          acao?: string
+          criado_em?: string
+          empresa_id?: string | null
+          entidade?: string
+          id?: string
+          ip?: string | null
+          metadados?: Json
+          papel?: string | null
+          registro_id?: string | null
+          user_agent?: string | null
+          usuario_id?: string | null
+          valor_anterior?: Json | null
+          valor_novo?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_eventos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditoria_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1380,6 +1921,360 @@ export type Database = {
           },
         ]
       }
+
+      integration_credentials: {
+        Row: {
+          ciphertext: string
+          created_at: string
+          empresa_id: string
+          id: string
+          integration_id: string
+          key_version: number
+          updated_at: string
+        }
+        Insert: {
+          ciphertext: string
+          created_at?: string
+          empresa_id: string
+          id?: string
+          integration_id: string
+          key_version?: number
+          updated_at?: string
+        }
+        Update: {
+          ciphertext?: string
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          integration_id?: string
+          key_version?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_credentials_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_credentials_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: true
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_events: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          event_type: string
+          id: string
+          integration_id: string | null
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          event_type: string
+          id?: string
+          integration_id?: string | null
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          event_type?: string
+          id?: string
+          integration_id?: string | null
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_events_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_events_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_failures: {
+        Row: {
+          attempt: number
+          created_at: string
+          empresa_id: string
+          error_message: string
+          id: string
+          integration_id: string | null
+          metadata: Json
+          operation: string
+          response_ms: number | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          empresa_id: string
+          error_message: string
+          id?: string
+          integration_id?: string | null
+          metadata?: Json
+          operation: string
+          response_ms?: number | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          empresa_id?: string
+          error_message?: string
+          id?: string
+          integration_id?: string | null
+          metadata?: Json
+          operation?: string
+          response_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_failures_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_failures_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          empresa_id: string
+          event_type: string
+          id: string
+          integration_id: string | null
+          level: string
+          message: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          empresa_id: string
+          event_type: string
+          id?: string
+          integration_id?: string | null
+          level: string
+          message: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          empresa_id?: string
+          event_type?: string
+          id?: string
+          integration_id?: string | null
+          level?: string
+          message?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_logs_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_syncs: {
+        Row: {
+          duration_ms: number | null
+          empresa_id: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          integration_id: string | null
+          items_count: number
+          metadata: Json
+          started_at: string
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          duration_ms?: number | null
+          empresa_id: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          integration_id?: string | null
+          items_count?: number
+          metadata?: Json
+          started_at?: string
+          status: string
+          sync_type: string
+        }
+        Update: {
+          duration_ms?: number | null
+          empresa_id?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          integration_id?: string | null
+          items_count?: number
+          metadata?: Json
+          started_at?: string
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_syncs_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_syncs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_webhooks: {
+        Row: {
+          created_at: string
+          empresa_id: string | null
+          error_message: string | null
+          id: string
+          integration_id: string | null
+          payload: Json
+          processed: boolean
+          provider: string
+          signature_valid: boolean
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string | null
+          error_message?: string | null
+          id?: string
+          integration_id?: string | null
+          payload: Json
+          processed?: boolean
+          provider: string
+          signature_valid?: boolean
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string | null
+          error_message?: string | null
+          id?: string
+          integration_id?: string | null
+          payload?: Json
+          processed?: boolean
+          provider?: string
+          signature_valid?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_webhooks_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_webhooks_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          category: string
+          config: Json
+          created_at: string
+          empresa_id: string
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          last_test_at: string | null
+          metadata: Json
+          provider: string
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          category: string
+          config?: Json
+          created_at?: string
+          empresa_id: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          last_test_at?: string | null
+          metadata?: Json
+          provider: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          category?: string
+          config?: Json
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          last_test_at?: string | null
+          metadata?: Json
+          provider?: string
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredientes: {
         Row: {
           ativo: boolean
@@ -1616,6 +2511,119 @@ export type Database = {
           },
         ]
       }
+      kds_config: {
+        Row: {
+          alerta_atraso_minutos: number
+          alerta_sonoro: boolean
+          atualizado_em: string
+          criado_em: string
+          empresa_id: string
+          impressao_automatica: boolean
+          prioridade_entrega_boost: number
+        }
+        Insert: {
+          alerta_atraso_minutos?: number
+          alerta_sonoro?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          empresa_id: string
+          impressao_automatica?: boolean
+          prioridade_entrega_boost?: number
+        }
+        Update: {
+          alerta_atraso_minutos?: number
+          alerta_sonoro?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          empresa_id?: string
+          impressao_automatica?: boolean
+          prioridade_entrega_boost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kds_config_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: true
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kds_events: {
+        Row: {
+          criado_em: string
+          criado_por: string | null
+          empresa_id: string
+          evento: string
+          id: string
+          metadados: Json
+          pedido_id: string
+          pedido_item_id: string | null
+          praca_producao_id: string | null
+          setor: string | null
+        }
+        Insert: {
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id: string
+          evento: string
+          id?: string
+          metadados?: Json
+          pedido_id: string
+          pedido_item_id?: string | null
+          praca_producao_id?: string | null
+          setor?: string | null
+        }
+        Update: {
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id?: string
+          evento?: string
+          id?: string
+          metadados?: Json
+          pedido_id?: string
+          pedido_item_id?: string | null
+          praca_producao_id?: string | null
+          setor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kds_events_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_pedido_item_id_fkey"
+            columns: ["pedido_item_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_praca_producao_id_fkey"
+            columns: ["praca_producao_id"]
+            isOneToOne: false
+            referencedRelation: "pracas_producao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listas_compra: {
         Row: {
           criado_em: string
@@ -1712,6 +2720,61 @@ export type Database = {
             columns: ["lista_id"]
             isOneToOne: false
             referencedRelation: "listas_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membros_empresa: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          convidado_por: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          papel: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          papel?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          papel?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_empresa_convidado_por_fkey"
+            columns: ["convidado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_empresa_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_empresa_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1933,6 +2996,8 @@ export type Database = {
           ordem: number
           pedido_id: string
           preco_unitario_praticado: number
+          preparo_iniciado_em: string | null
+          pronto_em: string | null
           quantidade: number
           status_preparo: string
           valor_total: number | null
@@ -1948,6 +3013,8 @@ export type Database = {
           ordem?: number
           pedido_id: string
           preco_unitario_praticado?: number
+          preparo_iniciado_em?: string | null
+          pronto_em?: string | null
           quantidade: number
           status_preparo?: string
           valor_total?: number | null
@@ -1963,6 +3030,8 @@ export type Database = {
           ordem?: number
           pedido_id?: string
           preco_unitario_praticado?: number
+          preparo_iniciado_em?: string | null
+          pronto_em?: string | null
           quantidade?: number
           status_preparo?: string
           valor_total?: number | null
@@ -2283,6 +3352,44 @@ export type Database = {
           },
         ]
       }
+      performance_samples: {
+        Row: {
+          criado_em: string
+          duracao_ms: number
+          empresa_id: string | null
+          id: string
+          metadados: Json
+          nome: string
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          duracao_ms: number
+          empresa_id?: string | null
+          id?: string
+          metadados?: Json
+          nome: string
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          duracao_ms?: number
+          empresa_id?: string | null
+          id?: string
+          metadados?: Json
+          nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_samples_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pracas_producao: {
         Row: {
           ativo: boolean
@@ -2291,6 +3398,7 @@ export type Database = {
           id: string
           nome: string
           ordem_exibicao: number
+          setor: string
         }
         Insert: {
           ativo?: boolean
@@ -2299,6 +3407,7 @@ export type Database = {
           id?: string
           nome: string
           ordem_exibicao?: number
+          setor?: string
         }
         Update: {
           ativo?: boolean
@@ -2307,6 +3416,7 @@ export type Database = {
           id?: string
           nome?: string
           ordem_exibicao?: number
+          setor?: string
         }
         Relationships: [
           {
@@ -2487,6 +3597,120 @@ export type Database = {
           },
         ]
       }
+      system_alerts: {
+        Row: {
+          criado_em: string
+          empresa_id: string
+          entidade: string | null
+          id: string
+          mensagem: string
+          metadados: Json
+          registro_id: string | null
+          resolvido: boolean
+          resolvido_em: string | null
+          resolvido_por: string | null
+          severidade: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          criado_em?: string
+          empresa_id: string
+          entidade?: string | null
+          id?: string
+          mensagem: string
+          metadados?: Json
+          registro_id?: string | null
+          resolvido?: boolean
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          severidade: string
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          criado_em?: string
+          empresa_id?: string
+          entidade?: string | null
+          id?: string
+          mensagem?: string
+          metadados?: Json
+          registro_id?: string | null
+          resolvido?: boolean
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          severidade?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_alerts_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_resolvido_por_fkey"
+            columns: ["resolvido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_logs: {
+        Row: {
+          criado_em: string
+          detalhes: Json
+          duracao_ms: number | null
+          empresa_id: string | null
+          id: string
+          mensagem: string
+          modulo: string
+          nivel: string
+          usuario_id: string | null
+        }
+        Insert: {
+          criado_em?: string
+          detalhes?: Json
+          duracao_ms?: number | null
+          empresa_id?: string | null
+          id?: string
+          mensagem: string
+          modulo: string
+          nivel: string
+          usuario_id?: string | null
+        }
+        Update: {
+          criado_em?: string
+          detalhes?: Json
+          duracao_ms?: number | null
+          empresa_id?: string | null
+          id?: string
+          mensagem?: string
+          modulo?: string
+          nivel?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_logs_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_logs_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unidades_medida: {
         Row: {
           created_at: string
@@ -2642,6 +3866,14 @@ export type Database = {
         Args: { p_producao_id: string }
         Returns: undefined
       }
+      fn_convidar_membro_por_email: {
+        Args: {
+          p_empresa_id: string
+          p_email: string
+          p_papel?: string
+        }
+        Returns: string
+      }
       fn_confirmar_pedido: { Args: { p_pedido_id: string }; Returns: undefined }
       fn_converter_lista_em_pedidos: {
         Args: { p_lista_id: string }
@@ -2661,6 +3893,7 @@ export type Database = {
         }
         Returns: string
       }
+      fn_empresas_acessiveis: { Args: never; Returns: string[] }
       fn_fechar_caixa: {
         Args: {
           p_caixa_id: string
@@ -2691,9 +3924,37 @@ export type Database = {
         Args: { p_pedido_id: string }
         Returns: undefined
       }
+      fn_marcar_item_pronto: {
+        Args: { p_pedido_item_id: string }
+        Returns: undefined
+      }
       fn_marcar_itens_pronto: {
         Args: { p_pedido_id: string; p_praca_producao_id?: string }
         Returns: undefined
+      }
+      fn_expedir_pedido_kds: {
+        Args: { p_pedido_id: string }
+        Returns: undefined
+      }
+      fn_registrar_kds_evento: {
+        Args: {
+          p_empresa_id: string
+          p_pedido_id: string
+          p_evento: string
+          p_pedido_item_id?: string
+          p_setor?: string
+          p_praca_producao_id?: string
+          p_metadados?: Json
+        }
+        Returns: string
+      }
+      fn_seed_kds_config: {
+        Args: { p_empresa_id: string }
+        Returns: undefined
+      }
+      fn_papel_na_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: string
       }
       fn_proximo_numero_pedido: {
         Args: { p_empresa_id: string }
@@ -2711,6 +3972,21 @@ export type Database = {
           p_quantidade: number
         }
         Returns: undefined
+      }
+      fn_seed_financeiro_defaults: { Args: { p_empresa_id: string }; Returns: undefined }
+      fn_registrar_auditoria: {
+        Args: {
+          p_acao: string
+          p_empresa_id: string | null
+          p_entidade: string
+          p_ip?: string
+          p_metadados?: Json
+          p_registro_id?: string
+          p_user_agent?: string
+          p_valor_anterior?: Json
+          p_valor_novo?: Json
+        }
+        Returns: string
       }
       fn_registrar_entrada_estoque: {
         Args: {
@@ -2766,6 +4042,10 @@ export type Database = {
       fn_unir_comandas: {
         Args: { p_comanda_destino_id: string; p_comanda_origem_id: string }
         Returns: undefined
+      }
+      fn_usuario_acessa_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: boolean
       }
       recalcular_ficha_tecnica: {
         Args: { p_ficha_id: string }
