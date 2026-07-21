@@ -7,10 +7,12 @@ Checklist do próximo passo operacional após o merge da auditoria/hardening.
 ### Opção rápida (SQL Editor)
 
 1. Abra o **SQL Editor** do projeto Supabase.
-2. Cole o conteúdo de
+2. Se o banco ainda está em `0039`, cole
    [`docs/sql/aplicar-0040-a-0042.sql`](./sql/aplicar-0040-a-0042.sql)
-   (bundle das migrations `0040` + `0041` + `0042`).
-3. Execute. Se alguma migration já tiver sido aplicada, o script pode falhar
+   (bundle `0040` + `0041` + `0042`).
+3. Em seguida aplique o RBAC:
+   [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
+4. Se alguma migration já tiver sido aplicada, o script pode falhar
    em objetos existentes — nesse caso aplique só os arquivos que faltam em
    `supabase/migrations/`.
 
@@ -45,7 +47,8 @@ INTEGRACOES_SECRET_KEY=   # 32 bytes base64
 4. Pedido tipo Retirada → Expedição até entregue
 5. Relatórios → Exportar PDF
 6. `/financeiro/funcionarios` → cadastrar um colaborador
-7. (Opcional) `cd agents/impressao && CHEF_HUB_BASE_URL=... CHEF_HUB_API_KEY=... npm start`
+7. `/equipe` → ver owner na lista; (opcional) convidar segundo usuário
+8. (Opcional) `cd agents/impressao && CHEF_HUB_BASE_URL=... CHEF_HUB_API_KEY=... npm start`
 
 ## 4. E2E local
 
@@ -55,10 +58,11 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Specs novas: `e2e/08-kds`, `09-expedicao`, `10-financeiro-estoque`.
+Specs novas: `e2e/08-kds`, `09-expedicao`, `10-financeiro-estoque`, `12-equipe`.
 
 ## 5. Depois do deploy estável
 
-- Expandir cobertura e2e de estoque/compras se necessário
+- Expandir cobertura e2e de estoque/compras / segundo usuário RBAC
 - Homologar integrações marketplace (credenciais de parceiro)
-- RBAC multi-operador, se houver mais de um usuário por empresa
+- Opcional: `requirePapel` nas Server Actions operacionais (rotas já
+  filtradas por papel — ver [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md))

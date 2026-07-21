@@ -21,11 +21,13 @@
   Relatórios, CRM, Etiquetas, Integrações): migrations, rotas e reuso.
 - [SPRINT-05.md](./SPRINT-05.md) — Pedidos, PDV, KDS, Caixa, Mesas,
   Expedição + hardening de segurança (`0030`–`0041`).
+- [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md) — multi-operador (`0043`).
 - [AUDITORIA.md](./AUDITORIA.md) — auditoria completa + remediação.
 - [AGENTE-LOCAL.md](./AGENTE-LOCAL.md) — contrato + CLI em `agents/impressao/`.
-- [DEPLOY.md](./DEPLOY.md) — aplicar migrations `0040`–`0042`, smoke test e e2e.
+- [DEPLOY.md](./DEPLOY.md) — aplicar migrations `0040`–`0043`, smoke test e e2e.
 - Bundle SQL: [sql/aplicar-0040-a-0042.sql](./sql/aplicar-0040-a-0042.sql)
-  (colar no SQL Editor se o banco remoto ainda está em `0039`).
+  (colar no SQL Editor se o banco remoto ainda está em `0039`);
+  [sql/aplicar-0043-rbac.sql](./sql/aplicar-0043-rbac.sql) para RBAC.
 
 Rotas novas pós-auditoria: `/financeiro/funcionarios`, PWA, PDF em
 `/api/relatorios/[tipo]?formato=pdf`.

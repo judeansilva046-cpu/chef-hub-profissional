@@ -1716,6 +1716,61 @@ export type Database = {
           },
         ]
       }
+      membros_empresa: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          convidado_por: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          papel: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          papel?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          convidado_por?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          papel?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_empresa_convidado_por_fkey"
+            columns: ["convidado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_empresa_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_empresa_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mesas: {
         Row: {
           atualizado_em: string
@@ -2642,6 +2697,14 @@ export type Database = {
         Args: { p_producao_id: string }
         Returns: undefined
       }
+      fn_convidar_membro_por_email: {
+        Args: {
+          p_empresa_id: string
+          p_email: string
+          p_papel?: string
+        }
+        Returns: string
+      }
       fn_confirmar_pedido: { Args: { p_pedido_id: string }; Returns: undefined }
       fn_converter_lista_em_pedidos: {
         Args: { p_lista_id: string }
@@ -2661,6 +2724,7 @@ export type Database = {
         }
         Returns: string
       }
+      fn_empresas_acessiveis: { Args: never; Returns: string[] }
       fn_fechar_caixa: {
         Args: {
           p_caixa_id: string
@@ -2694,6 +2758,10 @@ export type Database = {
       fn_marcar_itens_pronto: {
         Args: { p_pedido_id: string; p_praca_producao_id?: string }
         Returns: undefined
+      }
+      fn_papel_na_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: string
       }
       fn_proximo_numero_pedido: {
         Args: { p_empresa_id: string }
@@ -2766,6 +2834,10 @@ export type Database = {
       fn_unir_comandas: {
         Args: { p_comanda_destino_id: string; p_comanda_origem_id: string }
         Returns: undefined
+      }
+      fn_usuario_acessa_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: boolean
       }
       recalcular_ficha_tecnica: {
         Args: { p_ficha_id: string }
