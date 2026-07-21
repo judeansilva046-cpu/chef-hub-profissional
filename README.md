@@ -1,23 +1,27 @@
 # Chef Hub Profissional
 
-Plataforma SaaS e PWA de gestão inteligente para restaurantes, delivery, dark
+Plataforma SaaS de gestão inteligente para restaurantes, delivery, dark
 kitchens, padarias, confeitarias, cafeterias e pequenos produtores de
 alimentos — foco em precificação, fichas técnicas, estoque, CMV, margem de
-contribuição e decisões baseadas em dados.
+contribuição, pedidos/PDV e decisões baseadas em dados.
 
-> **Estado atual: fundação (Sprint 01).** Documentação, arquitetura de
-> pastas, Design System, tema claro/escuro, layout base e componentes de UI
-> reutilizáveis. Nenhuma funcionalidade de negócio foi implementada ainda —
-> ver [docs/PRODUCT-VISION.md](./docs/PRODUCT-VISION.md).
+> **Estado atual: Sprints 01–05.** Fundação (Design System, auth,
+> multi-empresa), operacional (fichas, estoque, compras, produção),
+> financeiro, dashboard/CRM/relatórios/etiquetas/integrações (estrutura), e
+> núcleo de sala (pedidos, PDV, KDS, caixa, mesas, expedição). Ver
+> [docs/PRODUCT-VISION.md](./docs/PRODUCT-VISION.md) e a
+> [auditoria completa](./docs/AUDITORIA.md).
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase
+(Postgres + Auth) · Zod · Playwright (e2e)
 
 ## Como rodar
 
 ```bash
 npm install
+cp .env.example .env.local   # preencha as chaves Supabase
 npm run dev
 ```
 
@@ -44,6 +48,10 @@ Toda a documentação técnica está em [`docs/`](./docs/README.md):
 
 - [Visão do produto](./docs/PRODUCT-VISION.md)
 - [Arquitetura](./docs/ARCHITECTURE.md)
+- [Banco de dados](./docs/DATABASE.md)
 - [Design System](./docs/DESIGN-SYSTEM.md)
 - [Componentes](./docs/COMPONENTS.md)
 - [Padrões de código](./docs/CODING-STANDARDS.md)
+- [Sprint 04](./docs/SPRINT-04.md)
+- [Agente local de impressão](./docs/AGENTE-LOCAL.md)
+- [Auditoria completa](./docs/AUDITORIA.md)

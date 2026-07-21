@@ -259,7 +259,27 @@ acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 | Chamadas reais em `src/integrations/*`        | Os 4 adapters (iFood, 99Food, Keeta, Open Delivery) existem como esqueleto (`IntegracaoAdapter`) mas todo método lança `IntegracaoNaoDisponivelError` — implementar de verdade requer credenciais de parceiro homologado com cada provedor, que este projeto não tem. |
 | Executável do agente local                    | O contrato da API está pronto e documentado (`docs/AGENTE-LOCAL.md`), mas o processo/serviço Windows que efetivamente imprime na térmica não foi construído nesta sprint.                                                          |
 | Exportação em PDF                             | `/api/relatorios/[tipo]?formato=pdf` já existe na assinatura e retorna 501 — geração real de PDF fica para uma sprint futura.                                                                                                       |
-| PDVs, ERPs, impressoras térmicas (adapters)    | Mesma lógica dos adapters de delivery — reserva de nome, sem implementação real.                                                                                                                                                     |
+| PDVs externos, ERPs (adapters)             | Reserva de nome — o PDV **interno** (`/pdv`) já existe na Sprint 05; falta adapter para PDVs/ERPs de terceiros.                                                                                                                                                     |
 | Custos de funcionários, relatórios de RH       | Ainda fora de escopo — ver [PRODUCT-VISION.md](./PRODUCT-VISION.md).                                                                                                                                                                 |
 
 Quando uma dessas pendências for resolvida, atualize esta tabela.
+
+## Sprint 05 — Operação de sala (código à frente da árvore acima)
+
+A árvore de pastas nesta página ainda descreve até a Sprint 04. No
+repositório já existem (sem seção dedicada nesta árvore — ver
+[AUDITORIA.md](./AUDITORIA.md) até a documentação ser reescrita):
+
+| Área | Rotas / pastas | Migrations |
+| ---- | -------------- | ---------- |
+| Pedidos | `app/(app)/pedidos/*`, `features/pedidos/` | `0030`, `0033`, `0034` |
+| PDV / KDS | `app/(pos)/pdv`, `app/(pos)/kds`, `features/kds/` | `0037` (realtime) |
+| Caixa / pagamentos | `app/(app)/caixa/*`, `features/caixa/` | `0031`, `0032` |
+| Mesas / comandas | `app/(app)/mesas/*`, `features/mesas/` | `0035` |
+| Expedição | `app/(app)/expedicao`, `features/expedicao/` | `0036` |
+| Impressão de pedidos | `features/impressao/`, tipos extras em `fila_impressao` | `0038` |
+| Estoque ↔ pedido | `referencia_tipo = 'pedido'` | `0039` |
+
+O PDV **primeiro partido** (tela `/pdv`) não deve ser confundido com o
+item “PDVs” da tabela de pendências acima — aquele item refere-se a
+adapters de PDVs externos, ainda inexistentes.
