@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
-import { avancarStatusPedido, iniciarPreparoPedido } from "@/features/pedidos/actions";
+import { iniciarPreparoPedido, marcarItensProntos } from "@/features/pedidos/actions";
 import { TIPO_PEDIDO_LABEL } from "@/features/pedidos/status";
 import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -23,7 +23,7 @@ export interface KdsBoardProps {
 }
 
 export function KdsBoard({ pedidos, pracas, empresaId }: KdsBoardProps) {
-  useRealtimeRefresh(["pedidos"], empresaId);
+  useRealtimeRefresh(["pedidos", "pedido_itens"], empresaId);
 
   const [pracaId, setPracaId] = useState("");
 
@@ -31,14 +31,27 @@ export function KdsBoard({ pedidos, pracas, empresaId }: KdsBoardProps) {
     .map((pedido) => ({
       ...pedido,
       pedido_itens: pracaId
-        ? pedido.pedido_itens.filter((item) => item.fichas_tecnicas.praca_producao_id === pracaId)
+        ? pedido.pedido_itens.filter(
+            (item) =>
+              item.fichas_tecnicas.praca_producao_id === pracaId ||
+              item.fichas_tecnicas.praca_producao_id === null,
+          )
         : pedido.pedido_itens,
     }))
     .filter((pedido) => pedido.pedido_itens.length > 0);
 
   const novos = pedidosFiltrados.filter((p) => p.status === "confirmado");
-  const emPreparo = pedidosFiltrados.filter((p) => p.status === "em_preparo");
-  const prontos = pedidosFiltrados.filter((p) => p.status === "pronto");
+  const emPreparo = pedidosFiltrados.filter(
+    (p) =>
+      p.status === "em_preparo" &&
+      p.pedido_itens.some((item) => item.status_preparo !== "pronto"),
+  );
+  const prontos = pedidosFiltrados.filter(
+    (p) =>
+      p.status === "pronto" ||
+      (p.status === "em_preparo" &&
+        p.pedido_itens.every((item) => item.status_preparo === "pronto")),
+  );
 
   return (
     <div data-theme="dark" className="bg-background flex h-full flex-col gap-4 p-4">
@@ -57,9 +70,9 @@ export function KdsBoard({ pedidos, pracas, empresaId }: KdsBoardProps) {
       </div>
 
       <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden md:grid-cols-3">
-        <KdsColuna titulo="Novos" pedidos={novos} acao="iniciar" />
-        <KdsColuna titulo="Em preparo" pedidos={emPreparo} acao="pronto" />
-        <KdsColuna titulo="Prontos" pedidos={prontos} acao={null} />
+        <KdsColuna titulo="Novos" pedidos={novos} acao="iniciar" pracaId={pracaId || null} />
+        <KdsColuna titulo="Em preparo" pedidos={emPreparo} acao="pronto" pracaId={pracaId || null} />
+        <KdsColuna titulo="Prontos" pedidos={prontos} acao={null} pracaId={pracaId || null} />
       </div>
     </div>
   );
@@ -69,10 +82,12 @@ function KdsColuna({
   titulo,
   pedidos,
   acao,
+  pracaId,
 }: {
   titulo: string;
   pedidos: PedidoParaKds[];
   acao: "iniciar" | "pronto" | null;
+  pracaId: string | null;
 }) {
   return (
     <div className="border-border bg-card flex flex-col gap-3 overflow-auto rounded-lg border p-3">
@@ -80,13 +95,21 @@ function KdsColuna({
         {titulo} ({pedidos.length})
       </Text>
       {pedidos.map((pedido) => (
-        <KdsCard key={pedido.id} pedido={pedido} acao={acao} />
+        <KdsCard key={pedido.id} pedido={pedido} acao={acao} pracaId={pracaId} />
       ))}
     </div>
   );
 }
 
-function KdsCard({ pedido, acao }: { pedido: PedidoParaKds; acao: "iniciar" | "pronto" | null }) {
+function KdsCard({
+  pedido,
+  acao,
+  pracaId,
+}: {
+  pedido: PedidoParaKds;
+  acao: "iniciar" | "pronto" | null;
+  pracaId: string | null;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
@@ -106,7 +129,7 @@ function KdsCard({ pedido, acao }: { pedido: PedidoParaKds; acao: "iniciar" | "p
     startTransition(async () => {
       try {
         if (acao === "iniciar") await iniciarPreparoPedido(pedido.id);
-        if (acao === "pronto") await avancarStatusPedido(pedido.id, "em_preparo");
+        if (acao === "pronto") await marcarItensProntos(pedido.id, pracaId);
         router.refresh();
       } catch (error) {
         setErro(error instanceof Error ? error.message : "Não foi possível concluir a ação.");
@@ -131,9 +154,18 @@ function KdsCard({ pedido, acao }: { pedido: PedidoParaKds; acao: "iniciar" | "p
       </Text>
       <div className="flex flex-col gap-1">
         {pedido.pedido_itens.map((item) => (
-          <div key={item.id} className="text-foreground text-sm">
-            {item.quantidade}x {item.fichas_tecnicas.nome}
-            {item.observacao && <span className="text-muted-foreground"> — {item.observacao}</span>}
+          <div key={item.id} className="text-foreground flex items-center justify-between gap-2 text-sm">
+            <span>
+              {item.quantidade}x {item.fichas_tecnicas.nome}
+              {item.observacao && <span className="text-muted-foreground"> — {item.observacao}</span>}
+            </span>
+            <Badge variant={item.status_preparo === "pronto" ? "success" : "outline"}>
+              {item.status_preparo === "pronto"
+                ? "Pronto"
+                : item.status_preparo === "em_preparo"
+                  ? "Preparo"
+                  : "Pendente"}
+            </Badge>
           </div>
         ))}
       </div>
@@ -149,7 +181,11 @@ function KdsCard({ pedido, acao }: { pedido: PedidoParaKds; acao: "iniciar" | "p
       )}
       {acao && (
         <Button size="sm" disabled={pending} onClick={executarAcao}>
-          {acao === "iniciar" ? "Iniciar preparo" : "Marcar pronto"}
+          {acao === "iniciar"
+            ? "Iniciar preparo"
+            : pracaId
+              ? "Marcar praça pronta"
+              : "Marcar pronto"}
         </Button>
       )}
     </div>

@@ -56,7 +56,7 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
   const pagamentos = pedidoAtual?.pagamentos ?? [];
   const totalPago = pagamentos.reduce((soma, p) => soma + p.valor, 0);
   const totalPedido = pedidoAtual?.pedido.total ?? 0;
-  const podeFinalizarrar = itens.length > 0 && totalPago >= totalPedido && totalPedido > 0;
+  const podeFinalizar = itens.length > 0 && totalPago >= totalPedido && totalPedido > 0;
 
   function rodar(acao: () => Promise<void>) {
     setErro(null);
@@ -301,7 +301,7 @@ export function PdvWorkspace({ fichas, caixaAberto, clientes, canais, pedidoAtua
             <Button
               type="button"
               size="lg"
-              disabled={pending || !podeFinalizarrar}
+              disabled={pending || !podeFinalizar}
               onClick={() =>
                 startTransition(async () => {
                   try {

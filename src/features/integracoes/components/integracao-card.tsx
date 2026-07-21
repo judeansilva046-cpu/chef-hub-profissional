@@ -7,17 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
-import { formatarDataHora } from "@/lib/format";
-import type { Tables } from "@/lib/supabase/database.types";
 import type { ProvedorIntegracao } from "@/integrations/types";
+import { formatarDataHora } from "@/lib/format";
 
 import { desconectarIntegracao, testarConexaoIntegracao } from "../actions";
+import type { IntegracaoListagem } from "../queries";
 import { CredenciaisDialog } from "./credenciais-dialog";
 
 export interface IntegracaoCardProps {
   provedor: ProvedorIntegracao;
   provedorLabel: string;
-  integracao: Tables<"integracoes_canais"> | null;
+  integracao: IntegracaoListagem | null;
 }
 
 const STATUS_CONFIG: Record<
@@ -71,7 +71,7 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Text tone="muted" size="sm">
-          {integracao?.credenciais_criptografadas
+          {integracao?.tem_credenciais
             ? "Credenciais configuradas."
             : "Nenhuma credencial configurada."}
         </Text>
@@ -83,9 +83,9 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setDialogAberto(true)}>
             <Plug className="h-4 w-4" />
-            {integracao?.credenciais_criptografadas ? "Atualizar credenciais" : "Conectar"}
+            {integracao?.tem_credenciais ? "Atualizar credenciais" : "Conectar"}
           </Button>
-          {integracao?.credenciais_criptografadas && (
+          {integracao?.tem_credenciais && (
             <>
               <Button size="sm" variant="ghost" disabled={pending} onClick={testar}>
                 Testar conexão

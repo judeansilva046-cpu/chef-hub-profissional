@@ -8,27 +8,47 @@ import type { Tables } from "@/lib/supabase/database.types";
 
 import { EmpresaSwitcher } from "./empresa-switcher";
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/pedidos", label: "Pedidos" },
-  { href: "/pdv", label: "PDV" },
-  { href: "/caixa", label: "Caixa" },
-  { href: "/mesas", label: "Mesas" },
-  { href: "/kds", label: "KDS" },
-  { href: "/expedicao", label: "Expedição" },
-  { href: "/fichas-tecnicas", label: "Fichas técnicas" },
-  { href: "/vendas", label: "Vendas" },
-  { href: "/clientes", label: "Clientes" },
-  { href: "/estoque", label: "Estoque" },
-  { href: "/compras", label: "Compras" },
-  { href: "/producao", label: "Produção" },
-  { href: "/lista-compras", label: "Lista de compras" },
-  { href: "/financeiro", label: "Financeiro" },
-  { href: "/relatorios", label: "Relatórios" },
-  { href: "/integracoes", label: "Integrações" },
-  { href: "/ingredientes", label: "Ingredientes" },
-  { href: "/categorias", label: "Categorias" },
-  { href: "/unidades-medida", label: "Unidades de medida" },
+const NAV_GROUPS = [
+  {
+    label: "Operação",
+    links: [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/pedidos", label: "Pedidos" },
+      { href: "/pdv", label: "PDV" },
+      { href: "/caixa", label: "Caixa" },
+      { href: "/mesas", label: "Mesas" },
+      { href: "/kds", label: "KDS" },
+      { href: "/expedicao", label: "Expedição" },
+    ],
+  },
+  {
+    label: "Cardápio",
+    links: [
+      { href: "/fichas-tecnicas", label: "Fichas técnicas" },
+      { href: "/ingredientes", label: "Ingredientes" },
+      { href: "/categorias", label: "Categorias" },
+      { href: "/unidades-medida", label: "Unidades" },
+    ],
+  },
+  {
+    label: "Suprimentos",
+    links: [
+      { href: "/estoque", label: "Estoque" },
+      { href: "/compras", label: "Compras" },
+      { href: "/producao", label: "Produção" },
+      { href: "/lista-compras", label: "Lista de compras" },
+    ],
+  },
+  {
+    label: "Gestão",
+    links: [
+      { href: "/vendas", label: "Vendas" },
+      { href: "/clientes", label: "Clientes" },
+      { href: "/financeiro", label: "Financeiro" },
+      { href: "/relatorios", label: "Relatórios" },
+      { href: "/integracoes", label: "Integrações" },
+    ],
+  },
 ] as const;
 
 export interface AppHeaderProps {
@@ -41,7 +61,7 @@ export function AppHeader({ empresas, empresaAtualId }: AppHeaderProps) {
     <header className="border-border bg-background border-b">
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link
-          href="/fichas-tecnicas"
+          href="/dashboard"
           className="text-foreground shrink-0 text-lg font-semibold tracking-tight"
         >
           Chef Hub <span className="text-primary">Profissional</span>
@@ -61,15 +81,24 @@ export function AppHeader({ empresas, empresaAtualId }: AppHeaderProps) {
         </div>
       </Container>
 
-      <nav className="border-border flex items-center gap-4 overflow-x-auto border-t px-4 py-2">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="text-muted-foreground hover:text-foreground shrink-0 text-sm font-medium transition-colors"
-          >
-            {link.label}
-          </Link>
+      <nav className="border-border flex items-center gap-6 overflow-x-auto border-t px-4 py-2">
+        {NAV_GROUPS.map((grupo) => (
+          <div key={grupo.label} className="flex shrink-0 items-center gap-3">
+            <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              {grupo.label}
+            </span>
+            <div className="flex items-center gap-3">
+              {grupo.links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-muted-foreground hover:text-foreground shrink-0 text-sm font-medium transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
     </header>

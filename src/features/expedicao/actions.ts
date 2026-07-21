@@ -59,7 +59,22 @@ export async function avancarStatusExpedicao(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+
+  const { data: atual, error: erroAtual } = await supabase
+    .from("expedicoes")
+    .select("id, status, pedidos!inner(tipo)")
+    .eq("id", expedicaoId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (erroAtual || !atual) throw new Error("Expedição não encontrada.");
+
+  const tipoPedido = (atual.pedidos as { tipo: string }).tipo;
+  if (proximoStatus === "saiu" && tipoPedido === "entrega" && !opts?.entregadorId) {
+    throw new Error("Selecione um entregador antes de registrar a saída.");
+  }
+
+  const { data, error } = await supabase
     .from("expedicoes")
     .update({
       status: proximoStatus,
@@ -69,8 +84,12 @@ export async function avancarStatusExpedicao(
     })
     .eq("id", expedicaoId)
     .eq("empresa_id", empresa.id)
-    .eq("status", statusAtual);
+    .eq("status", statusAtual)
+    .select("id")
+    .maybeSingle();
 
-  if (error) throw new Error("Não foi possível avançar a expedição.");
+  if (error || !data) {
+    throw new Error("Status da expedição mudou — atualize a tela e tente de novo.");
+  }
   revalidarExpedicao();
 }

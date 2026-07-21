@@ -41,6 +41,8 @@ Abra [http://localhost:3010](http://localhost:3010).
 | `npm run typecheck`    | Verificação de tipos (`tsc --noEmit`)    |
 | `npm run format`       | Formata o projeto com Prettier           |
 | `npm run format:check` | Verifica formatação sem alterar arquivos |
+| `npm test`             | Testes unitários (Vitest)                |
+| `npm run test:e2e`     | Testes e2e (Playwright)                  |
 
 ## Documentação
 

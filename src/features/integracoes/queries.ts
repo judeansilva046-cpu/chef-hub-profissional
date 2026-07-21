@@ -5,10 +5,17 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { PROVEDORES_INTEGRACAO } from "@/integrations/types";
 
+export type IntegracaoListagem = Omit<
+  Tables<"integracoes_canais">,
+  "credenciais_criptografadas"
+> & {
+  tem_credenciais: boolean;
+};
+
 export type IntegracaoPorProvedor = {
   provedor: (typeof PROVEDORES_INTEGRACAO)[number]["value"];
   label: string;
-  integracao: Tables<"integracoes_canais"> | null;
+  integracao: IntegracaoListagem | null;
 };
 
 /** Sempre retorna os 4 provedores, mesmo os nunca configurados (integracao=null) — a UI mostra todos com status "não configurado". */
@@ -25,12 +32,25 @@ export async function listarIntegracoesPorProvedor(): Promise<IntegracaoPorProve
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("integracoes_canais")
-    .select("*")
+    .select(
+      "id, empresa_id, provedor, status_conexao, conectado_em, metadata, criado_em, atualizado_em, credenciais_criptografadas",
+    )
     .eq("empresa_id", empresa.id);
 
   if (error) throw error;
 
-  const porProvedor = new Map((data ?? []).map((item) => [item.provedor, item]));
+  const porProvedor = new Map(
+    (data ?? []).map((item) => {
+      const { credenciais_criptografadas, ...rest } = item;
+      return [
+        item.provedor,
+        {
+          ...rest,
+          tem_credenciais: Boolean(credenciais_criptografadas),
+        } satisfies IntegracaoListagem,
+      ];
+    }),
+  );
 
   return PROVEDORES_INTEGRACAO.map((item) => ({
     provedor: item.value,

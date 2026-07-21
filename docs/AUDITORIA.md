@@ -1,9 +1,9 @@
 # Auditoria Completa — Chef Hub Profissional
 
-**Data:** 2026-07-21  
-**Branch base:** `claude/sprint-01-fundacao` @ `f733e08`  
+**Data:** 2026-07-21 (atualizado com remediação P0/P1)  
+**Branch base:** `claude/sprint-01-fundacao`  
 **Escopo:** código, schema Supabase, documentação, segurança, qualidade e cobertura de testes  
-**Veredito:** o produto está **funcionalmente avançado (Sprints 01–05)** com build/lint/typecheck verdes; a documentação parou na Sprint 04; há **riscos de segurança e integridade** que devem ser tratados antes de produção.
+**Veredito:** o produto está **funcionalmente avançado (Sprints 01–05)** com build/lint/typecheck/unit tests verdes. Os Critical/High de segurança e integridade listados abaixo foram **corrigidos** nas migrations `0040`–`0041` e nas Server Actions. Pendências restantes são features externas (APIs marketplace, agente Windows, PWA, PDF, RH).
 
 ---
 
@@ -14,10 +14,10 @@
 | Entrega funcional | Alta | Cadastros, estoque, financeiro, CRM, dashboard, pedidos, PDV, KDS, caixa, mesas, expedição |
 | Qualidade de build | Alta | `typecheck`, `lint` e `build` passam sem erros |
 | Documentação | Baixa | README ainda fala em Sprint 01; Sprint 05 sem docs |
-| Segurança / integridade | Média–Baixa | RLS cobre multi-tenant básico, mas há bypasses de máquina de estados e RPCs DEFINER sem ownership |
-| Testes | Média–Baixa | 7 e2e Playwright + SQL checkpoints; zero testes unitários; módulos S01–04 sem e2e |
-| Integrações externas | Stub | Adapters lançam erro explícito; webhooks só logam |
-| Pronto para produção | **Não** | Corrigir Critical/High de segurança + fechar drift documental |
+| Segurança / integridade | Alta (pós-0040) | Máquina de estados, ownership RPC, empresa_id nas actions, webhooks fechados, KDS por praça |
+| Testes | Média | 6 unitários (Vitest) + 7 e2e Playwright + SQL checkpoints; cobertura e2e ainda parcial |
+| Integrações externas | Stub | Adapters lançam erro explícito; webhooks exigem assinatura (ou flag de dev) |
+| Pronto para produção | Condicional | Aplicar migrations `0040`–`0041` no Supabase; configurar secrets; features externas ainda stub |
 
 ### Contagem objetiva
 
@@ -231,38 +231,35 @@ Severidades: **Critical** / **High** / **Medium** / **Low**.
 
 ---
 
-## 10. Roadmap de remediação recomendado
+## 10. Roadmap de remediação
 
-### P0 — Antes de qualquer deploy com dados reais
+### Concluído nesta rodada (P0/P1)
 
-1. Ownership check / revoke em `fn_proximo_numero_pedido`
-2. Travar mutações de `status` e de itens pós-`rascunho` no banco
-3. Fechar webhook inbox (assinatura obrigatória ou desabilitar rota em prod)
-4. Validar `empresa_id` ativa em todas as mutations de Server Actions
-5. Checagens de caixa/operador e teto de pagamento
+- [x] Ownership em `fn_proximo_numero_pedido` (`0040`)
+- [x] Máquina de estados + itens só em `rascunho` (triggers)
+- [x] Webhook inbox fechado (assinatura ou flag de dev)
+- [x] `.eq("empresa_id", empresa.id)` nas Server Actions
+- [x] Pagamento com teto + caixa/operador
+- [x] KDS por praça (`status_preparo` + `fn_marcar_itens_pronto`)
+- [x] Conclusão entrega/retirada via Expedição
+- [x] PDV atômico (`fn_finalizar_venda_pdv`)
+- [x] Sem ciphertext/`chave_api_hash` no client
+- [x] Claim atômico + transições da fila de impressão
+- [x] Nav agrupada + `ConfirmDialog` no barrel + `SPRINT-05.md` + Vitest
 
-### P1 — Integridade operacional
+### P2 — ainda aberto
 
-6. Status por praça/item no KDS  
-7. Sincronizar conclusão de pedido com expedição aberta  
-8. Tornar `finalizarVendaPdv` atômico (RPC única)  
-9. Remover ciphertext/`chave_api_hash` das queries de UI  
-10. Child-row `WITH CHECK` alinhado ao pai  
+- Expandir e2e (KDS, expedição, estoque, financeiro)
+- Migrar restantes `window.confirm` → `ConfirmDialog`
+- Atualizar DATABASE.md com schema Sprint 05 completo
+- AAD/rotação em `INTEGRACOES_SECRET_KEY`
 
-### P2 — Documentação e qualidade
+### P3 — produto futuro
 
-11. Atualizar README + ARCHITECTURE + DATABASE + PRODUCT-VISION + AGENTE-LOCAL  
-12. Criar `docs/SPRINT-05.md`  
-13. Scripts `test` / `test:e2e` + unitários das fórmulas  
-14. Expandir e2e (KDS, expedição, estoque, financeiro)  
-15. Agrupar navegação por domínio  
-
-### P3 — Produto futuro
-
-16. RBAC (caixa / cozinha / gerente)  
-17. Integrações reais + agente Windows + PDF  
-18. PWA  
-19. Calculadora de funcionários  
+- RBAC multi-operador
+- Integrações reais + agente Windows + PDF
+- PWA
+- Calculadora de funcionários
 
 ---
 

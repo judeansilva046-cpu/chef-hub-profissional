@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { formatarDataHora } from "@/lib/format";
-import type { Tables } from "@/lib/supabase/database.types";
 
 import { alternarAtivoAgenteImpressao, excluirAgenteImpressao } from "../actions";
+import type { AgenteImpressaoListagem } from "../queries";
 import { AgenteImpressaoDialog } from "./agente-impressao-dialog";
 
 export interface AgentesImpressaoManagerProps {
-  agentes: Tables<"agentes_impressao">[];
+  agentes: AgenteImpressaoListagem[];
 }
 
 export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProps) {
@@ -30,7 +30,7 @@ export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProp
   const [dialogKey, setDialogKey] = useState(0);
   const [pending, startTransition] = useTransition();
 
-  function alternarAtivo(agente: Tables<"agentes_impressao">) {
+  function alternarAtivo(agente: AgenteImpressaoListagem) {
     startTransition(async () => {
       try {
         await alternarAtivoAgenteImpressao(agente.id, !agente.ativo);
@@ -40,7 +40,7 @@ export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProp
     });
   }
 
-  function excluir(agente: Tables<"agentes_impressao">) {
+  function excluir(agente: AgenteImpressaoListagem) {
     if (!window.confirm(`Excluir o agente "${agente.nome}"? A chave dele deixa de funcionar.`)) {
       return;
     }
