@@ -496,3 +496,60 @@ padrão de `ingredientes_historico_precos`).
   cifradas e marca `status_conexao = 'pendente_homologacao'`; "testar
   conexão" sempre volta essa mesma mensagem. Isso é intencional: nenhuma
   dessas integrações tem credencial de parceiro homologado.
+
+## Sprint 05 — Pedidos, PDV, Caixa, Mesas, KDS e Expedição
+
+Migrations `0030`–`0039`. Ver também [SPRINT-05.md](./SPRINT-05.md).
+
+### Tabelas principais
+
+| Tabela | Papel |
+| ------ | ----- |
+| `pedidos`, `pedido_itens`, `pedido_item_adicionais`, `pedido_status_historico` | Ciclo de venda operacional |
+| `contadores_pedidos`, `pracas_producao` | Numeração atômica e praças do KDS |
+| `caixas`, `caixa_movimentacoes`, `pagamentos` | Caixa e recebimentos |
+| `mesas`, `comandas` | Salão |
+| `entregadores`, `expedicoes` | Entrega/retirada |
+| `fila_impressao` (tipos extras) | Comprovantes de pedido/caixa |
+
+### Regras importantes
+
+1. Baixa de estoque em `fn_iniciar_preparo_pedido` (FIFO), não na conclusão.
+2. `fn_concluir_pedido` cria linhas em `vendas`. O CRUD manual `/vendas` **não** baixa estoque.
+3. Pedidos `entrega`/`retirada` geram `expedicoes` ao ficarem `pronto`.
+4. Realtime (`0037`) publica `pedidos`, `mesas`, `comandas`, `caixas`, `expedicoes`, `fila_impressao`.
+
+## Pós-auditoria — Hardening e funcionários (`0040`–`0042`)
+
+### `0040` — Integridade operacional
+
+- Ownership em `fn_proximo_numero_pedido`
+- `pedido_itens.status_preparo` (`pendente` \| `em_preparo` \| `pronto`) para KDS por praça
+- Triggers: status só via RPC (exceto `em_preparo→pronto` e `pronto→saiu_para_entrega`); itens/valores só em `rascunho`
+- RPCs novas: `fn_avancar_status_pedido`, `fn_marcar_itens_pronto`, `fn_finalizar_venda_pdv`
+- Pagamentos: teto vs total; caixa mesma empresa/operador aberto
+- `salvar_ficha_tecnica`: valida `ingrediente_id` da mesma empresa
+- Expedição: status `cancelado`; conclusão de pedido com expedição aberta só via Expedição
+
+### `0041` — Realtime em `pedido_itens`
+
+Publica `pedido_itens` no `supabase_realtime` para o KDS atualizar `status_preparo`.
+
+### `0042` — `funcionarios`
+
+CRUD de custo de mão de obra: `salario_bruto`, `beneficios_mensais`,
+`percentual_encargos` (default 36,8%), `carga_horaria_semanal`. Fórmulas no
+app (`src/features/funcionarios/calculations.ts`) — custo mensal e custo/hora.
+RLS padrão por `empresas.usuario_id`.
+
+### Como aplicar se o banco remoto ainda está em `0039`
+
+Cole o bundle pronto no SQL Editor:
+
+[`docs/sql/aplicar-0040-a-0042.sql`](./sql/aplicar-0040-a-0042.sql)
+
+Depois rode o teste:
+
+[`supabase/tests/checkpoint3_hardening_0040.sql`](../supabase/tests/checkpoint3_hardening_0040.sql)
+
+Passo a passo completo: [DEPLOY.md](./DEPLOY.md).
