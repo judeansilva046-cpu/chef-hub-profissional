@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { unidadeMedidaSchema } from "./validation";
 
@@ -26,6 +27,7 @@ export async function criarUnidadeMedida(
   _prevState: UnidadeMedidaActionState | undefined,
   formData: FormData,
 ): Promise<UnidadeMedidaActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -62,6 +64,7 @@ export async function atualizarUnidadeMedida(
   _prevState: UnidadeMedidaActionState | undefined,
   formData: FormData,
 ): Promise<UnidadeMedidaActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseUnidadeMedidaForm(formData);
@@ -96,6 +99,7 @@ export async function atualizarUnidadeMedida(
 }
 
 export async function excluirUnidadeMedida(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

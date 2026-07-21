@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { funcionarioSchema } from "./validation";
 
@@ -34,6 +35,7 @@ export async function criarFuncionario(
   _prevState: FuncionarioActionState | undefined,
   formData: FormData,
 ): Promise<FuncionarioActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseFuncionarioForm(formData);
@@ -67,6 +69,7 @@ export async function atualizarFuncionario(
   _prevState: FuncionarioActionState | undefined,
   formData: FormData,
 ): Promise<FuncionarioActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseFuncionarioForm(formData);
@@ -99,6 +102,7 @@ export async function atualizarFuncionario(
 }
 
 export async function excluirFuncionario(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 /**
  * Reimpressão = enfileirar um novo job com o MESMO payload/tipo/referência
@@ -13,6 +14,7 @@ import { requireEmpresaAtual } from "@/server/auth/require-empresa";
  * status.
  */
 export async function reimprimirTrabalho(id: string): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();
@@ -46,6 +48,7 @@ export async function reimprimirTrabalho(id: string): Promise<void> {
 }
 
 export async function cancelarTrabalhoImpressaoPendente(id: string): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

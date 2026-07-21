@@ -1,116 +1,55 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Plug, Unplug } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Text } from "@/components/ui/text";
 import type { ProvedorIntegracao } from "@/integrations/types";
-import { formatarDataHora } from "@/lib/format";
+import { PROVIDER_CATALOG } from "@/integrations/types";
 
-import { desconectarIntegracao, testarConexaoIntegracao } from "../actions";
 import type { IntegracaoListagem } from "../queries";
-import { CredenciaisDialog } from "./credenciais-dialog";
+import { IntegrationCard } from "./integration-card";
 
-export interface IntegracaoCardProps {
+/** Compatibilidade com a UI Sprint 04 — delega ao IntegrationCard. */
+export function IntegracaoCard({
+  provedor,
+  provedorLabel,
+  integracao,
+}: {
   provedor: ProvedorIntegracao;
   provedorLabel: string;
   integracao: IntegracaoListagem | null;
-}
+}) {
+  const catalog = PROVIDER_CATALOG.find((p) => p.id === provedor) ?? {
+    id: provedor,
+    label: provedorLabel,
+    category: "delivery" as const,
+    description: "",
+  };
 
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; variant: "success" | "warning" | "danger" | "outline" }
-> = {
-  nao_configurado: { label: "Não configurado", variant: "outline" },
-  pendente_homologacao: { label: "Pendente de homologação", variant: "warning" },
-  conectado: { label: "Conectado", variant: "success" },
-  erro: { label: "Erro", variant: "danger" },
-  desconectado: { label: "Desconectado", variant: "outline" },
-};
-
-export function IntegracaoCard({ provedor, provedorLabel, integracao }: IntegracaoCardProps) {
-  const [dialogAberto, setDialogAberto] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [confirmandoDesconexao, setConfirmandoDesconexao] = useState(false);
-
-  const status = STATUS_CONFIG[integracao?.status_conexao ?? "nao_configurado"];
-
-  function testar() {
-    if (!integracao) return;
-    startTransition(async () => {
-      try {
-        const resultado = await testarConexaoIntegracao(integracao.id);
-        window.alert(resultado.mensagem);
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Erro ao testar a conexão.");
+  const integration = integracao
+    ? {
+        id: integracao.id,
+        empresa_id: integracao.empresa_id,
+        provider: String(integracao.provedor),
+        category: catalog.category,
+        status:
+          integracao.status_conexao === "conectado"
+            ? "online"
+            : integracao.status_conexao === "pendente_homologacao"
+              ? "pending"
+              : integracao.status_conexao === "erro"
+                ? "error"
+                : integracao.status_conexao === "desconectado"
+                  ? "disabled"
+                  : "offline",
+        config: {},
+        webhook_url: null,
+        last_sync_at: null,
+        last_test_at: null,
+        last_error: null,
+        metadata: (integracao.metadata ?? {}) as Record<string, unknown>,
+        created_at: integracao.criado_em,
+        updated_at: integracao.atualizado_em,
+        has_credentials: integracao.tem_credenciais,
       }
-    });
-  }
+    : null;
 
-  return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{provedorLabel}</CardTitle>
-        <Badge variant={status.variant}>{status.label}</Badge>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <Text tone="muted" size="sm">
-          {integracao?.tem_credenciais
-            ? "Credenciais configuradas."
-            : "Nenhuma credencial configurada."}
-        </Text>
-        {integracao?.conectado_em && (
-          <Text tone="muted" size="sm">
-            Conectado em {formatarDataHora(integracao.conectado_em)}
-          </Text>
-        )}
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => setDialogAberto(true)}>
-            <Plug className="h-4 w-4" />
-            {integracao?.tem_credenciais ? "Atualizar credenciais" : "Conectar"}
-          </Button>
-          {integracao?.tem_credenciais && (
-            <>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={testar}>
-                Testar conexão
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={pending}
-                onClick={() => setConfirmandoDesconexao(true)}
-              >
-                <Unplug className="h-4 w-4" />
-                Desconectar
-              </Button>
-            </>
-          )}
-        </div>
-      </CardContent>
-
-      <CredenciaisDialog
-        open={dialogAberto}
-        onOpenChange={setDialogAberto}
-        provedor={provedor}
-        provedorLabel={provedorLabel}
-      />
-
-      <ConfirmDialog
-        open={confirmandoDesconexao}
-        onOpenChange={setConfirmandoDesconexao}
-        title={`Desconectar ${provedorLabel}`}
-        description="As credenciais salvas serão removidas."
-        confirmLabel="Desconectar"
-        destructive
-        onConfirm={async () => {
-          if (!integracao) return;
-          await desconectarIntegracao(integracao.id);
-        }}
-      />
-    </Card>
-  );
+  return <IntegrationCard catalog={catalog} integration={integration} />;
 }

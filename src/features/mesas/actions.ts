@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { PAPEIS_GARCOM } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { mesaSchema } from "./validation";
 
@@ -13,6 +15,7 @@ function revalidarMesas() {
 }
 
 export async function criarMesa(input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_GARCOM);
   const empresa = await getEmpresaAtual();
   if (!empresa) throw new Error("Nenhuma empresa ativa.");
 
@@ -33,6 +36,7 @@ export async function criarMesa(input: unknown): Promise<void> {
 }
 
 export async function abrirComanda(mesaId: string, quantidadePessoas?: number | null): Promise<string> {
+  await requirePapel(...PAPEIS_GARCOM);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -61,6 +65,7 @@ export async function abrirComanda(mesaId: string, quantidadePessoas?: number | 
 }
 
 export async function fecharComanda(comandaId: string): Promise<void> {
+  await requirePapel(...PAPEIS_GARCOM);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -89,6 +94,7 @@ export async function fecharComanda(comandaId: string): Promise<void> {
 }
 
 export async function transferirComandaMesa(comandaId: string, novaMesaId: string): Promise<void> {
+  await requirePapel(...PAPEIS_GARCOM);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -127,6 +133,7 @@ export async function transferirComandaMesa(comandaId: string, novaMesaId: strin
 }
 
 export async function unirComandas(comandaOrigemId: string, comandaDestinoId: string): Promise<void> {
+  await requirePapel(...PAPEIS_GARCOM);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { fornecedorSchema } from "./validation";
 
@@ -29,6 +30,7 @@ export async function criarFornecedor(
   _prevState: FornecedorActionState | undefined,
   formData: FormData,
 ): Promise<FornecedorActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -63,6 +65,7 @@ export async function atualizarFornecedor(
   _prevState: FornecedorActionState | undefined,
   formData: FormData,
 ): Promise<FornecedorActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseFornecedorForm(formData);
@@ -91,6 +94,7 @@ export async function atualizarFornecedor(
 }
 
 export async function alternarAtivoFornecedor(id: string, ativo: boolean) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { categoriaIngredienteSchema } from "./validation";
 
@@ -25,6 +26,7 @@ export async function criarCategoriaIngrediente(
   _prevState: CategoriaIngredienteActionState | undefined,
   formData: FormData,
 ): Promise<CategoriaIngredienteActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -60,6 +62,7 @@ export async function atualizarCategoriaIngrediente(
   _prevState: CategoriaIngredienteActionState | undefined,
   formData: FormData,
 ): Promise<CategoriaIngredienteActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = parseCategoriaForm(formData);
@@ -91,6 +94,7 @@ export async function atualizarCategoriaIngrediente(
 }
 
 export async function excluirCategoriaIngrediente(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

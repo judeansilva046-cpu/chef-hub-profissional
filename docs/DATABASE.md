@@ -9,6 +9,8 @@ Editor do painel sem depois refletir a mudança numa migration nova.
 
 ```
 profiles (1) ─┬─< empresas (N, um usuário pode ter várias)
+              │         │
+              │         └─< membros_empresa (N operadores / papéis)
               │
 empresas (1) ─┼─< unidades_medida (customizadas; empresa_id null = padrão do sistema)
               ├─< categorias_ingredientes
@@ -23,6 +25,10 @@ empresas (1) ─┼─< unidades_medida (customizadas; empresa_id null = padrão
   produto; sem `UNIQUE(usuario_id)`). A empresa "ativa" numa requisição é
   resolvida na aplicação (cookie), não no banco — ver
   `docs/ARCHITECTURE.md#autenticação-e-multi-empresa`.
+  `usuario_id` é o **owner primário**; operadores adicionais ficam em
+  `membros_empresa` (migration `0043`).
+- **`membros_empresa`** — RBAC multi-operador; ver
+  [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md).
 - **`unidades_medida`** — `empresa_id` nulo = unidade padrão do sistema
   (seedada, imutável para qualquer usuário); preenchido = customizada da
   empresa. Sem motor de conversão entre unidades (limitação deliberada desta
@@ -136,12 +142,15 @@ ambos aparecem na UI porque o mercado brasileiro usa as duas linguagens.
 ## RLS (Row Level Security)
 
 Toda tabela com `empresa_id` restringe acesso a
-`empresa_id IN (SELECT id FROM empresas WHERE usuario_id = (SELECT auth.uid()))`
-(o `SELECT auth.uid()` extra é a forma recomendada pelo Supabase para o
-Postgres tratar a função como InitPlan, avaliada uma vez por statement em
-vez de por linha). Tabelas de auditoria (`ingredientes_historico_precos`,
+`empresa_id IN (SELECT public.fn_empresas_acessiveis())`
+(desde a migration `0043`; antes era
+`empresa_id IN (SELECT id FROM empresas WHERE usuario_id = (SELECT auth.uid()))`).
+`fn_empresas_acessiveis()` une empresas em que o usuário é dono
+(`empresas.usuario_id`) **e** empresas em que é membro ativo
+(`membros_empresa`). Tabelas de auditoria (`ingredientes_historico_precos`,
 `fichas_tecnicas_versoes`) só têm policy de `SELECT` — toda escrita passa
-por uma função `SECURITY DEFINER` com checagem de autorização manual.
+por uma função `SECURITY DEFINER` com checagem de autorização manual
+(agora via `fn_usuario_acessa_empresa` onde aplicável).
 
 **Convenção do projeto**: toda função `SECURITY DEFINER` que grava dados
 deve reimplementar manualmente a checagem de autorização relevante logo no
@@ -553,3 +562,25 @@ Depois rode o teste:
 [`supabase/tests/checkpoint3_hardening_0040.sql`](../supabase/tests/checkpoint3_hardening_0040.sql)
 
 Passo a passo completo: [DEPLOY.md](./DEPLOY.md).
+
+## Sprint 06 — RBAC multi-operador (`0043`)
+
+Tabela `membros_empresa` (papéis `owner` | `gerente` | `caixa` | `cozinha` |
+`garcom`), backfill do owner por empresa, trigger em `INSERT` de `empresas`,
+helpers `fn_empresas_acessiveis` / `fn_usuario_acessa_empresa` /
+`fn_papel_na_empresa` / `fn_convidar_membro_por_email`, e rewrite das
+policies RLS para membros. Owner primário (`empresas.usuario_id`) não pode
+ser removido/desativado/demovido. Detalhe: [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md).
+
+Bundle: [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
+
+Teste SQL: [`supabase/tests/checkpoint4_rbac_0043.sql`](../supabase/tests/checkpoint4_rbac_0043.sql).
+
+Seed E2E operadores: [`docs/sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql).
+
+### RLS por papel na escrita (`0044`)
+
+`fn_papel_em` / asserts em RPCs + policies RESTRICTIVE de INSERT/UPDATE/DELETE.
+SELECT continua por tenant. Bundle:
+[`docs/sql/aplicar-0044-rbac-papel-rls.sql`](./sql/aplicar-0044-rbac-papel-rls.sql).
+Teste: [`supabase/tests/checkpoint5_rbac_papel_rls_0044.sql`](../supabase/tests/checkpoint5_rbac_papel_rls_0044.sql).

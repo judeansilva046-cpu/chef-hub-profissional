@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { PAPEIS_CAIXA } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
 
 import { abrirCaixaSchema, fecharCaixaSchema, movimentacaoCaixaSchema } from "./validation";
 
@@ -14,6 +17,7 @@ function revalidarCaixa() {
 }
 
 export async function abrirCaixa(input: unknown): Promise<string> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await getEmpresaAtual();
   if (!empresa) throw new Error("Nenhuma empresa ativa.");
 
@@ -33,11 +37,19 @@ export async function abrirCaixa(input: unknown): Promise<string> {
     throw new Error(error.message.includes("caixa aberto") ? error.message : "Não foi possível abrir o caixa.");
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "caixas",
+    registroId: data,
+    valorNovo: { fechado: false, saldoInicial: validated.data.saldoInicial },
+  });
+
   revalidarCaixa();
   return data;
 }
 
 export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
 
   const validated = movimentacaoCaixaSchema.safeParse(input);
@@ -74,6 +86,7 @@ export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown
 }
 
 export async function fecharCaixa(caixaId: string, input: unknown): Promise<void> {
+  await requirePapel(...PAPEIS_CAIXA);
   const empresa = await requireEmpresaAtual();
 
   const validated = fecharCaixaSchema.safeParse(input);
@@ -103,6 +116,13 @@ export async function fecharCaixa(caixaId: string, input: unknown): Promise<void
   if (error) {
     throw new Error(error.message.includes("fechado") ? error.message : "Não foi possível fechar o caixa.");
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "caixas",
+    registroId: caixaId,
+    valorNovo: { fechado: true, saldoInformado: validated.data.saldoInformado },
+  });
 
   revalidarCaixa();
 }
