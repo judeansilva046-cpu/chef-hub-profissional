@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { entregadorSchema } from "./validation";
 
@@ -51,6 +52,7 @@ export async function avancarStatusExpedicao(
   statusAtual: string,
   opts?: { entregadorId?: string | null },
 ): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const proximoStatus = PROXIMOS_STATUS_EXPEDICAO[statusAtual];
   if (!proximoStatus) {
     throw new Error("Não há próxima etapa para este status.");
@@ -66,6 +68,7 @@ export async function avancarStatusExpedicao(
       horario_entrega: proximoStatus === "entregue" ? new Date().toISOString() : undefined,
     })
     .eq("id", expedicaoId)
+    .eq("empresa_id", empresa.id)
     .eq("status", statusAtual);
 
   if (error) throw new Error("Não foi possível avançar a expedição.");

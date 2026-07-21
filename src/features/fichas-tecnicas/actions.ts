@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { fichaTecnicaSchema } from "./validation";
 
@@ -106,7 +107,20 @@ export async function salvarFichaTecnica(
  * chama decide a navegação via useRouter().
  */
 export async function duplicarFichaTecnica(id: string): Promise<string> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: ficha, error: fichaError } = await supabase
+    .from("fichas_tecnicas")
+    .select("id")
+    .eq("id", id)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (fichaError || !ficha) {
+    throw new Error("Ficha técnica não encontrada.");
+  }
+
   const { data, error } = await supabase.rpc("fn_duplicar_ficha_tecnica", {
     p_ficha_id: id,
   });
@@ -120,11 +134,13 @@ export async function duplicarFichaTecnica(id: string): Promise<string> {
 }
 
 export async function alternarAtivoFichaTecnica(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("fichas_tecnicas")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar a ficha técnica.");

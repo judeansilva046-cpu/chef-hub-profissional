@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { categoriaIngredienteSchema } from "./validation";
 
@@ -59,6 +60,8 @@ export async function atualizarCategoriaIngrediente(
   _prevState: CategoriaIngredienteActionState | undefined,
   formData: FormData,
 ): Promise<CategoriaIngredienteActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseCategoriaForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -71,7 +74,8 @@ export async function atualizarCategoriaIngrediente(
       nome: validated.data.nome,
       descricao: validated.data.descricao || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -87,11 +91,13 @@ export async function atualizarCategoriaIngrediente(
 }
 
 export async function excluirCategoriaIngrediente(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("categorias_ingredientes")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível excluir a categoria.");

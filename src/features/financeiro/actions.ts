@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import {
   canalVendaSchema,
@@ -69,6 +70,8 @@ export async function atualizarCustoFixo(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseCustoFixoForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -82,7 +85,8 @@ export async function atualizarCustoFixo(
       categoria: validated.data.categoria,
       valor_mensal: validated.data.valorMensal,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return { formError: "Não foi possível salvar o custo fixo." };
@@ -93,11 +97,13 @@ export async function atualizarCustoFixo(
 }
 
 export async function alternarAtivoCustoFixo(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("custos_fixos")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o custo fixo.");
@@ -147,6 +153,8 @@ export async function atualizarCustoVariavel(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseCustoVariavelForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -160,7 +168,8 @@ export async function atualizarCustoVariavel(
       tipo: validated.data.tipo,
       valor: validated.data.valor,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return { formError: "Não foi possível salvar o custo variável." };
@@ -171,11 +180,13 @@ export async function atualizarCustoVariavel(
 }
 
 export async function alternarAtivoCustoVariavel(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("custos_variaveis")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o custo variável.");
@@ -233,6 +244,8 @@ export async function atualizarMetaVendas(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseMetaVendasForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -247,7 +260,8 @@ export async function atualizarMetaVendas(
       quantidade_meta: validated.data.quantidadeMeta,
       observacao: validated.data.observacao,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -264,8 +278,13 @@ export async function atualizarMetaVendas(
 }
 
 export async function excluirMetaVendas(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("metas_vendas").delete().eq("id", id);
+  const { error } = await supabase
+    .from("metas_vendas")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível excluir a meta.");
@@ -323,6 +342,8 @@ export async function atualizarCanalVenda(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseCanalVendaForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -337,7 +358,8 @@ export async function atualizarCanalVenda(
       taxa_percentual: validated.data.taxaPercentual,
       taxa_fixa: validated.data.taxaFixa,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -353,11 +375,13 @@ export async function atualizarCanalVenda(
 }
 
 export async function alternarAtivoCanalVenda(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("canais_venda")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o canal.");
@@ -367,8 +391,13 @@ export async function alternarAtivoCanalVenda(id: string, ativo: boolean) {
 }
 
 export async function excluirCanalVenda(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("canais_venda").delete().eq("id", id);
+  const { error } = await supabase
+    .from("canais_venda")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível excluir o canal.");

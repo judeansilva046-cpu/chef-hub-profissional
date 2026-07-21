@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import {
   ajusteEstoqueSchema,
@@ -244,14 +245,29 @@ export async function salvarContagemInventario(
   inventarioId: string,
   itens: { itemId: string; quantidadeContada: number | null }[],
 ): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
+  const { data: inventario, error: inventarioError } = await supabase
+    .from("estoque_inventarios")
+    .select("id")
+    .eq("id", inventarioId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (inventarioError || !inventario) {
+    throw new Error("Inventário não encontrado.");
+  }
+
+  // estoque_inventario_itens não tem empresa_id — amarra pelo inventario_id
+  // já verificado acima.
   const results = await Promise.all(
     itens.map((item) =>
       supabase
         .from("estoque_inventario_itens")
         .update({ quantidade_contada: item.quantidadeContada })
-        .eq("id", item.itemId),
+        .eq("id", item.itemId)
+        .eq("inventario_id", inventarioId),
     ),
   );
 
@@ -268,7 +284,20 @@ export async function salvarContagemInventario(
  * inventário como concluído.
  */
 export async function concluirInventario(inventarioId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: inventario, error: inventarioError } = await supabase
+    .from("estoque_inventarios")
+    .select("id")
+    .eq("id", inventarioId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (inventarioError || !inventario) {
+    throw new Error("Inventário não encontrado.");
+  }
+
   const { error } = await supabase.rpc("fn_concluir_inventario", {
     p_inventario_id: inventarioId,
   });

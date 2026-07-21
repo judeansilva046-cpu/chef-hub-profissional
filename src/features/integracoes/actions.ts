@@ -6,6 +6,7 @@ import { obterAdapter } from "@/integrations/registry";
 import { IntegracaoNaoDisponivelError } from "@/integrations/types";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { criptografarCredenciais } from "./crypto";
 import { credenciaisIntegracaoSchema } from "./validation";
@@ -69,6 +70,7 @@ export async function conectarIntegracao(
 }
 
 export async function desconectarIntegracao(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("integracoes_canais")
@@ -77,7 +79,8 @@ export async function desconectarIntegracao(id: string) {
       credenciais_criptografadas: null,
       conectado_em: null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível desconectar.");
@@ -97,8 +100,7 @@ export interface TesteConexaoResultado {
  * não fingir sucesso.
  */
 export async function testarConexaoIntegracao(id: string): Promise<TesteConexaoResultado> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();
   const { data: integracao, error: buscaError } = await supabase
@@ -106,7 +108,7 @@ export async function testarConexaoIntegracao(id: string): Promise<TesteConexaoR
     .select("*")
     .eq("id", id)
     .eq("empresa_id", empresa.id)
-    .single();
+    .maybeSingle();
 
   if (buscaError || !integracao) throw new Error("Integração não encontrada.");
 
@@ -137,7 +139,8 @@ export async function testarConexaoIntegracao(id: string): Promise<TesteConexaoR
     await supabase
       .from("integracoes_canais")
       .update({ status_conexao: "erro" })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("empresa_id", empresa.id);
   }
 
   revalidatePath("/integracoes");

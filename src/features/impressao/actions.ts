@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 /**
  * Reimpressão = enfileirar um novo job com o MESMO payload/tipo/referência
@@ -13,8 +13,7 @@ import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
  * status.
  */
 export async function reimprimirTrabalho(id: string): Promise<void> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();
   const { data: original, error: erroOriginal } = await supabase
@@ -22,7 +21,7 @@ export async function reimprimirTrabalho(id: string): Promise<void> {
     .select("tipo, payload, referencia_tipo, referencia_id")
     .eq("id", id)
     .eq("empresa_id", empresa.id)
-    .single();
+    .maybeSingle();
 
   if (erroOriginal || !original) throw new Error("Trabalho de impressão não encontrado.");
 
@@ -47,8 +46,14 @@ export async function reimprimirTrabalho(id: string): Promise<void> {
 }
 
 export async function cancelarTrabalhoImpressaoPendente(id: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("fila_impressao").delete().eq("id", id).eq("status", "pendente");
+  const { error } = await supabase
+    .from("fila_impressao")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id)
+    .eq("status", "pendente");
 
   if (error) throw new Error("Não foi possível cancelar — o trabalho já pode ter sido processado.");
 

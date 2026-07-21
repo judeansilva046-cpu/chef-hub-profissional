@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import {
   pedidoCompraSchema,
@@ -73,11 +74,13 @@ export async function atualizarStatusSolicitacao(
   id: string,
   status: "aprovada" | "rejeitada",
 ): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("solicitacoes_compra")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar a solicitação.");
@@ -99,17 +102,14 @@ export async function converterSolicitacaoEmPedido(
   solicitacaoId: string,
   fornecedorId: string,
 ): Promise<string> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) {
-    throw new Error("Nenhuma empresa ativa.");
-  }
-
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
   const { data: solicitacao, error: solicitacaoError } = await supabase
     .from("solicitacoes_compra")
     .select("status, solicitacoes_compra_itens(ingrediente_id, quantidade)")
     .eq("id", solicitacaoId)
+    .eq("empresa_id", empresa.id)
     .maybeSingle();
 
   if (solicitacaoError || !solicitacao) {
@@ -167,7 +167,8 @@ export async function converterSolicitacaoEmPedido(
   await supabase
     .from("solicitacoes_compra")
     .update({ status: "convertida" })
-    .eq("id", solicitacaoId);
+    .eq("id", solicitacaoId)
+    .eq("empresa_id", empresa.id);
 
   revalidatePath("/compras/solicitacoes");
   revalidatePath(`/compras/solicitacoes/${solicitacaoId}`);
@@ -245,11 +246,13 @@ export async function atualizarStatusPedido(
   id: string,
   status: "enviado" | "cancelado",
 ): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("pedidos_compra")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o pedido.");
@@ -275,6 +278,8 @@ export async function receberItemPedido(
   _prevState: ReceberItemActionState | undefined,
   formData: FormData,
 ): Promise<ReceberItemActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = receberItemPedidoSchema.safeParse({
     pedidoItemId: formData.get("pedidoItemId"),
     quantidade: formData.get("quantidade"),
@@ -287,6 +292,18 @@ export async function receberItemPedido(
   }
 
   const supabase = await createClient();
+
+  const { data: pedido, error: pedidoError } = await supabase
+    .from("pedidos_compra")
+    .select("id")
+    .eq("id", pedidoId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (pedidoError || !pedido) {
+    return { formError: "Pedido de compra não encontrado." };
+  }
+
   const { error } = await supabase.rpc("fn_receber_item_pedido_compra", {
     p_pedido_item_id: validated.data.pedidoItemId,
     p_quantidade: validated.data.quantidade,
@@ -356,11 +373,13 @@ export async function salvarPrecoFornecedor(
 }
 
 export async function removerPrecoFornecedor(id: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("fornecedor_ingredientes")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível remover o preço.");

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { abrirCaixaSchema, fecharCaixaSchema, movimentacaoCaixaSchema } from "./validation";
 
@@ -37,12 +38,26 @@ export async function abrirCaixa(input: unknown): Promise<string> {
 }
 
 export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = movimentacaoCaixaSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.issues[0]?.message ?? "Dados inválidos.");
   }
 
   const supabase = await createClient();
+
+  const { data: caixa, error: caixaError } = await supabase
+    .from("caixas")
+    .select("id")
+    .eq("id", caixaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (caixaError || !caixa) {
+    throw new Error("Caixa não encontrado.");
+  }
+
   const { error } = await supabase.rpc("fn_registrar_movimentacao_caixa", {
     p_caixa_id: caixaId,
     p_tipo: validated.data.tipo,
@@ -59,12 +74,26 @@ export async function registrarMovimentacaoCaixa(caixaId: string, input: unknown
 }
 
 export async function fecharCaixa(caixaId: string, input: unknown): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = fecharCaixaSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.issues[0]?.message ?? "Dados inválidos.");
   }
 
   const supabase = await createClient();
+
+  const { data: caixa, error: caixaError } = await supabase
+    .from("caixas")
+    .select("id")
+    .eq("id", caixaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (caixaError || !caixa) {
+    throw new Error("Caixa não encontrado.");
+  }
+
   const { error } = await supabase.rpc("fn_fechar_caixa", {
     p_caixa_id: caixaId,
     p_saldo_informado: validated.data.saldoInformado,
