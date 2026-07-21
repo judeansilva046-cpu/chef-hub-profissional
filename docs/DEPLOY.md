@@ -4,24 +4,28 @@ Checklist do próximo passo operacional após o merge da auditoria/hardening.
 
 ## 1. Aplicar migrations no Supabase
 
-No SQL Editor do projeto Supabase (ou via CLI `supabase db push`), aplique
-**nesta ordem**, se ainda não estiverem no banco:
+### Opção rápida (SQL Editor)
 
-| Arquivo | Conteúdo |
-| ------- | -------- |
-| `supabase/migrations/0040_security_hardening_operacional.sql` | Máquina de estados, KDS por item, PDV atômico, pagamentos/caixa |
-| `supabase/migrations/0041_realtime_pedido_itens.sql` | Realtime em `pedido_itens` |
-| `supabase/migrations/0042_funcionarios_custos.sql` | Tabela `funcionarios` + RLS |
+1. Abra o **SQL Editor** do projeto Supabase.
+2. Cole o conteúdo de
+   [`docs/sql/aplicar-0040-a-0042.sql`](./sql/aplicar-0040-a-0042.sql)
+   (bundle das migrations `0040` + `0041` + `0042`).
+3. Execute. Se alguma migration já tiver sido aplicada, o script pode falhar
+   em objetos existentes — nesse caso aplique só os arquivos que faltam em
+   `supabase/migrations/`.
 
-> Se o projeto já estava em `0039`, só faltam essas três. Confirme com:
-> `select version from supabase_migrations.schema_migrations order by version;`
-> (nome da tabela pode variar conforme o fluxo de migrate usado).
+### Opção CLI
 
-### Validação SQL rápida
+```bash
+supabase db push
+# ou: supabase migration up
+```
 
-Cole e rode `supabase/tests/checkpoint3_hardening_0040.sql` no SQL Editor
-(com `request.jwt.claim.sub` do usuário dono da empresa de teste, igual ao
-checkpoint 2). Deve retornar `OK: checkpoint 3 passou`.
+### Validação SQL
+
+Cole e rode `supabase/tests/checkpoint3_hardening_0040.sql` (com
+`request.jwt.claim.sub` do usuário dono da empresa de teste). Deve retornar
+`OK: checkpoint 3 passou`.
 
 ## 2. Variáveis de ambiente (produção)
 
