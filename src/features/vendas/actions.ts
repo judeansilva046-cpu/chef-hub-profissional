@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { vendaSchema } from "./validation";
 
@@ -75,6 +76,8 @@ export async function atualizarVenda(
   _prevState: VendaActionState | undefined,
   formData: FormData,
 ): Promise<VendaActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = vendaSchema.safeParse({
     fichaTecnicaId: formData.get("fichaTecnicaId"),
     canalVendaId: formData.get("canalVendaId"),
@@ -100,7 +103,8 @@ export async function atualizarVenda(
       data_venda: validated.data.dataVenda,
       observacao: validated.data.observacao,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return { formError: "Não foi possível salvar a venda." };
@@ -111,8 +115,13 @@ export async function atualizarVenda(
 }
 
 export async function excluirVenda(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("vendas").delete().eq("id", id);
+  const { error } = await supabase
+    .from("vendas")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível excluir a venda.");

@@ -1324,6 +1324,62 @@ export type Database = {
           },
         ]
       }
+      funcionarios: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          beneficios_mensais: number
+          carga_horaria_semanal: number
+          cargo: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          percentual_encargos: number
+          salario_bruto: number
+          tipo_contrato: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          beneficios_mensais?: number
+          carga_horaria_semanal?: number
+          cargo?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          percentual_encargos?: number
+          salario_bruto: number
+          tipo_contrato?: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          beneficios_mensais?: number
+          carga_horaria_semanal?: number
+          cargo?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          percentual_encargos?: number
+          salario_bruto?: number
+          tipo_contrato?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funcionarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredientes: {
         Row: {
           ativo: boolean
@@ -1878,6 +1934,7 @@ export type Database = {
           pedido_id: string
           preco_unitario_praticado: number
           quantidade: number
+          status_preparo: string
           valor_total: number | null
         }
         Insert: {
@@ -1892,6 +1949,7 @@ export type Database = {
           pedido_id: string
           preco_unitario_praticado?: number
           quantidade: number
+          status_preparo?: string
           valor_total?: number | null
         }
         Update: {
@@ -1906,6 +1964,7 @@ export type Database = {
           pedido_id?: string
           preco_unitario_praticado?: number
           quantidade?: number
+          status_preparo?: string
           valor_total?: number | null
         }
         Relationships: [
@@ -2620,8 +2679,20 @@ export type Database = {
         }
         Returns: string
       }
+      fn_avancar_status_pedido: {
+        Args: { p_pedido_id: string; p_status_atual: string }
+        Returns: undefined
+      }
+      fn_finalizar_venda_pdv: {
+        Args: { p_pedido_id: string }
+        Returns: undefined
+      }
       fn_iniciar_preparo_pedido: {
         Args: { p_pedido_id: string }
+        Returns: undefined
+      }
+      fn_marcar_itens_pronto: {
+        Args: { p_pedido_id: string; p_praca_producao_id?: string }
         Returns: undefined
       }
       fn_proximo_numero_pedido: {

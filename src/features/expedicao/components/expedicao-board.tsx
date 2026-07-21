@@ -68,7 +68,13 @@ function ExpedicaoCard({
   const [erro, setErro] = useState<string | null>(null);
   const [entregadorId, setEntregadorId] = useState("");
 
+  const precisaEntregador = expedicao.status === "embalado" && expedicao.pedidos.tipo === "entrega";
+
   function avancar() {
+    if (precisaEntregador && !entregadorId) {
+      setErro("Selecione um entregador antes de registrar a saída.");
+      return;
+    }
     setErro(null);
     startTransition(async () => {
       try {
@@ -81,8 +87,6 @@ function ExpedicaoCard({
       }
     });
   }
-
-  const precisaEntregador = expedicao.status === "embalado" && expedicao.pedidos.tipo === "entrega";
 
   return (
     <div className="border-border flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
@@ -114,7 +118,7 @@ function ExpedicaoCard({
             ))}
           </Select>
         )}
-        <Button size="sm" disabled={pending} onClick={avancar}>
+        <Button size="sm" disabled={pending || (precisaEntregador && !entregadorId)} onClick={avancar}>
           {PROXIMA_ACAO_LABEL[expedicao.status] ?? "Avançar"}
         </Button>
       </div>

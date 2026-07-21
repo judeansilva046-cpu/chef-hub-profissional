@@ -33,9 +33,7 @@ export interface ConfirmDialogProps {
 /**
  * Substitui window.confirm/window.prompt para ações críticas — mesmo
  * propósito, mas com espaço para descrição e (opcionalmente) motivo
- * obrigatório, sem bloquear a thread do navegador. Primeiro componente
- * compartilhado desse tipo no projeto (Sprint 05); os 7 usos legados de
- * window.confirm em outras features não são migrados nesta sprint.
+ * obrigatório, sem bloquear a thread do navegador.
  */
 export function ConfirmDialog({
   open,

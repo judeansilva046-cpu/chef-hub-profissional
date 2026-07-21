@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { agenteImpressaoSchema, emitirEtiquetaSchema } from "./validation";
 
@@ -114,11 +115,13 @@ export async function criarAgenteImpressao(
 }
 
 export async function alternarAtivoAgenteImpressao(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("agentes_impressao")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o agente.");
@@ -128,8 +131,13 @@ export async function alternarAtivoAgenteImpressao(id: string, ativo: boolean) {
 }
 
 export async function excluirAgenteImpressao(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("agentes_impressao").delete().eq("id", id);
+  const { error } = await supabase
+    .from("agentes_impressao")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível excluir o agente.");
@@ -139,8 +147,13 @@ export async function excluirAgenteImpressao(id: string) {
 }
 
 export async function cancelarTrabalhoImpressao(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
-  const { error } = await supabase.from("fila_impressao").delete().eq("id", id);
+  const { error } = await supabase
+    .from("fila_impressao")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível cancelar — o trabalho já pode ter sido processado.");

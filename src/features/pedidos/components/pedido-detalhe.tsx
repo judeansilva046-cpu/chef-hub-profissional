@@ -147,16 +147,18 @@ export function PedidoDetalhe({ detalhe, fichas, caixaAberto, trabalhosImpressao
           </Button>
         )}
         {(pedido.status === "pronto" || pedido.status === "saiu_para_entrega") &&
-          !(pedido.status === "pronto" && pedido.tipo === "entrega") && (
+          pedido.tipo !== "entrega" &&
+          pedido.tipo !== "retirada" && (
             <Button disabled={pending} onClick={() => rodar(() => concluirPedido(pedido.id))}>
               Concluir pedido
             </Button>
           )}
-        {pedido.status === "saiu_para_entrega" && (
-          <Button disabled={pending} onClick={() => rodar(() => concluirPedido(pedido.id))}>
-            Concluir pedido
-          </Button>
-        )}
+        {(pedido.tipo === "entrega" || pedido.tipo === "retirada") &&
+          (pedido.status === "pronto" || pedido.status === "saiu_para_entrega") && (
+            <Text size="sm" tone="muted">
+              Conclusão via Expedição.
+            </Text>
+          )}
         {pedido.status !== "cancelado" && pedido.status !== "entregue" && (
           <Button variant="ghost" disabled={pending} onClick={() => setConfirmandoCancelamento(true)}>
             Cancelar pedido

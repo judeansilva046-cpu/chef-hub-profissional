@@ -1,0 +1,15 @@
+{
+  "name": "chef-hub-agente-impressao",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "chef-hub-agente": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

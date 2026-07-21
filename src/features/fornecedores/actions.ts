@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { fornecedorSchema } from "./validation";
 
@@ -62,6 +63,8 @@ export async function atualizarFornecedor(
   _prevState: FornecedorActionState | undefined,
   formData: FormData,
 ): Promise<FornecedorActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseFornecedorForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -71,7 +74,8 @@ export async function atualizarFornecedor(
   const { error } = await supabase
     .from("fornecedores")
     .update(validated.data)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -87,11 +91,13 @@ export async function atualizarFornecedor(
 }
 
 export async function alternarAtivoFornecedor(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("fornecedores")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o fornecedor.");

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { unidadeMedidaSchema } from "./validation";
 
@@ -61,6 +62,8 @@ export async function atualizarUnidadeMedida(
   _prevState: UnidadeMedidaActionState | undefined,
   formData: FormData,
 ): Promise<UnidadeMedidaActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseUnidadeMedidaForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -77,7 +80,7 @@ export async function atualizarUnidadeMedida(
     // empresa_id not null: RLS já bloqueia edição de linhas de sistema, mas
     // reforçamos aqui para nunca depender só da RLS numa ação com efeito de UI.
     .eq("id", id)
-    .not("empresa_id", "is", null);
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -93,12 +96,13 @@ export async function atualizarUnidadeMedida(
 }
 
 export async function excluirUnidadeMedida(id: string) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("unidades_medida")
     .delete()
     .eq("id", id)
-    .not("empresa_id", "is", null);
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error(

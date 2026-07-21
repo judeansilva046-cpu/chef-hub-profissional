@@ -73,14 +73,16 @@ export async function listarEtiquetasEmitidas({
   };
 }
 
-export async function listarAgentesImpressao(): Promise<Tables<"agentes_impressao">[]> {
+export type AgenteImpressaoListagem = Omit<Tables<"agentes_impressao">, "chave_api_hash">;
+
+export async function listarAgentesImpressao(): Promise<AgenteImpressaoListagem[]> {
   const empresa = await getEmpresaAtual();
   if (!empresa) return [];
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("agentes_impressao")
-    .select("*")
+    .select("id, empresa_id, nome, ativo, ultimo_ping_em, criado_em, atualizado_em")
     .eq("empresa_id", empresa.id)
     .order("criado_em", { ascending: false });
 

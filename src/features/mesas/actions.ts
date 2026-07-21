@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { mesaSchema } from "./validation";
 
@@ -32,7 +33,20 @@ export async function criarMesa(input: unknown): Promise<void> {
 }
 
 export async function abrirComanda(mesaId: string, quantidadePessoas?: number | null): Promise<string> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: mesa, error: mesaError } = await supabase
+    .from("mesas")
+    .select("id")
+    .eq("id", mesaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (mesaError || !mesa) {
+    throw new Error("Mesa não encontrada.");
+  }
+
   const { data, error } = await supabase.rpc("fn_abrir_comanda", {
     p_mesa_id: mesaId,
     p_quantidade_pessoas: quantidadePessoas ?? undefined,
@@ -47,7 +61,20 @@ export async function abrirComanda(mesaId: string, quantidadePessoas?: number | 
 }
 
 export async function fecharComanda(comandaId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: comanda, error: comandaError } = await supabase
+    .from("comandas")
+    .select("id")
+    .eq("id", comandaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (comandaError || !comanda) {
+    throw new Error("Comanda não encontrada.");
+  }
+
   const { error } = await supabase.rpc("fn_fechar_comanda", { p_comanda_id: comandaId });
 
   if (error) {
@@ -62,7 +89,31 @@ export async function fecharComanda(comandaId: string): Promise<void> {
 }
 
 export async function transferirComandaMesa(comandaId: string, novaMesaId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: comanda, error: comandaError } = await supabase
+    .from("comandas")
+    .select("id")
+    .eq("id", comandaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (comandaError || !comanda) {
+    throw new Error("Comanda não encontrada.");
+  }
+
+  const { data: mesa, error: mesaError } = await supabase
+    .from("mesas")
+    .select("id")
+    .eq("id", novaMesaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (mesaError || !mesa) {
+    throw new Error("Mesa não encontrada.");
+  }
+
   const { error } = await supabase.rpc("fn_transferir_comanda_mesa", {
     p_comanda_id: comandaId,
     p_nova_mesa_id: novaMesaId,
@@ -76,7 +127,31 @@ export async function transferirComandaMesa(comandaId: string, novaMesaId: strin
 }
 
 export async function unirComandas(comandaOrigemId: string, comandaDestinoId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: origem, error: origemError } = await supabase
+    .from("comandas")
+    .select("id")
+    .eq("id", comandaOrigemId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (origemError || !origem) {
+    throw new Error("Comanda de origem não encontrada.");
+  }
+
+  const { data: destino, error: destinoError } = await supabase
+    .from("comandas")
+    .select("id")
+    .eq("id", comandaDestinoId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (destinoError || !destino) {
+    throw new Error("Comanda de destino não encontrada.");
+  }
+
   const { error } = await supabase.rpc("fn_unir_comandas", {
     p_comanda_origem_id: comandaOrigemId,
     p_comanda_destino_id: comandaDestinoId,

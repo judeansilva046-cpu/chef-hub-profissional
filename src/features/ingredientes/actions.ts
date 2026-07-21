@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { ingredienteSchema } from "./validation";
 
@@ -65,6 +66,8 @@ export async function atualizarIngrediente(
   _prevState: IngredienteActionState | undefined,
   formData: FormData,
 ): Promise<IngredienteActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseIngredienteForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -83,7 +86,8 @@ export async function atualizarIngrediente(
       custo_unitario_atual: validated.data.custoUnitarioAtual,
       estoque_minimo: validated.data.estoqueMinimo,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return {
@@ -99,11 +103,13 @@ export async function atualizarIngrediente(
 }
 
 export async function alternarAtivoIngrediente(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("ingredientes")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o ingrediente.");

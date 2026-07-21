@@ -2,16 +2,17 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { obterAdapter } from "@/integrations/registry";
 import { PROVEDORES_INTEGRACAO, type ProvedorIntegracao } from "@/integrations/types";
+import type { Json } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
+const MAX_PAYLOAD_BYTES = 64 * 1024;
+
 /**
- * Inbox interno de webhooks — recebe POST de um provedor externo (iFood,
- * 99Food, Keeta, Open Delivery). Roda com o client service-role porque o
- * provedor não tem sessão Supabase Auth nenhuma. Nenhum adapter valida
- * assinatura de verdade ainda (não há segredo de webhook real configurado
- * — ver src/integrations/*\/adapter.ts) — todo webhook é só logado em
- * integracoes_webhooks_recebidos com assinatura_valida=false e
- * processado=false, para existir rastro sem fingir que foi processado.
+ * Inbox de webhooks. Em produção só aceita payloads com assinatura válida
+ * (adapters reais). Em desenvolvimento, `INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED=true`
+ * permite gravar com assinatura_valida=false para testes locais.
+ *
+ * Sempre limita tamanho do corpo e nunca processa o pedido — só registra.
  */
 export async function POST(
   request: NextRequest,
@@ -23,13 +24,32 @@ export async function POST(
     return NextResponse.json({ erro: "Provedor desconhecido." }, { status: 404 });
   }
 
-  const payload = await request.json().catch(() => null);
-  if (payload === null) {
+  const raw = await request.text();
+  if (raw.length > MAX_PAYLOAD_BYTES) {
+    return NextResponse.json({ erro: "Payload muito grande." }, { status: 413 });
+  }
+
+  let payload: Json;
+  try {
+    payload = raw ? (JSON.parse(raw) as Json) : null;
+  } catch {
+    return NextResponse.json({ erro: "Corpo inválido." }, { status: 400 });
+  }
+
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
     return NextResponse.json({ erro: "Corpo inválido." }, { status: 400 });
   }
 
   const adapter = obterAdapter(provedor as ProvedorIntegracao);
   const assinaturaValida = adapter.validarAssinaturaWebhook(payload, request.headers);
+  const permitirSemAssinatura = process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED === "true";
+
+  if (!assinaturaValida && !permitirSemAssinatura) {
+    return NextResponse.json(
+      { erro: "Assinatura de webhook inválida ou não configurada." },
+      { status: 401 },
+    );
+  }
 
   const supabase = createServiceRoleClient();
   const { error } = await supabase.from("integracoes_webhooks_recebidos").insert({
@@ -39,14 +59,12 @@ export async function POST(
     processado: false,
     erro_mensagem: assinaturaValida
       ? null
-      : "Assinatura não validada — nenhum adapter tem segredo de webhook real configurado nesta sprint.",
+      : "Recebido sem assinatura válida (modo desenvolvimento).",
   });
 
   if (error) {
     return NextResponse.json({ erro: "Não foi possível registrar o webhook." }, { status: 500 });
   }
 
-  // 200 para o provedor não ficar retentando indefinidamente — o registro
-  // fica com processado=false para revisão manual/futura implementação.
-  return NextResponse.json({ recebido: true });
+  return NextResponse.json({ recebido: true, assinatura_valida: assinaturaValida });
 }

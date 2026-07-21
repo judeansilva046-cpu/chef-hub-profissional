@@ -27,11 +27,10 @@ aumentar a eficiência operacional.
 - [x] Markup
 - [x] Controle de estoque
 - [x] Etiquetas de validade — emissão, fila de impressão, agentes locais
-      (impressão térmica real depende do executável do agente — ver
-      [AGENTE-LOCAL.md](./AGENTE-LOCAL.md))
+      e CLI Node em `agents/impressao/` (ver [AGENTE-LOCAL.md](./AGENTE-LOCAL.md))
 - [x] Planejamento de produção
 - [x] Lista de compras inteligente
-- [ ] Calculadora completa de custos de funcionários
+- [x] Calculadora completa de custos de funcionários
 - [x] Gestão de custos fixos e variáveis
 - [x] Ponto de equilíbrio
 - [x] Sugestão de metas mínimas de vendas para nunca operar no prejuízo
@@ -39,8 +38,7 @@ aumentar a eficiência operacional.
 - [x] Taxas configuráveis por canal de venda (iFood, 99Food, Keeta, Delivery
       Próprio, canais personalizados) e simulador de promoções
 - [x] Relatórios gerenciais — vendas, CMV, margem, estoque, compras,
-      produção, por produto, por canal; exportação CSV (PDF ainda não
-      implementado)
+      produção, por produto, por canal; exportação CSV e PDF
 - [x] Dashboard Executivo — faturamento projetado/realizado, CMV, margem,
       ponto de equilíbrio, meta vs. realizado, alertas, produtos mais/menos
       rentáveis, comparativo por canal
@@ -68,11 +66,12 @@ código** (`src/integrations/*`, tabela `integracoes_canais`, webhooks) para:
 - 99Food
 - Keeta
 - Open Delivery
-- PDVs (Pontos de Venda) — ainda só reserva de nome, sem adapter
+- PDVs externos — ainda só reserva de nome, sem adapter (o PDV interno
+  do Chef Hub existe desde a Sprint 05)
 - ERPs — ainda só reserva de nome, sem adapter
-- Impressoras térmicas — fila de impressão + contrato do agente local
-  prontos (ver [AGENTE-LOCAL.md](./AGENTE-LOCAL.md)); o executável do
-  agente e a impressão física real ainda não existem
+- Impressoras térmicas — fila de impressão + agente local Node em
+  `agents/impressao/` (grava jobs em outbox; ligação física à térmica
+  depende do driver/ESC-POS do ambiente)
 
 Mas **nenhuma chamada real a API de provedor externo acontece** — todo
 adapter de delivery lança erro explícito quando invocado, porque isso
@@ -103,8 +102,16 @@ Ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
   [DATABASE.md](./DATABASE.md#sprint-04--dashboard-relatórios-crm-etiquetas-e-integrações),
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros) e
   [SPRINT-04.md](./SPRINT-04.md).
-- Ainda não implementados: calculadora completa de custos de funcionários,
-  exportação de relatórios em PDF, chamadas reais de integração externa
-  (iFood, 99Food, Keeta, Open Delivery, PDVs, ERPs) e o executável do
-  agente local de impressão — ver
+- **Sprint 05** — Pedidos, PDV, KDS, Caixa, Mesas, Expedição (ver
+  [SPRINT-05.md](./SPRINT-05.md) e [AUDITORIA.md](./AUDITORIA.md)).
+- **Pós-auditoria** — PWA, exportação PDF, calculadora de funcionários
+  (`/financeiro/funcionarios`), agente local Node (`agents/impressao/`),
+  hardening de segurança (`0040`–`0042`).
+- Ainda não implementados: chamadas reais de integração externa (iFood,
+  99Food, Keeta, Open Delivery, ERPs) e adapters externos de PDV — exigem
+  credenciais de parceiro homologado. Ver
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
+
+> **Nota:** o PDV **interno** do Chef Hub (`/pdv`, route group `(pos)`) já
+> existe na Sprint 05. O que continua só como reserva de nome é o adapter
+> de integração com PDVs/ERPs de terceiros em `src/integrations/*`.

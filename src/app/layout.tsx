@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { RegisterSW } from "@/components/pwa/register-sw";
 import { geistMono, geistSans } from "@/lib/fonts";
 
 import "./globals.css";
@@ -10,6 +11,13 @@ export const metadata: Metadata = {
   title: "Chef Hub Profissional",
   description:
     "Plataforma de gestão inteligente para restaurantes, delivery, dark kitchens, padarias, confeitarias e pequenos produtores de alimentos.",
+  applicationName: "Chef Hub Profissional",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Chef Hub Profissional",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +35,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full font-sans">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }

@@ -47,3 +47,7 @@ next-env.d.ts
 /test-results
 /playwright-report
 /blob-report
+
+# Print agent outbox
+agents/impressao/outbox/*
+!agents/impressao/outbox/.gitkeep

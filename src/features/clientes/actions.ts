@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { clienteSchema } from "./validation";
 
@@ -59,6 +60,8 @@ export async function atualizarCliente(
   _prevState: ClienteActionState | undefined,
   formData: FormData,
 ): Promise<ClienteActionState> {
+  const empresa = await requireEmpresaAtual();
+
   const validated = parseClienteForm(formData);
   if (!validated.success) {
     return { fieldErrors: validated.error.flatten().fieldErrors };
@@ -68,7 +71,8 @@ export async function atualizarCliente(
   const { error } = await supabase
     .from("clientes")
     .update(validated.data)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     return { formError: "Não foi possível salvar o cliente." };
@@ -80,11 +84,13 @@ export async function atualizarCliente(
 }
 
 export async function alternarAtivoCliente(id: string, ativo: boolean) {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("clientes")
     .update({ ativo })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar o cliente.");

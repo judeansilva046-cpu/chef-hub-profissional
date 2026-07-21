@@ -6,18 +6,19 @@ import { Plug, Unplug } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Text } from "@/components/ui/text";
-import { formatarDataHora } from "@/lib/format";
-import type { Tables } from "@/lib/supabase/database.types";
 import type { ProvedorIntegracao } from "@/integrations/types";
+import { formatarDataHora } from "@/lib/format";
 
 import { desconectarIntegracao, testarConexaoIntegracao } from "../actions";
+import type { IntegracaoListagem } from "../queries";
 import { CredenciaisDialog } from "./credenciais-dialog";
 
 export interface IntegracaoCardProps {
   provedor: ProvedorIntegracao;
   provedorLabel: string;
-  integracao: Tables<"integracoes_canais"> | null;
+  integracao: IntegracaoListagem | null;
 }
 
 const STATUS_CONFIG: Record<
@@ -34,6 +35,7 @@ const STATUS_CONFIG: Record<
 export function IntegracaoCard({ provedor, provedorLabel, integracao }: IntegracaoCardProps) {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [confirmandoDesconexao, setConfirmandoDesconexao] = useState(false);
 
   const status = STATUS_CONFIG[integracao?.status_conexao ?? "nao_configurado"];
 
@@ -49,20 +51,6 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
     });
   }
 
-  function desconectar() {
-    if (!integracao) return;
-    if (!window.confirm(`Desconectar ${provedorLabel}? As credenciais salvas serão removidas.`)) {
-      return;
-    }
-    startTransition(async () => {
-      try {
-        await desconectarIntegracao(integracao.id);
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Não foi possível desconectar.");
-      }
-    });
-  }
-
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -71,7 +59,7 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Text tone="muted" size="sm">
-          {integracao?.credenciais_criptografadas
+          {integracao?.tem_credenciais
             ? "Credenciais configuradas."
             : "Nenhuma credencial configurada."}
         </Text>
@@ -83,14 +71,19 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setDialogAberto(true)}>
             <Plug className="h-4 w-4" />
-            {integracao?.credenciais_criptografadas ? "Atualizar credenciais" : "Conectar"}
+            {integracao?.tem_credenciais ? "Atualizar credenciais" : "Conectar"}
           </Button>
-          {integracao?.credenciais_criptografadas && (
+          {integracao?.tem_credenciais && (
             <>
               <Button size="sm" variant="ghost" disabled={pending} onClick={testar}>
                 Testar conexão
               </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={desconectar}>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={pending}
+                onClick={() => setConfirmandoDesconexao(true)}
+              >
                 <Unplug className="h-4 w-4" />
                 Desconectar
               </Button>
@@ -104,6 +97,19 @@ export function IntegracaoCard({ provedor, provedorLabel, integracao }: Integrac
         onOpenChange={setDialogAberto}
         provedor={provedor}
         provedorLabel={provedorLabel}
+      />
+
+      <ConfirmDialog
+        open={confirmandoDesconexao}
+        onOpenChange={setConfirmandoDesconexao}
+        title={`Desconectar ${provedorLabel}`}
+        description="As credenciais salvas serão removidas."
+        confirmLabel="Desconectar"
+        destructive
+        onConfirm={async () => {
+          if (!integracao) return;
+          await desconectarIntegracao(integracao.id);
+        }}
       />
     </Card>
   );

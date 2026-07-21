@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Pencil, Plus, Target, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -29,7 +30,7 @@ export function MetasVendasManager({ metas }: MetasVendasManagerProps) {
     Tables<"metas_vendas"> | undefined
   >(undefined);
   const [dialogKey, setDialogKey] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [metaParaExcluir, setMetaParaExcluir] = useState<Tables<"metas_vendas"> | null>(null);
 
   function abrirCriacao() {
     setMetaEmEdicao(undefined);
@@ -41,22 +42,6 @@ export function MetasVendasManager({ metas }: MetasVendasManagerProps) {
     setMetaEmEdicao(meta);
     setDialogAberto(true);
     setDialogKey((key) => key + 1);
-  }
-
-  function excluir(meta: Tables<"metas_vendas">) {
-    if (!window.confirm(`Excluir a meta de ${formatarMesAno(meta.mes_referencia)}?`)) {
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        await excluirMetaVendas(meta.id);
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : "Não foi possível excluir.",
-        );
-      }
-    });
   }
 
   return (
@@ -111,7 +96,6 @@ export function MetasVendasManager({ metas }: MetasVendasManagerProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled={pending}
                       onClick={() => abrirEdicao(meta)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -120,8 +104,7 @@ export function MetasVendasManager({ metas }: MetasVendasManagerProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled={pending}
-                      onClick={() => excluir(meta)}
+                      onClick={() => setMetaParaExcluir(meta)}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Excluir</span>
@@ -139,6 +122,26 @@ export function MetasVendasManager({ metas }: MetasVendasManagerProps) {
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         meta={metaEmEdicao}
+      />
+
+      <ConfirmDialog
+        open={metaParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setMetaParaExcluir(null);
+        }}
+        title="Excluir meta"
+        description={
+          metaParaExcluir
+            ? `Excluir a meta de ${formatarMesAno(metaParaExcluir.mes_referencia)}?`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!metaParaExcluir) return;
+          await excluirMetaVendas(metaParaExcluir.id);
+          setMetaParaExcluir(null);
+        }}
       />
     </div>
   );

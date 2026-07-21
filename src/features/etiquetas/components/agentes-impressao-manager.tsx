@@ -5,6 +5,7 @@ import { Plus, Power, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -16,39 +17,29 @@ import {
 } from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { formatarDataHora } from "@/lib/format";
-import type { Tables } from "@/lib/supabase/database.types";
 
 import { alternarAtivoAgenteImpressao, excluirAgenteImpressao } from "../actions";
+import type { AgenteImpressaoListagem } from "../queries";
 import { AgenteImpressaoDialog } from "./agente-impressao-dialog";
 
 export interface AgentesImpressaoManagerProps {
-  agentes: Tables<"agentes_impressao">[];
+  agentes: AgenteImpressaoListagem[];
 }
 
 export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProps) {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [agenteParaExcluir, setAgenteParaExcluir] = useState<AgenteImpressaoListagem | null>(
+    null,
+  );
 
-  function alternarAtivo(agente: Tables<"agentes_impressao">) {
+  function alternarAtivo(agente: AgenteImpressaoListagem) {
     startTransition(async () => {
       try {
         await alternarAtivoAgenteImpressao(agente.id, !agente.ativo);
       } catch (error) {
         window.alert(error instanceof Error ? error.message : "Não foi possível atualizar.");
-      }
-    });
-  }
-
-  function excluir(agente: Tables<"agentes_impressao">) {
-    if (!window.confirm(`Excluir o agente "${agente.nome}"? A chave dele deixa de funcionar.`)) {
-      return;
-    }
-    startTransition(async () => {
-      try {
-        await excluirAgenteImpressao(agente.id);
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Não foi possível excluir.");
       }
     });
   }
@@ -114,7 +105,7 @@ export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProp
                       variant="ghost"
                       size="sm"
                       disabled={pending}
-                      onClick={() => excluir(agente)}
+                      onClick={() => setAgenteParaExcluir(agente)}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Excluir</span>
@@ -128,6 +119,26 @@ export function AgentesImpressaoManager({ agentes }: AgentesImpressaoManagerProp
       )}
 
       <AgenteImpressaoDialog key={dialogKey} open={dialogAberto} onOpenChange={setDialogAberto} />
+
+      <ConfirmDialog
+        open={agenteParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setAgenteParaExcluir(null);
+        }}
+        title="Excluir agente"
+        description={
+          agenteParaExcluir
+            ? `Excluir o agente "${agenteParaExcluir.nome}"? A chave dele deixa de funcionar.`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!agenteParaExcluir) return;
+          await excluirAgenteImpressao(agenteParaExcluir.id);
+          setAgenteParaExcluir(null);
+        }}
+      />
     </div>
   );
 }

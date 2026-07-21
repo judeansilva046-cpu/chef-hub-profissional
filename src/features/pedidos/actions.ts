@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import {
   adicionalItemSchema,
@@ -19,16 +19,28 @@ function revalidarPedido(id: string) {
   revalidatePath(`/pedidos/${id}`);
 }
 
-/**
- * Não redireciona: chamada direta de um Client Component (formulário de
- * "novo pedido"), fora de <form action>. Mesmo motivo de
- * duplicarFichaTecnica — redirect() dentro de uma função assim seria
- * capturado como erro comum pelo try/catch do chamador. Quem chama navega
- * via useRouter() com o id retornado.
- */
+async function assertPedidoDaEmpresa(
+  pedidoId: string,
+  empresaId: string,
+  statusEsperado?: string,
+): Promise<{ id: string; status: string; tipo: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("id, status, tipo")
+    .eq("id", pedidoId)
+    .eq("empresa_id", empresaId)
+    .maybeSingle();
+
+  if (error || !data) throw new Error("Pedido não encontrado.");
+  if (statusEsperado && data.status !== statusEsperado) {
+    throw new Error(`Pedido precisa estar em ${statusEsperado}.`);
+  }
+  return data;
+}
+
 export async function criarPedido(input: unknown): Promise<string> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
 
   const validated = novoPedidoSchema.safeParse(input);
   if (!validated.success) {
@@ -61,8 +73,8 @@ export async function criarPedido(input: unknown): Promise<string> {
 }
 
 export async function adicionarItemPedido(pedidoId: string, input: unknown): Promise<void> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
   const validated = itemPedidoSchema.safeParse(input);
   if (!validated.success) {
@@ -80,15 +92,25 @@ export async function adicionarItemPedido(pedidoId: string, input: unknown): Pro
     observacao: validated.data.observacao,
   });
 
-  if (error) throw new Error("Não foi possível adicionar o item.");
+  if (error) throw new Error(error.message || "Não foi possível adicionar o item.");
   revalidarPedido(pedidoId);
 }
 
 export async function removerItemPedido(pedidoId: string, itemId: string): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase.from("pedido_itens").delete().eq("id", itemId);
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
-  if (error) throw new Error("Não foi possível remover o item.");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pedido_itens")
+    .delete()
+    .eq("id", itemId)
+    .eq("pedido_id", pedidoId)
+    .eq("empresa_id", empresa.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) throw new Error("Não foi possível remover o item.");
   revalidarPedido(pedidoId);
 }
 
@@ -99,13 +121,20 @@ export async function atualizarQuantidadeItem(
 ): Promise<void> {
   if (quantidade <= 0) throw new Error("A quantidade deve ser maior que zero.");
 
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
+
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("pedido_itens")
     .update({ quantidade })
-    .eq("id", itemId);
+    .eq("id", itemId)
+    .eq("pedido_id", pedidoId)
+    .eq("empresa_id", empresa.id)
+    .select("id")
+    .maybeSingle();
 
-  if (error) throw new Error("Não foi possível atualizar a quantidade.");
+  if (error || !data) throw new Error("Não foi possível atualizar a quantidade.");
   revalidarPedido(pedidoId);
 }
 
@@ -114,8 +143,8 @@ export async function adicionarAdicionalItem(
   pedidoItemId: string,
   input: unknown,
 ): Promise<void> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
   const validated = adicionalItemSchema.safeParse(input);
   if (!validated.success) {
@@ -131,26 +160,38 @@ export async function adicionarAdicionalItem(
     preco_unitario_praticado: validated.data.precoUnitarioPraticado,
   });
 
-  if (error) throw new Error("Não foi possível adicionar o adicional.");
+  if (error) throw new Error(error.message || "Não foi possível adicionar o adicional.");
   revalidarPedido(pedidoId);
 }
 
 export async function removerAdicionalItem(pedidoId: string, adicionalId: string): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase.from("pedido_item_adicionais").delete().eq("id", adicionalId);
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
 
-  if (error) throw new Error("Não foi possível remover o adicional.");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pedido_item_adicionais")
+    .delete()
+    .eq("id", adicionalId)
+    .eq("empresa_id", empresa.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) throw new Error("Não foi possível remover o adicional.");
   revalidarPedido(pedidoId);
 }
 
 export async function atualizarValoresPedido(pedidoId: string, input: unknown): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
+
   const validated = valoresPedidoSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.issues[0]?.message ?? "Dados inválidos.");
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("pedidos")
     .update({
       desconto_percentual: validated.data.descontoPercentual,
@@ -158,19 +199,20 @@ export async function atualizarValoresPedido(pedidoId: string, input: unknown): 
       acrescimo_valor: validated.data.acrescimoValor,
       taxa_entrega: validated.data.taxaEntrega,
     })
-    .eq("id", pedidoId);
+    .eq("id", pedidoId)
+    .eq("empresa_id", empresa.id)
+    .eq("status", "rascunho")
+    .select("id")
+    .maybeSingle();
 
-  if (error) throw new Error("Não foi possível atualizar os valores do pedido.");
+  if (error || !data) throw new Error("Não foi possível atualizar os valores do pedido.");
   revalidarPedido(pedidoId);
 }
 
-/**
- * Confirma o pedido: reserva/valida estoque (fn_confirmar_pedido, 0033) —
- * mensagem de "estoque insuficiente" é repassada ao usuário tal como o
- * banco a formula (mesmo padrão de concluirProducao em
- * src/features/producao/actions.ts).
- */
 export async function confirmarPedido(pedidoId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("fn_confirmar_pedido", { p_pedido_id: pedidoId });
 
@@ -186,8 +228,10 @@ export async function confirmarPedido(pedidoId: string): Promise<void> {
   revalidatePath("/kds");
 }
 
-/** Inicia o preparo: consome o estoque via FIFO (fn_iniciar_preparo_pedido, 0033). */
 export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("fn_iniciar_preparo_pedido", { p_pedido_id: pedidoId });
 
@@ -204,43 +248,67 @@ export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
   revalidatePath("/kds");
 }
 
-const PROXIMOS_STATUS_SIMPLES: Record<string, string> = {
-  em_preparo: "pronto",
-  pronto: "saiu_para_entrega",
-};
-
-/**
- * Transições sem efeito colateral em estoque/vendas (em_preparo -> pronto,
- * pronto -> saiu_para_entrega): update direto, sem RPC — mesmo padrão de
- * atualizarStatusProducao em src/features/producao/actions.ts. Valida a
- * transição contra o status atual para não permitir pular etapas.
- */
 export async function avancarStatusPedido(pedidoId: string, statusAtual: string): Promise<void> {
-  const proximoStatus = PROXIMOS_STATUS_SIMPLES[statusAtual];
-  if (!proximoStatus) {
-    throw new Error("Não há próxima etapa simples para este status.");
-  }
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("pedidos")
-    .update({ status: proximoStatus })
-    .eq("id", pedidoId)
-    .eq("status", statusAtual);
+  const { error } = await supabase.rpc("fn_avancar_status_pedido", {
+    p_pedido_id: pedidoId,
+    p_status_atual: statusAtual,
+  });
 
-  if (error) throw new Error("Não foi possível avançar o status do pedido.");
+  if (error) {
+    throw new Error(error.message.includes("Status") || error.message.includes("etapa")
+      ? error.message
+      : "Não foi possível avançar o status do pedido.");
+  }
+
   revalidarPedido(pedidoId);
   revalidatePath("/kds");
   revalidatePath("/expedicao");
 }
 
-/** Conclui o pedido (entregue) e cria as vendas reais (fn_concluir_pedido, 0033). */
+/** Marca itens de uma praça (ou todos) como prontos no KDS. */
+export async function marcarItensProntos(
+  pedidoId: string,
+  pracaProducaoId?: string | null,
+): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("fn_marcar_itens_pronto", {
+    p_pedido_id: pedidoId,
+    p_praca_producao_id: pracaProducaoId || undefined,
+  });
+
+  if (error) {
+    throw new Error(error.message.includes("item") || error.message.includes("Pedido")
+      ? error.message
+      : "Não foi possível marcar os itens como prontos.");
+  }
+
+  revalidarPedido(pedidoId);
+  revalidatePath("/kds");
+  revalidatePath("/expedicao");
+}
+
 export async function concluirPedido(pedidoId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  const pedido = await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
+  if (pedido.tipo === "entrega" || pedido.tipo === "retirada") {
+    throw new Error("Pedido tem expedição — conclua pela tela de Expedição.");
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("fn_concluir_pedido", { p_pedido_id: pedidoId });
 
   if (error) {
-    throw new Error(error.message.includes("Pedido") ? error.message : "Não foi possível concluir o pedido.");
+    throw new Error(error.message.includes("Pedido") || error.message.includes("expedição")
+      ? error.message
+      : "Não foi possível concluir o pedido.");
   }
 
   revalidarPedido(pedidoId);
@@ -249,8 +317,10 @@ export async function concluirPedido(pedidoId: string): Promise<void> {
   revalidatePath("/expedicao");
 }
 
-/** Cancela o pedido, estornando estoque já consumido quando aplicável (fn_cancelar_pedido, 0033). */
 export async function cancelarPedido(pedidoId: string, input: unknown): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
   const validated = cancelamentoPedidoSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.issues[0]?.message ?? "Informe o motivo do cancelamento.");
@@ -273,6 +343,9 @@ export async function cancelarPedido(pedidoId: string, input: unknown): Promise<
 }
 
 export async function registrarPagamentoPedido(pedidoId: string, input: unknown): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id);
+
   const validated = pagamentoPedidoSchema.safeParse(input);
   if (!validated.success) {
     throw new Error(validated.error.issues[0]?.message ?? "Dados de pagamento inválidos.");
@@ -289,43 +362,28 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
   });
 
   if (error) {
-    throw new Error(error.message.includes("Pedido") ? error.message : "Não foi possível registrar o pagamento.");
+    throw new Error(
+      error.message.includes("Pedido") ||
+        error.message.includes("Pagamento") ||
+        error.message.includes("Caixa") ||
+        error.message.includes("Troco") ||
+        error.message.includes("operador")
+        ? error.message
+        : "Não foi possível registrar o pagamento.",
+    );
   }
 
   revalidarPedido(pedidoId);
   revalidatePath("/caixa");
 }
 
-/**
- * Checkout do PDV: encadeia confirmar -> iniciar preparo -> pronto ->
- * concluir num único round-trip a partir do cliente. Não introduz nenhuma
- * lógica nova de negócio — só chama, em sequência, exatamente as mesmas
- * quatro funções que a tela /pedidos/[id] chama uma a uma. Usado quando a
- * venda de balcão é consumida/entregue na hora (sem passar por KDS/
- * expedição em telas separadas).
- */
 export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
+  await assertPedidoDaEmpresa(pedidoId, empresa.id, "rascunho");
+
   const supabase = await createClient();
-
-  const passos = [
-    { fn: "fn_confirmar_pedido", args: { p_pedido_id: pedidoId } },
-    { fn: "fn_iniciar_preparo_pedido", args: { p_pedido_id: pedidoId } },
-  ] as const;
-
-  for (const passo of passos) {
-    const { error } = await supabase.rpc(passo.fn, passo.args);
-    if (error) throw new Error(error.message);
-  }
-
-  const { error: erroAvancar } = await supabase
-    .from("pedidos")
-    .update({ status: "pronto" })
-    .eq("id", pedidoId)
-    .eq("status", "em_preparo");
-  if (erroAvancar) throw new Error("Não foi possível avançar o pedido para pronto.");
-
-  const { error: erroConcluir } = await supabase.rpc("fn_concluir_pedido", { p_pedido_id: pedidoId });
-  if (erroConcluir) throw new Error(erroConcluir.message);
+  const { error } = await supabase.rpc("fn_finalizar_venda_pdv", { p_pedido_id: pedidoId });
+  if (error) throw new Error(error.message);
 
   revalidarPedido(pedidoId);
   revalidatePath("/pdv");
@@ -334,30 +392,24 @@ export async function finalizarVendaPdv(pedidoId: string): Promise<void> {
   revalidatePath("/estoque");
 }
 
-/**
- * Duplica um pedido (itens + adicionais) como um novo rascunho — não
- * reaproveita fn_duplicar_ficha_tecnica (é de outro domínio), mas segue o
- * mesmo princípio: recriar como registro novo, deixando as triggers de
- * snapshot/recalculo recalcularem tudo do zero (custo/preço atualizados no
- * momento da duplicação, não congelados do pedido original).
- */
 export async function duplicarPedido(pedidoId: string): Promise<string> {
-  const empresa = await getEmpresaAtual();
-  if (!empresa) throw new Error("Nenhuma empresa ativa.");
+  const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();
   const { data: original, error: erroOriginal } = await supabase
     .from("pedidos")
     .select("tipo, cliente_id, canal_venda_id, observacoes")
     .eq("id", pedidoId)
-    .single();
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
 
   if (erroOriginal || !original) throw new Error("Pedido original não encontrado.");
 
   const { data: itensOriginais, error: erroItens } = await supabase
     .from("pedido_itens")
     .select("ficha_tecnica_id, quantidade, preco_unitario_praticado, desconto_valor, observacao, ordem, id")
-    .eq("pedido_id", pedidoId);
+    .eq("pedido_id", pedidoId)
+    .eq("empresa_id", empresa.id);
 
   if (erroItens) throw new Error("Não foi possível ler os itens do pedido original.");
 
@@ -402,7 +454,10 @@ export async function duplicarPedido(pedidoId: string): Promise<string> {
     const { data: adicionaisOriginais } = await supabase
       .from("pedido_item_adicionais")
       .select("pedido_item_id, ficha_tecnica_id, quantidade, preco_unitario_praticado")
-      .in("pedido_item_id", itensOriginais.map((item) => item.id));
+      .in(
+        "pedido_item_id",
+        itensOriginais.map((item) => item.id),
+      );
 
     if (adicionaisOriginais && adicionaisOriginais.length > 0 && novosItens) {
       const mapaItens = new Map(itensOriginais.map((item, index) => [item.id, novosItens[index]?.id]));

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 export interface GerarListaInput {
   nome: string;
@@ -70,8 +71,21 @@ export async function salvarItensLista(
     throw new Error("O preço previsto não pode ser negativo.");
   }
 
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
+  const { data: lista, error: listaError } = await supabase
+    .from("listas_compra")
+    .select("id")
+    .eq("id", listaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (listaError || !lista) {
+    throw new Error("Lista de compras não encontrada.");
+  }
+
+  // listas_compra_itens não tem empresa_id — amarra pelo lista_id verificado.
   const results = await Promise.all(
     itens.map((item) =>
       supabase
@@ -81,7 +95,8 @@ export async function salvarItensLista(
           quantidade_sugerida: item.quantidadeSugerida,
           preco_unitario_previsto: item.precoUnitarioPrevisto,
         })
-        .eq("id", item.itemId),
+        .eq("id", item.itemId)
+        .eq("lista_id", listaId),
     ),
   );
 
@@ -100,7 +115,20 @@ export async function salvarItensLista(
 export async function converterListaEmPedidos(
   listaId: string,
 ): Promise<string[]> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: lista, error: listaError } = await supabase
+    .from("listas_compra")
+    .select("id")
+    .eq("id", listaId)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (listaError || !lista) {
+    throw new Error("Lista de compras não encontrada.");
+  }
+
   const { data, error } = await supabase.rpc("fn_converter_lista_em_pedidos", {
     p_lista_id: listaId,
   });

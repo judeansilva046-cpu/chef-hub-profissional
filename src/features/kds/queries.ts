@@ -8,7 +8,10 @@ export type PedidoParaKds = Pick<
   Tables<"pedidos">,
   "id" | "numero" | "tipo" | "status" | "confirmado_em" | "criado_em" | "observacoes"
 > & {
-  pedido_itens: (Pick<Tables<"pedido_itens">, "id" | "quantidade" | "observacao"> & {
+  pedido_itens: (Pick<
+    Tables<"pedido_itens">,
+    "id" | "quantidade" | "observacao" | "status_preparo"
+  > & {
     fichas_tecnicas: Pick<Tables<"fichas_tecnicas">, "id" | "nome" | "praca_producao_id">;
   })[];
 };
@@ -22,7 +25,7 @@ export async function listarPedidosParaKds(): Promise<PedidoParaKds[]> {
   const { data, error } = await supabase
     .from("pedidos")
     .select(
-      "id, numero, tipo, status, confirmado_em, criado_em, observacoes, pedido_itens(id, quantidade, observacao, fichas_tecnicas(id, nome, praca_producao_id))",
+      "id, numero, tipo, status, confirmado_em, criado_em, observacoes, pedido_itens(id, quantidade, observacao, status_preparo, fichas_tecnicas(id, nome, praca_producao_id))",
     )
     .eq("empresa_id", empresa.id)
     .in("status", ["confirmado", "em_preparo", "pronto"])

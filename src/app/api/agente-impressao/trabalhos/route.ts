@@ -4,11 +4,9 @@ import { autenticarAgente } from "@/features/etiquetas/agente-auth";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 /**
- * API consultada pelo agente local (Windows) — GET busca os trabalhos
- * pendentes da empresa do agente autenticado; PATCH em
- * /trabalhos/[id] reporta o resultado. Contrato completo documentado em
- * docs/AGENTE-LOCAL.md. Não requer sessão Supabase Auth — autenticação via
- * Bearer da chave do agente (ver src/features/etiquetas/agente-auth.ts).
+ * API consultada pelo agente local (Windows) — GET busca e "claima"
+ * trabalhos pendentes (passa para processando) da empresa do agente.
+ * Contrato em docs/AGENTE-LOCAL.md.
  */
 export async function GET(request: NextRequest) {
   const agente = await autenticarAgente(request);
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
+  const { data: pendentes, error } = await supabase
     .from("fila_impressao")
     .select("id, tipo, payload, status, tentativas, criado_em")
     .eq("empresa_id", agente.empresaId)
@@ -29,5 +27,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ erro: "Não foi possível consultar a fila." }, { status: 500 });
   }
 
-  return NextResponse.json({ trabalhos: data ?? [] });
+  const candidatos = pendentes ?? [];
+  if (candidatos.length === 0) {
+    return NextResponse.json({ trabalhos: [] });
+  }
+
+  const ids = candidatos.map((item) => item.id);
+  const { data: claimados, error: erroClaim } = await supabase
+    .from("fila_impressao")
+    .update({ status: "processando" })
+    .in("id", ids)
+    .eq("empresa_id", agente.empresaId)
+    .eq("status", "pendente")
+    .select("id, tipo, payload, status, tentativas, criado_em");
+
+  if (erroClaim) {
+    return NextResponse.json({ erro: "Não foi possível reservar os trabalhos." }, { status: 500 });
+  }
+
+  return NextResponse.json({ trabalhos: claimados ?? [] });
 }

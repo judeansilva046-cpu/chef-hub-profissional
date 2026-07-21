@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Pencil, Plus, Ruler, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -35,7 +36,9 @@ export function UnidadesMedidaManager({
   // `key`) — evita que erro de validação ou campo de uma tentativa anterior
   // vaze para a próxima abertura do diálogo.
   const [dialogKey, setDialogKey] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [unidadeParaExcluir, setUnidadeParaExcluir] = useState<
+    Tables<"unidades_medida"> | null
+  >(null);
 
   function abrirCriacao() {
     setUnidadeEmEdicao(undefined);
@@ -47,20 +50,6 @@ export function UnidadesMedidaManager({
     setUnidadeEmEdicao(unidade);
     setDialogAberto(true);
     setDialogKey((key) => key + 1);
-  }
-
-  function excluir(unidade: Tables<"unidades_medida">) {
-    if (!window.confirm(`Excluir a unidade "${unidade.nome}"?`)) return;
-
-    startTransition(async () => {
-      try {
-        await excluirUnidadeMedida(unidade.id);
-      } catch (error) {
-        window.alert(
-          error instanceof Error ? error.message : "Não foi possível excluir.",
-        );
-      }
-    });
   }
 
   return (
@@ -112,7 +101,6 @@ export function UnidadesMedidaManager({
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={pending}
                           onClick={() => abrirEdicao(unidade)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -121,8 +109,7 @@ export function UnidadesMedidaManager({
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={pending}
-                          onClick={() => excluir(unidade)}
+                          onClick={() => setUnidadeParaExcluir(unidade)}
                         >
                           <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Excluir</span>
@@ -142,6 +129,26 @@ export function UnidadesMedidaManager({
         open={dialogAberto}
         onOpenChange={setDialogAberto}
         unidade={unidadeEmEdicao}
+      />
+
+      <ConfirmDialog
+        open={unidadeParaExcluir !== null}
+        onOpenChange={(open) => {
+          if (!open) setUnidadeParaExcluir(null);
+        }}
+        title="Excluir unidade"
+        description={
+          unidadeParaExcluir
+            ? `Excluir a unidade "${unidadeParaExcluir.nome}"?`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={async () => {
+          if (!unidadeParaExcluir) return;
+          await excluirUnidadeMedida(unidadeParaExcluir.id);
+          setUnidadeParaExcluir(null);
+        }}
       />
     </div>
   );

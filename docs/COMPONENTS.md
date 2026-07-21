@@ -31,6 +31,7 @@ arquivo.
 | `NumberField`, `CurrencyInput`, `PercentInput`                                                                                | `number-field.tsx` | Campo numérico formatado em pt-BR (`Intl.NumberFormat`, sem lib de máscara) — texto puro editável quando focado, formatado no blur. Props: `value: number \| null`, `onChange`, `kind?`, `name?` (hidden input para FormData).        |
 | `SearchInput`                                                                                                                 | `search-input.tsx` | Client Component: sincroniza com a URL (`?busca=...`) via `next/navigation`, debounced (300ms), sempre reseta `page`.                                                                                                                 |
 | `Skeleton`                                                                                                                    | `skeleton.tsx`     | Bloco `animate-pulse` para estados de carregamento (`loading.tsx`).                                                                                                                                                                   |
+| `ConfirmDialog`                                                                                                               | `confirm-dialog.tsx` | Dialog de confirmação (opcionalmente com motivo obrigatório). Substitui `window.confirm` em ações críticas.                                                                                                                          |
 
 ## `src/components/layout`
 

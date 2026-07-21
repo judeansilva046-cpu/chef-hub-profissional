@@ -9,6 +9,11 @@ const atualizarStatusSchema = z.object({
   erroMensagem: z.string().trim().optional(),
 });
 
+const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
+  pendente: ["processando", "erro"],
+  processando: ["concluido", "erro"],
+};
+
 /** O agente local reporta a transição de status de um trabalho (pendente -> processando -> concluído/erro). */
 export async function PATCH(
   request: NextRequest,
@@ -28,12 +33,9 @@ export async function PATCH(
 
   const supabase = createServiceRoleClient();
 
-  // Checagem manual de posse: o trabalho tem que pertencer à MESMA empresa
-  // do agente autenticado (o client service-role bypassa RLS, então isso
-  // não é opcional).
   const { data: trabalho } = await supabase
     .from("fila_impressao")
-    .select("id, empresa_id, tentativas")
+    .select("id, empresa_id, tentativas, status")
     .eq("id", id)
     .maybeSingle();
 
@@ -41,9 +43,19 @@ export async function PATCH(
     return NextResponse.json({ erro: "Trabalho não encontrado." }, { status: 404 });
   }
 
+  const permitidos = TRANSICOES_PERMITIDAS[trabalho.status] ?? [];
+  if (!permitidos.includes(validado.data.status)) {
+    return NextResponse.json(
+      {
+        erro: `Transição ${trabalho.status} → ${validado.data.status} não permitida.`,
+      },
+      { status: 409 },
+    );
+  }
+
   const finalizado = validado.data.status === "concluido" || validado.data.status === "erro";
 
-  const { error } = await supabase
+  const { data: atualizado, error } = await supabase
     .from("fila_impressao")
     .update({
       status: validado.data.status,
@@ -51,10 +63,16 @@ export async function PATCH(
       tentativas: trabalho.tentativas + 1,
       processado_em: finalizado ? new Date().toISOString() : null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", trabalho.status)
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
-    return NextResponse.json({ erro: "Não foi possível atualizar o trabalho." }, { status: 500 });
+  if (error || !atualizado) {
+    return NextResponse.json(
+      { erro: "Não foi possível atualizar o trabalho (estado concorrente)." },
+      { status: 409 },
+    );
   }
 
   return NextResponse.json({ ok: true });

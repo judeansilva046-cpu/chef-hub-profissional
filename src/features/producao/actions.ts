@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 import { adicionarDias } from "./date-range";
 import { producaoSchema } from "./validation";
@@ -55,11 +56,13 @@ export async function atualizarStatusProducao(
   id: string,
   status: "em_producao" | "cancelada",
 ): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
     .from("producoes_planejadas")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("empresa_id", empresa.id);
 
   if (error) {
     throw new Error("Não foi possível atualizar a produção.");
@@ -74,7 +77,20 @@ export async function atualizarStatusProducao(
  * quantidade planejada — mesma transação, tudo ou nada.
  */
 export async function concluirProducao(id: string): Promise<void> {
+  const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
+
+  const { data: producao, error: producaoError } = await supabase
+    .from("producoes_planejadas")
+    .select("id")
+    .eq("id", id)
+    .eq("empresa_id", empresa.id)
+    .maybeSingle();
+
+  if (producaoError || !producao) {
+    throw new Error("Produção não encontrada.");
+  }
+
   const { error } = await supabase.rpc("fn_concluir_producao", {
     p_producao_id: id,
   });
