@@ -26,7 +26,7 @@ export async function adicionarMembro(
   formData: FormData,
 ): Promise<EquipeActionState> {
   const empresa = await requireEmpresaAtual();
-  await requirePapel("owner", "gerente");
+  await requirePapel();
 
   const validated = convidarMembroSchema.safeParse({
     email: formData.get("email"),
@@ -62,7 +62,7 @@ export async function alterarPapel(
   papel: string,
 ): Promise<EquipeActionState> {
   const empresa = await requireEmpresaAtual();
-  await requirePapel("owner", "gerente");
+  await requirePapel();
 
   const validated = alterarPapelSchema.safeParse({ membroId, papel });
   if (!validated.success) {
@@ -90,7 +90,7 @@ export async function alterarPapel(
 
 export async function alternarAtivo(membroId: string, ativo: boolean) {
   const empresa = await requireEmpresaAtual();
-  await requirePapel("owner", "gerente");
+  await requirePapel();
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -112,7 +112,7 @@ export async function alternarAtivo(membroId: string, ativo: boolean) {
 
 export async function removerMembro(membroId: string) {
   const empresa = await requireEmpresaAtual();
-  await requirePapel("owner", "gerente");
+  await requirePapel();
 
   const supabase = await createClient();
   const { error } = await supabase

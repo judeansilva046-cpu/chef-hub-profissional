@@ -30,6 +30,8 @@ primário em `empresas.usuario_id`.
 - Nav **Gestão → Equipe**
 - **Rotas por papel** — `permissoes-rota.ts` + filtro no `AppHeader` e
   redirect nos layouts `(app)` / `(pos)` via header `x-pathname` no proxy
+- **Server Actions por papel** — `requirePapel` + `papeis-acoes.ts`
+  (caixa/cozinha/garçom/sala/expedição; back-office só owner/gerente)
 
 | Papel | Escopo de rotas |
 | ----- | --------------- |
@@ -38,10 +40,19 @@ primário em `empresas.usuario_id`.
 | cozinha | dashboard, pedidos, KDS, produção, fichas técnicas |
 | garcom | dashboard, pedidos, PDV, mesas, expedição, clientes |
 
+| Ações (exemplos) | Papéis além de owner/gerente |
+| ---------------- | ---------------------------- |
+| Abrir/fechar caixa, pagamento | caixa |
+| KDS (iniciar/marcar pronto) | cozinha |
+| Mesas/comandas | garcom |
+| Pedidos/PDV (montar, confirmar, finalizar) | caixa, garcom |
+| Expedição | caixa, garcom |
+| Estoque, financeiro, cardápio mutável, integrações | — (só gestão) |
+
 Home padrão: caixa → `/pdv`, cozinha → `/kds`, garçom → `/mesas`.
 
 ## Limitações desta entrega
 
-- Mutações operacionais (PDV/caixa/KDS) ainda não checam papel em cada
-  Server Action — a barreira principal é rota + nav; RLS continua por tenant.
 - E2E cobre só smoke da página (sem segundo usuário).
+- RLS do Postgres continua por tenant (empresa), não por papel — a barreira
+  de papel é app-level (`requirePapel` + rotas).

@@ -8,7 +8,7 @@ import { requireEmpresaAtual } from "./require-empresa";
 
 /**
  * Garante que o papel do usuário na empresa ativa está entre os permitidos.
- * `owner` sempre passa (papel que supersede os demais).
+ * `owner` e `gerente` sempre passam (gestão plena, alinhado às rotas `*`).
  */
 export async function requirePapel(
   ...papeisPermitidos: PapelEmpresa[]
@@ -20,7 +20,7 @@ export async function requirePapel(
     throw new Error("Sem papel na empresa ativa.");
   }
 
-  if (papel === "owner") {
+  if (papel === "owner" || papel === "gerente") {
     return papel;
   }
 

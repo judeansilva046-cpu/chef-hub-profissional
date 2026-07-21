@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { fichaTecnicaSchema } from "./validation";
 
@@ -34,6 +35,7 @@ export interface SalvarFichaTecnicaInput {
 export async function salvarFichaTecnica(
   input: SalvarFichaTecnicaInput,
 ): Promise<string> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");
@@ -107,6 +109,7 @@ export async function salvarFichaTecnica(
  * chama decide a navegação via useRouter().
  */
 export async function duplicarFichaTecnica(id: string): Promise<string> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -134,6 +137,7 @@ export async function duplicarFichaTecnica(id: string): Promise<string> {
 }
 
 export async function alternarAtivoFichaTecnica(id: string, ativo: boolean) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

@@ -7,6 +7,7 @@ import { IntegracaoNaoDisponivelError } from "@/integrations/types";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import { criptografarCredenciais } from "./crypto";
 import { credenciaisIntegracaoSchema } from "./validation";
@@ -27,6 +28,7 @@ export async function conectarIntegracao(
   _prevState: IntegracaoActionState | undefined,
   formData: FormData,
 ): Promise<IntegracaoActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -73,6 +75,7 @@ export async function conectarIntegracao(
 }
 
 export async function desconectarIntegracao(id: string) {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -103,6 +106,7 @@ export interface TesteConexaoResultado {
  * não fingir sucesso.
  */
 export async function testarConexaoIntegracao(id: string): Promise<TesteConexaoResultado> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const supabase = await createClient();

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import {
   ajusteEstoqueSchema,
@@ -29,6 +30,7 @@ export async function registrarEntradaEstoque(
   _prevState: EstoqueActionState | undefined,
   formData: FormData,
 ): Promise<EstoqueActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -70,6 +72,7 @@ export async function registrarSaidaEstoque(
   _prevState: EstoqueActionState | undefined,
   formData: FormData,
 ): Promise<EstoqueActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -111,6 +114,7 @@ export async function registrarAjusteEstoque(
   _prevState: EstoqueActionState | undefined,
   formData: FormData,
 ): Promise<EstoqueActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -181,6 +185,7 @@ export async function registrarAjusteEstoque(
  * navegação — mesmo padrão de duplicarFichaTecnica.
  */
 export async function criarInventario(nome: string): Promise<string> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");
@@ -245,6 +250,7 @@ export async function salvarContagemInventario(
   inventarioId: string,
   itens: { itemId: string; quantidadeContada: number | null }[],
 ): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -284,6 +290,7 @@ export async function salvarContagemInventario(
  * inventário como concluído.
  */
 export async function concluirInventario(inventarioId: string): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 

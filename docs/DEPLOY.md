@@ -64,5 +64,4 @@ Specs novas: `e2e/08-kds`, `09-expedicao`, `10-financeiro-estoque`, `12-equipe`.
 
 - Expandir cobertura e2e de estoque/compras / segundo usuário RBAC
 - Homologar integrações marketplace (credenciais de parceiro)
-- Opcional: `requirePapel` nas Server Actions operacionais (rotas já
-  filtradas por papel — ver [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md))
+- Opcional: políticas RLS por papel no Postgres (hoje o gate é app-level)

@@ -190,7 +190,8 @@ docs/                                   # Esta documentação
   (`EmpresaSwitcher`) só regrava o cookie e redireciona — não há tabela de
   "sessão de empresa" no banco. Papel na empresa ativa:
   `getPapelNaEmpresaAtual` / `requirePapel` (`fn_papel_na_empresa`).
-  Gestão de equipe: `/equipe`.
+  Gestão de equipe: `/equipe`. Rotas e Server Actions filtradas por papel
+  (`permissoes-rota.ts`, `papeis-acoes.ts`).
 - `(app)/layout.tsx` é o único lugar que decide "sem empresa → `/onboarding`"
   — as páginas de feature (fichas técnicas, ingredientes, etc.) assumem que
   já existe uma empresa ativa.
@@ -266,7 +267,7 @@ acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 | PWA                                           | `manifest.webmanifest` + `sw.js` + registro no layout raiz. |
 | PDVs externos, ERPs (adapters)             | Reserva de nome — o PDV **interno** (`/pdv`) já existe na Sprint 05; falta adapter para PDVs/ERPs de terceiros.                                                                                                                                                     |
 | Custos de funcionários                         | Implementado em `/financeiro/funcionarios` (migration `0042`). |
-| RBAC multi-operador                            | Implementado: `membros_empresa` + `/equipe` (`0043`) + rotas/nav por papel (`permissoes-rota.ts`). |
+| RBAC multi-operador                            | Implementado: `membros_empresa` + `/equipe` (`0043`) + rotas/nav + `requirePapel` nas Server Actions. |
 
 Quando uma dessas pendências for resolvida, atualize esta tabela.
 
