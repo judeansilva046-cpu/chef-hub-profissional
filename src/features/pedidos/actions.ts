@@ -10,6 +10,9 @@ import {
 } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 import { requirePapel } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
+import { criarAlerta } from "@/server/observabilidade/alerts";
+import { registrarLog } from "@/server/observabilidade/logs";
 
 import {
   adicionalItemSchema,
@@ -74,6 +77,13 @@ export async function criarPedido(input: unknown): Promise<string> {
     .single();
 
   if (error) throw new Error("Não foi possível criar o pedido.");
+
+  void registrarAuditoria({
+    acao: "criar",
+    entidade: "pedidos",
+    registroId: data.id,
+    valorNovo: { status: "rascunho", tipo: validated.data.tipo },
+  });
 
   revalidatePath("/pedidos");
   return data.id;
@@ -231,12 +241,26 @@ export async function confirmarPedido(pedidoId: string): Promise<void> {
   const { error } = await supabase.rpc("fn_confirmar_pedido", { p_pedido_id: pedidoId });
 
   if (error) {
+    void registrarLog({
+      nivel: "ERROR",
+      modulo: "pedidos",
+      mensagem: "Falha ao confirmar pedido",
+      detalhes: { pedidoId, error: error.message },
+    });
     throw new Error(
       error.message.includes("Estoque insuficiente") || error.message.includes("Pedido")
         ? error.message
         : "Não foi possível confirmar o pedido.",
     );
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorAnterior: { status: "rascunho" },
+    valorNovo: { status: "confirmado" },
+  });
 
   revalidarPedido(pedidoId);
   revalidatePath("/kds");
@@ -257,6 +281,13 @@ export async function iniciarPreparoPedido(pedidoId: string): Promise<void> {
         : "Não foi possível iniciar o preparo.",
     );
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "em_preparo" },
+  });
 
   revalidarPedido(pedidoId);
   revalidatePath("/estoque");
@@ -279,6 +310,15 @@ export async function avancarStatusPedido(pedidoId: string, statusAtual: string)
       ? error.message
       : "Não foi possível avançar o status do pedido.");
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorAnterior: { status: statusAtual },
+    valorNovo: { status: "avancado" },
+    metadados: { statusAtual },
+  });
 
   revalidarPedido(pedidoId);
   revalidatePath("/kds");
@@ -329,6 +369,13 @@ export async function concluirPedido(pedidoId: string): Promise<void> {
       : "Não foi possível concluir o pedido.");
   }
 
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "entregue" },
+  });
+
   revalidarPedido(pedidoId);
   revalidatePath("/vendas");
   revalidatePath("/dashboard");
@@ -354,6 +401,14 @@ export async function cancelarPedido(pedidoId: string, input: unknown): Promise<
   if (error) {
     throw new Error(error.message.includes("Pedido") ? error.message : "Não foi possível cancelar o pedido.");
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "pedidos",
+    registroId: pedidoId,
+    valorNovo: { status: "cancelado" },
+    metadados: { motivo: validated.data.motivo },
+  });
 
   revalidarPedido(pedidoId);
   revalidatePath("/estoque");
@@ -382,6 +437,20 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
   });
 
   if (error) {
+    void criarAlerta({
+      tipo: "falha_pagamento",
+      severidade: "error",
+      titulo: "Falha no pagamento",
+      mensagem: error.message,
+      entidade: "pagamentos",
+      registroId: pedidoId,
+    });
+    void registrarLog({
+      nivel: "ERROR",
+      modulo: "pagamentos",
+      mensagem: "Falha ao registrar pagamento",
+      detalhes: { pedidoId, error: error.message },
+    });
     throw new Error(
       error.message.includes("Pedido") ||
         error.message.includes("Pagamento") ||
@@ -392,6 +461,16 @@ export async function registrarPagamentoPedido(pedidoId: string, input: unknown)
         : "Não foi possível registrar o pagamento.",
     );
   }
+
+  void registrarAuditoria({
+    acao: "pagamento",
+    entidade: "pagamentos",
+    registroId: pedidoId,
+    valorNovo: {
+      formaPagamento: validated.data.formaPagamento,
+      valor: validated.data.valor,
+    },
+  });
 
   revalidarPedido(pedidoId);
   revalidatePath("/caixa");

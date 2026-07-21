@@ -22,14 +22,22 @@
 - [SPRINT-05.md](./SPRINT-05.md) — Pedidos, PDV, KDS, Caixa, Mesas,
   Expedição + hardening de segurança (`0030`–`0041`).
 - [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md) — multi-operador (`0043`–`0044`).
+- [SPRINT-11-DASHBOARD-RBAC.md](./SPRINT-11-DASHBOARD-RBAC.md) — dashboard por papel (`0045`).
+- [SPRINT-12-OBSERVABILIDADE.md](./SPRINT-12-OBSERVABILIDADE.md) — auditoria, logs, alertas, health (`0046`).
+- [SPRINT-13-CENTRAL-INTEGRACOES.md](./SPRINT-13-CENTRAL-INTEGRACOES.md) — conectores delivery/WhatsApp/PIX (`0047`).
+- [SPRINT-14-FINANCEIRO-ERP.md](./SPRINT-14-FINANCEIRO-ERP.md) — ERP financeiro AP/AR/DRE/fluxo (`0048`).
 - [AUDITORIA.md](./AUDITORIA.md) — auditoria completa + remediação.
 - [AGENTE-LOCAL.md](./AGENTE-LOCAL.md) — contrato + CLI em `agents/impressao/`.
-- [DEPLOY.md](./DEPLOY.md) — aplicar migrations `0040`–`0044`, smoke test e e2e.
+- [DEPLOY.md](./DEPLOY.md) — aplicar migrations `0040`–`0048`, smoke test e e2e.
 - Bundle SQL: [sql/aplicar-0040-a-0042.sql](./sql/aplicar-0040-a-0042.sql)
   (colar no SQL Editor se o banco remoto ainda está em `0039`);
   [sql/aplicar-0043-rbac.sql](./sql/aplicar-0043-rbac.sql) +
-  [sql/aplicar-0044-rbac-papel-rls.sql](./sql/aplicar-0044-rbac-papel-rls.sql)
-  para RBAC.
+  [sql/aplicar-0044-rbac-papel-rls.sql](./sql/aplicar-0044-rbac-papel-rls.sql) +
+  [sql/aplicar-0045-papel-financeiro.sql](./sql/aplicar-0045-papel-financeiro.sql) +
+  [sql/aplicar-0046-observabilidade.sql](./sql/aplicar-0046-observabilidade.sql) +
+  [sql/aplicar-0047-central-integracoes.sql](./sql/aplicar-0047-central-integracoes.sql) +
+  [sql/aplicar-0048-financeiro-erp.sql](./sql/aplicar-0048-financeiro-erp.sql)
+  para RBAC/dashboard/observabilidade/integrações/ERP.
 
 Rotas novas pós-auditoria: `/financeiro/funcionarios`, PWA, PDF em
 `/api/relatorios/[tipo]?formato=pdf`.

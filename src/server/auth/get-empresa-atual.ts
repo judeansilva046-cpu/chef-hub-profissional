@@ -87,6 +87,7 @@ export const getPapelNaEmpresaAtual = cache(
     if (
       data === "owner" ||
       data === "gerente" ||
+      data === "financeiro" ||
       data === "caixa" ||
       data === "cozinha" ||
       data === "garcom"

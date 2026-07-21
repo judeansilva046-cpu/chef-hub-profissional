@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 import { requirePapel } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
 
 import {
   ajusteEstoqueSchema,
@@ -64,6 +65,17 @@ export async function registrarEntradaEstoque(
     return { formError: error.message };
   }
 
+  void registrarAuditoria({
+    acao: "criar",
+    entidade: "estoque",
+    registroId: validated.data.ingredienteId,
+    valorNovo: {
+      tipo: "entrada",
+      quantidade: validated.data.quantidade,
+      custoUnitario: validated.data.custoUnitario,
+    },
+  });
+
   revalidarEstoque();
   return { success: true };
 }
@@ -105,6 +117,16 @@ export async function registrarSaidaEstoque(
           : "Não foi possível registrar a saída.",
     };
   }
+
+  void registrarAuditoria({
+    acao: "excluir",
+    entidade: "estoque",
+    registroId: validated.data.ingredienteId,
+    valorNovo: {
+      tipo: "saida",
+      quantidade: validated.data.quantidade,
+    },
+  });
 
   revalidarEstoque();
   return { success: true };

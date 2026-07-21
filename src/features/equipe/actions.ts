@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
-import { requirePapel } from "@/server/auth/require-papel";
+import { requireOwner } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
 
 import {
   alterarPapelSchema,
@@ -26,7 +27,7 @@ export async function adicionarMembro(
   formData: FormData,
 ): Promise<EquipeActionState> {
   const empresa = await requireEmpresaAtual();
-  await requirePapel();
+  await requireOwner();
 
   const validated = convidarMembroSchema.safeParse({
     email: formData.get("email"),
@@ -53,6 +54,16 @@ export async function adicionarMembro(
     return { formError: message };
   }
 
+  void registrarAuditoria({
+    acao: "criar",
+    entidade: "membros_empresa",
+    valorNovo: {
+      email: validated.data.email,
+      papel: validated.data.papel,
+    },
+    metadados: { permissao: true },
+  });
+
   revalidarEquipe();
   return { success: true };
 }
@@ -62,7 +73,7 @@ export async function alterarPapel(
   papel: string,
 ): Promise<EquipeActionState> {
   const empresa = await requireEmpresaAtual();
-  await requirePapel();
+  await requireOwner();
 
   const validated = alterarPapelSchema.safeParse({ membroId, papel });
   if (!validated.success) {
@@ -84,13 +95,20 @@ export async function alterarPapel(
     };
   }
 
+  void registrarAuditoria({
+    acao: "permissao",
+    entidade: "membros_empresa",
+    registroId: validated.data.membroId,
+    valorNovo: { papel: validated.data.papel },
+  });
+
   revalidarEquipe();
   return { success: true };
 }
 
 export async function alternarAtivo(membroId: string, ativo: boolean) {
   const empresa = await requireEmpresaAtual();
-  await requirePapel();
+  await requireOwner();
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -112,7 +130,7 @@ export async function alternarAtivo(membroId: string, ativo: boolean) {
 
 export async function removerMembro(membroId: string) {
   const empresa = await requireEmpresaAtual();
-  await requirePapel();
+  await requireOwner();
 
   const supabase = await createClient();
   const { error } = await supabase

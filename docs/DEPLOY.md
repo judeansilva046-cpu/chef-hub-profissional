@@ -14,7 +14,15 @@ Checklist do próximo passo operacional após o merge da auditoria/hardening.
    [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
 4. Depois o RLS por papel na escrita:
    [`docs/sql/aplicar-0044-rbac-papel-rls.sql`](./sql/aplicar-0044-rbac-papel-rls.sql).
-5. Se alguma migration já tiver sido aplicada, o script pode falhar
+5. Depois o papel financeiro + convite owner-only:
+   [`docs/sql/aplicar-0045-papel-financeiro.sql`](./sql/aplicar-0045-papel-financeiro.sql).
+6. Depois a observabilidade (auditoria/logs/alertas):
+   [`docs/sql/aplicar-0046-observabilidade.sql`](./sql/aplicar-0046-observabilidade.sql).
+7. Depois a Central de Integrações:
+   [`docs/sql/aplicar-0047-central-integracoes.sql`](./sql/aplicar-0047-central-integracoes.sql).
+8. Depois o ERP financeiro:
+   [`docs/sql/aplicar-0048-financeiro-erp.sql`](./sql/aplicar-0048-financeiro-erp.sql).
+9. Se alguma migration já tiver sido aplicada, o script pode falhar
    em objetos existentes — nesse caso aplique só os arquivos que faltam em
    `supabase/migrations/`.
 
@@ -34,7 +42,11 @@ Cole e rode `supabase/tests/checkpoint3_hardening_0040.sql` (com
 Após `0043`, rode também `supabase/tests/checkpoint4_rbac_0043.sql`
 (`OK: checkpoint 4 passou`). Após `0044`:
 `supabase/tests/checkpoint5_rbac_papel_rls_0044.sql`
-(`OK: checkpoint 5 passou`).
+(`OK: checkpoint 5 passou`). Após `0046`:
+`supabase/tests/checkpoint6_observabilidade_0046.sql`
+(`OK: checkpoint 6 passou`). Após `0047`:
+`supabase/tests/checkpoint7_integracoes_0047.sql`
+(`OK: checkpoint 7 passou`).
 
 ## 2. Variáveis de ambiente (produção)
 
@@ -55,7 +67,8 @@ INTEGRACOES_SECRET_KEY=   # 32 bytes base64
 5. Relatórios → Exportar PDF
 6. `/financeiro/funcionarios` → cadastrar um colaborador
 7. `/equipe` → ver owner na lista; (opcional) convidar segundo usuário
-8. (Opcional) `cd agents/impressao && CHEF_HUB_BASE_URL=... CHEF_HUB_API_KEY=... npm start`
+8. `/admin` → health + auditoria + alertas (owner/gerente)
+9. (Opcional) `cd agents/impressao && CHEF_HUB_BASE_URL=... CHEF_HUB_API_KEY=... npm start`
 
 ## 4. E2E local
 

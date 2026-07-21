@@ -110,9 +110,19 @@ Ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
 - **Sprint 06 (RBAC)** — multi-operador por empresa (`membros_empresa`,
   papéis owner/gerente/caixa/cozinha/garcom). Ver
   [SPRINT-06-RBAC.md](./SPRINT-06-RBAC.md) e migration `0043`.
-- Ainda não implementados: chamadas reais de integração externa (iFood,
-  99Food, Keeta, Open Delivery, ERPs) e adapters externos de PDV — exigem
-  credenciais de parceiro homologado. Ver
+- **Sprint 11** — dashboard dinâmico por papel (+ papel `financeiro`,
+  `0045`). Ver [SPRINT-11-DASHBOARD-RBAC.md](./SPRINT-11-DASHBOARD-RBAC.md).
+- **Sprint 12** — observabilidade (`/admin`, auditoria, logs, alertas,
+  métricas, health — `0046`). Ver
+  [SPRINT-12-OBSERVABILIDADE.md](./SPRINT-12-OBSERVABILIDADE.md).
+- **Sprint 13** — Central de Integrações (delivery, WhatsApp, PIX,
+  impressoras, cardápio digital — `0047`). Conectores stub; homologação
+  real fica para sprint futura. Ver
+  [SPRINT-13-CENTRAL-INTEGRACOES.md](./SPRINT-13-CENTRAL-INTEGRACOES.md).
+- **Sprint 14** — ERP financeiro (AP/AR, DRE, fluxo, conciliação — `0048`).
+  Ver [SPRINT-14-FINANCEIRO-ERP.md](./SPRINT-14-FINANCEIRO-ERP.md).
+- Ainda não implementados: chamadas reais aos provedores (exigem
+  credenciais de parceiro homologado). Ver
   [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
 
 > **Nota:** o PDV **interno** do Chef Hub (`/pdv`, route group `(pos)`) já

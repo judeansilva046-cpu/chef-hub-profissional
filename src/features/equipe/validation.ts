@@ -3,6 +3,7 @@ import * as z from "zod";
 export const PAPEIS_EMPRESA = [
   "owner",
   "gerente",
+  "financeiro",
   "caixa",
   "cozinha",
   "garcom",
@@ -12,6 +13,7 @@ export const PAPEL_EMPRESA_LABEL: Record<(typeof PAPEIS_EMPRESA)[number], string
   {
     owner: "Owner",
     gerente: "Gerente",
+    financeiro: "Financeiro",
     caixa: "Caixa",
     cozinha: "Cozinha",
     garcom: "Garçom",

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { PAPEIS_FINANCEIRO } from "@/server/auth/papeis-acoes";
 import { requirePapel } from "@/server/auth/require-papel";
 
 import {
@@ -42,7 +43,7 @@ export async function criarCustoFixo(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -72,7 +73,7 @@ export async function atualizarCustoFixo(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
 
   const validated = parseCustoFixoForm(formData);
@@ -100,7 +101,7 @@ export async function atualizarCustoFixo(
 }
 
 export async function alternarAtivoCustoFixo(id: string, ativo: boolean) {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -128,7 +129,7 @@ export async function criarCustoVariavel(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -158,7 +159,7 @@ export async function atualizarCustoVariavel(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
 
   const validated = parseCustoVariavelForm(formData);
@@ -186,7 +187,7 @@ export async function atualizarCustoVariavel(
 }
 
 export async function alternarAtivoCustoVariavel(id: string, ativo: boolean) {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -215,7 +216,7 @@ export async function criarMetaVendas(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -252,7 +253,7 @@ export async function atualizarMetaVendas(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
 
   const validated = parseMetaVendasForm(formData);
@@ -287,7 +288,7 @@ export async function atualizarMetaVendas(
 }
 
 export async function excluirMetaVendas(id: string) {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -317,7 +318,7 @@ export async function criarCanalVenda(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await getEmpresaAtual();
   if (!empresa) return { formError: "Nenhuma empresa ativa." };
 
@@ -353,7 +354,7 @@ export async function atualizarCanalVenda(
   _prevState: FinanceiroActionState | undefined,
   formData: FormData,
 ): Promise<FinanceiroActionState> {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
 
   const validated = parseCanalVendaForm(formData);
@@ -387,7 +388,7 @@ export async function atualizarCanalVenda(
 }
 
 export async function alternarAtivoCanalVenda(id: string, ativo: boolean) {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -404,7 +405,7 @@ export async function alternarAtivoCanalVenda(id: string, ativo: boolean) {
 }
 
 export async function excluirCanalVenda(id: string) {
-  await requirePapel();
+  await requirePapel(...PAPEIS_FINANCEIRO);
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

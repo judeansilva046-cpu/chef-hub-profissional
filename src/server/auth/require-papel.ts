@@ -8,7 +8,8 @@ import { requireEmpresaAtual } from "./require-empresa";
 
 /**
  * Garante que o papel do usuário na empresa ativa está entre os permitidos.
- * `owner` e `gerente` sempre passam (gestão plena, alinhado às rotas `*`).
+ * `owner` e `gerente` sempre passam (gestão operacional).
+ * Admin estrito (equipe/integrações) → usar `requireOwner()`.
  */
 export async function requirePapel(
   ...papeisPermitidos: PapelEmpresa[]
@@ -26,6 +27,18 @@ export async function requirePapel(
 
   if (!papeisPermitidos.includes(papel)) {
     throw new Error("Você não tem permissão para esta ação.");
+  }
+
+  return papel;
+}
+
+/** Somente o owner primário / papel owner — equipe e admin do sistema. */
+export async function requireOwner(): Promise<PapelEmpresa> {
+  await requireEmpresaAtual();
+  const papel = await getPapelNaEmpresaAtual();
+
+  if (papel !== "owner") {
+    throw new Error("Apenas o owner pode realizar esta ação.");
   }
 
   return papel;

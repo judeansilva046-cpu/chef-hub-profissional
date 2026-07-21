@@ -6,9 +6,10 @@ import { Section } from "@/components/ui/section";
 import { Text } from "@/components/ui/text";
 import { EquipeManager } from "@/features/equipe/components/equipe-manager";
 import { listarMembrosEmpresa } from "@/features/equipe/queries";
-import {
-  getPapelNaEmpresaAtual,
-} from "@/server/auth/get-empresa-atual";
+import { redirect } from "next/navigation";
+
+import { getPapelNaEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { caminhoCasaDoPapel } from "@/server/auth/permissoes-rota";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 export const metadata: Metadata = {
@@ -17,12 +18,13 @@ export const metadata: Metadata = {
 
 export default async function EquipePage() {
   const empresa = await requireEmpresaAtual();
-  const [membros, papel] = await Promise.all([
-    listarMembrosEmpresa(),
-    getPapelNaEmpresaAtual(),
-  ]);
+  const papel = await getPapelNaEmpresaAtual();
 
-  const podeGerir = papel === "owner" || papel === "gerente";
+  if (papel !== "owner") {
+    redirect(papel ? caminhoCasaDoPapel(papel) : "/dashboard");
+  }
+
+  const membros = await listarMembrosEmpresa();
 
   return (
     <Section className="py-8">
@@ -30,14 +32,14 @@ export default async function EquipePage() {
         <div>
           <Heading level={2}>Equipe</Heading>
           <Text tone="muted">
-            Gerencie operadores da empresa com papéis (owner, gerente, caixa,
-            cozinha, garçom).
+            Gerencie operadores da empresa com papéis (owner, gerente,
+            financeiro, caixa, cozinha, garçom).
           </Text>
         </div>
 
         <EquipeManager
           membros={membros}
-          podeGerir={podeGerir}
+          podeGerir
           ownerUsuarioId={empresa.usuario_id}
         />
       </Container>

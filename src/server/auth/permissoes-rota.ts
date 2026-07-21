@@ -1,20 +1,50 @@
 export type PapelEmpresa =
   | "owner"
   | "gerente"
+  | "financeiro"
   | "caixa"
   | "cozinha"
   | "garcom";
 
 /**
- * Prefixos de rota permitidos por papel operacional.
- * `owner` e `gerente` têm acesso total (`"*"`).
- *
+ * Prefixos de rota permitidos por papel.
  * Matching: pathname === prefixo OU pathname.startsWith(prefixo + "/").
+ *
+ * Gerente tem gestão operacional, mas NÃO admin de sistema
+ * (`/equipe`, `/integracoes`).
  */
 export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
   {
     owner: "*",
-    gerente: "*",
+    gerente: [
+      "/dashboard",
+      "/admin",
+      "/pedidos",
+      "/pdv",
+      "/caixa",
+      "/mesas",
+      "/kds",
+      "/expedicao",
+      "/fichas-tecnicas",
+      "/ingredientes",
+      "/categorias",
+      "/unidades-medida",
+      "/estoque",
+      "/compras",
+      "/producao",
+      "/lista-compras",
+      "/vendas",
+      "/clientes",
+      "/financeiro",
+      "/relatorios",
+    ],
+    financeiro: [
+      "/dashboard",
+      "/financeiro",
+      "/relatorios",
+      "/vendas",
+      "/clientes",
+    ],
     caixa: [
       "/dashboard",
       "/pedidos",
@@ -45,6 +75,7 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
 export const HOME_POR_PAPEL: Record<PapelEmpresa, string> = {
   owner: "/dashboard",
   gerente: "/dashboard",
+  financeiro: "/dashboard",
   caixa: "/pdv",
   cozinha: "/kds",
   garcom: "/mesas",

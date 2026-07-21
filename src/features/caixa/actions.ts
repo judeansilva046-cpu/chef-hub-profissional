@@ -7,6 +7,7 @@ import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { PAPEIS_CAIXA } from "@/server/auth/papeis-acoes";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 import { requirePapel } from "@/server/auth/require-papel";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
 
 import { abrirCaixaSchema, fecharCaixaSchema, movimentacaoCaixaSchema } from "./validation";
 
@@ -35,6 +36,13 @@ export async function abrirCaixa(input: unknown): Promise<string> {
   if (error) {
     throw new Error(error.message.includes("caixa aberto") ? error.message : "Não foi possível abrir o caixa.");
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "caixas",
+    registroId: data,
+    valorNovo: { fechado: false, saldoInicial: validated.data.saldoInicial },
+  });
 
   revalidarCaixa();
   return data;
@@ -108,6 +116,13 @@ export async function fecharCaixa(caixaId: string, input: unknown): Promise<void
   if (error) {
     throw new Error(error.message.includes("fechado") ? error.message : "Não foi possível fechar o caixa.");
   }
+
+  void registrarAuditoria({
+    acao: "status",
+    entidade: "caixas",
+    registroId: caixaId,
+    valorNovo: { fechado: true, saldoInformado: validated.data.saldoInformado },
+  });
 
   revalidarCaixa();
 }
