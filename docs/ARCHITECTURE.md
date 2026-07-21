@@ -267,7 +267,7 @@ acima, `docs/DATABASE.md` e `docs/SPRINT-04.md`). Restam:
 | PWA                                           | `manifest.webmanifest` + `sw.js` + registro no layout raiz. |
 | PDVs externos, ERPs (adapters)             | Reserva de nome — o PDV **interno** (`/pdv`) já existe na Sprint 05; falta adapter para PDVs/ERPs de terceiros.                                                                                                                                                     |
 | Custos de funcionários                         | Implementado em `/financeiro/funcionarios` (migration `0042`). |
-| RBAC multi-operador                            | Implementado: `membros_empresa` + `/equipe` (`0043`) + rotas/nav + `requirePapel` nas Server Actions. |
+| RBAC multi-operador                            | Implementado: `membros_empresa` (`0043`) + rotas/`requirePapel` + RLS escrita por papel (`0044`). |
 
 Quando uma dessas pendências for resolvida, atualize esta tabela.
 

@@ -12,7 +12,9 @@ Checklist do próximo passo operacional após o merge da auditoria/hardening.
    (bundle `0040` + `0041` + `0042`).
 3. Em seguida aplique o RBAC:
    [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
-4. Se alguma migration já tiver sido aplicada, o script pode falhar
+4. Depois o RLS por papel na escrita:
+   [`docs/sql/aplicar-0044-rbac-papel-rls.sql`](./sql/aplicar-0044-rbac-papel-rls.sql).
+5. Se alguma migration já tiver sido aplicada, o script pode falhar
    em objetos existentes — nesse caso aplique só os arquivos que faltam em
    `supabase/migrations/`.
 
@@ -30,7 +32,9 @@ Cole e rode `supabase/tests/checkpoint3_hardening_0040.sql` (com
 `OK: checkpoint 3 passou`.
 
 Após `0043`, rode também `supabase/tests/checkpoint4_rbac_0043.sql`
-(`OK: checkpoint 4 passou`).
+(`OK: checkpoint 4 passou`). Após `0044`:
+`supabase/tests/checkpoint5_rbac_papel_rls_0044.sql`
+(`OK: checkpoint 5 passou`).
 
 ## 2. Variáveis de ambiente (produção)
 
@@ -71,4 +75,5 @@ Validação SQL RBAC: `supabase/tests/checkpoint4_rbac_0043.sql`.
 
 - Seedar operadores E2E e rodar `e2e/13-rbac-papeis` sem skip
 - Homologar integrações marketplace (credenciais de parceiro)
-- Opcional: políticas RLS por papel no Postgres (hoje o gate é app-level)
+- Opcional: restringir SELECT do Dashboard por papel (hoje ops ainda leem
+  dados de gestão; escrita já é por papel via `0044`)

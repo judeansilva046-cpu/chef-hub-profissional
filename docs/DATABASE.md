@@ -577,3 +577,10 @@ Bundle: [`docs/sql/aplicar-0043-rbac.sql`](./sql/aplicar-0043-rbac.sql).
 Teste SQL: [`supabase/tests/checkpoint4_rbac_0043.sql`](../supabase/tests/checkpoint4_rbac_0043.sql).
 
 Seed E2E operadores: [`docs/sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql).
+
+### RLS por papel na escrita (`0044`)
+
+`fn_papel_em` / asserts em RPCs + policies RESTRICTIVE de INSERT/UPDATE/DELETE.
+SELECT continua por tenant. Bundle:
+[`docs/sql/aplicar-0044-rbac-papel-rls.sql`](./sql/aplicar-0044-rbac-papel-rls.sql).
+Teste: [`supabase/tests/checkpoint5_rbac_papel_rls_0044.sql`](../supabase/tests/checkpoint5_rbac_papel_rls_0044.sql).

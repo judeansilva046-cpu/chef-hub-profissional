@@ -51,10 +51,20 @@ primário em `empresas.usuario_id`.
 
 Home padrão: caixa → `/pdv`, cozinha → `/kds`, garçom → `/mesas`.
 
+## RLS por papel na escrita (`0044`)
+
+Bundle: [`docs/sql/aplicar-0044-rbac-papel-rls.sql`](./sql/aplicar-0044-rbac-papel-rls.sql)
+
+- Helpers `fn_papel_em` / `fn_assert_papel` / `fn_assert_papel_pedido`
+- RPCs operacionais viram `SECURITY DEFINER` com assert de papel (side-effects
+  de estoque/vendas continuam funcionando para caixa/cozinha/garçom)
+- Policies **RESTRICTIVE** em INSERT/UPDATE/DELETE por grupo (SELECT segue
+  tenant via `fn_empresas_acessiveis`)
+
 ## Limitações desta entrega
 
 - E2E de operadores (`e2e/13-rbac-papeis`) faz skip se os usuários
   caixa/cozinha/garçom não estiverem seedados — ver
   [`docs/sql/seed-e2e-operadores-rbac.sql`](./sql/seed-e2e-operadores-rbac.sql).
-- RLS do Postgres continua por tenant (empresa), não por papel — a barreira
-  de papel é app-level (`requirePapel` + rotas).
+- SELECT ainda é por tenant (membro ativo vê dados de gestão no Dashboard);
+  o endurecimento de `0044` é na **escrita**.
