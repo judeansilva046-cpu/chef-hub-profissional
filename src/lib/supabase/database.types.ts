@@ -2511,6 +2511,119 @@ export type Database = {
           },
         ]
       }
+      kds_config: {
+        Row: {
+          alerta_atraso_minutos: number
+          alerta_sonoro: boolean
+          atualizado_em: string
+          criado_em: string
+          empresa_id: string
+          impressao_automatica: boolean
+          prioridade_entrega_boost: number
+        }
+        Insert: {
+          alerta_atraso_minutos?: number
+          alerta_sonoro?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          empresa_id: string
+          impressao_automatica?: boolean
+          prioridade_entrega_boost?: number
+        }
+        Update: {
+          alerta_atraso_minutos?: number
+          alerta_sonoro?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          empresa_id?: string
+          impressao_automatica?: boolean
+          prioridade_entrega_boost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kds_config_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: true
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kds_events: {
+        Row: {
+          criado_em: string
+          criado_por: string | null
+          empresa_id: string
+          evento: string
+          id: string
+          metadados: Json
+          pedido_id: string
+          pedido_item_id: string | null
+          praca_producao_id: string | null
+          setor: string | null
+        }
+        Insert: {
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id: string
+          evento: string
+          id?: string
+          metadados?: Json
+          pedido_id: string
+          pedido_item_id?: string | null
+          praca_producao_id?: string | null
+          setor?: string | null
+        }
+        Update: {
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id?: string
+          evento?: string
+          id?: string
+          metadados?: Json
+          pedido_id?: string
+          pedido_item_id?: string | null
+          praca_producao_id?: string | null
+          setor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kds_events_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_pedido_item_id_fkey"
+            columns: ["pedido_item_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_praca_producao_id_fkey"
+            columns: ["praca_producao_id"]
+            isOneToOne: false
+            referencedRelation: "pracas_producao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kds_events_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listas_compra: {
         Row: {
           criado_em: string
@@ -2883,6 +2996,8 @@ export type Database = {
           ordem: number
           pedido_id: string
           preco_unitario_praticado: number
+          preparo_iniciado_em: string | null
+          pronto_em: string | null
           quantidade: number
           status_preparo: string
           valor_total: number | null
@@ -2898,6 +3013,8 @@ export type Database = {
           ordem?: number
           pedido_id: string
           preco_unitario_praticado?: number
+          preparo_iniciado_em?: string | null
+          pronto_em?: string | null
           quantidade: number
           status_preparo?: string
           valor_total?: number | null
@@ -2913,6 +3030,8 @@ export type Database = {
           ordem?: number
           pedido_id?: string
           preco_unitario_praticado?: number
+          preparo_iniciado_em?: string | null
+          pronto_em?: string | null
           quantidade?: number
           status_preparo?: string
           valor_total?: number | null
@@ -3279,6 +3398,7 @@ export type Database = {
           id: string
           nome: string
           ordem_exibicao: number
+          setor: string
         }
         Insert: {
           ativo?: boolean
@@ -3287,6 +3407,7 @@ export type Database = {
           id?: string
           nome: string
           ordem_exibicao?: number
+          setor?: string
         }
         Update: {
           ativo?: boolean
@@ -3295,6 +3416,7 @@ export type Database = {
           id?: string
           nome?: string
           ordem_exibicao?: number
+          setor?: string
         }
         Relationships: [
           {
@@ -3802,8 +3924,32 @@ export type Database = {
         Args: { p_pedido_id: string }
         Returns: undefined
       }
+      fn_marcar_item_pronto: {
+        Args: { p_pedido_item_id: string }
+        Returns: undefined
+      }
       fn_marcar_itens_pronto: {
         Args: { p_pedido_id: string; p_praca_producao_id?: string }
+        Returns: undefined
+      }
+      fn_expedir_pedido_kds: {
+        Args: { p_pedido_id: string }
+        Returns: undefined
+      }
+      fn_registrar_kds_evento: {
+        Args: {
+          p_empresa_id: string
+          p_pedido_id: string
+          p_evento: string
+          p_pedido_item_id?: string
+          p_setor?: string
+          p_praca_producao_id?: string
+          p_metadados?: Json
+        }
+        Returns: string
+      }
+      fn_seed_kds_config: {
+        Args: { p_empresa_id: string }
         Returns: undefined
       }
       fn_papel_na_empresa: {
