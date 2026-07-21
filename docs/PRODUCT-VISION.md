@@ -31,7 +31,7 @@ aumentar a eficiência operacional.
       [AGENTE-LOCAL.md](./AGENTE-LOCAL.md))
 - [x] Planejamento de produção
 - [x] Lista de compras inteligente
-- [ ] Calculadora completa de custos de funcionários
+- [x] Calculadora completa de custos de funcionários
 - [x] Gestão de custos fixos e variáveis
 - [x] Ponto de equilíbrio
 - [x] Sugestão de metas mínimas de vendas para nunca operar no prejuízo
@@ -109,11 +109,10 @@ Ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros).
   Comandas, Expedição/entregadores, Realtime e baixa de estoque no ciclo
   do pedido (migrations `0030`–`0039`). Detalhamento e riscos:
   [AUDITORIA.md](./AUDITORIA.md).
-- Ainda não implementados: calculadora completa de custos de funcionários,
-  exportação de relatórios em PDF, chamadas reais de integração externa
-  (iFood, 99Food, Keeta, Open Delivery, ERPs), adapters externos de PDV,
-  PWA e o executável do agente local de impressão — ver
-  [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros) e
+- Ainda não implementados: exportação de relatórios em PDF, chamadas reais
+  de integração externa (iFood, 99Food, Keeta, Open Delivery, ERPs),
+  adapters externos de PDV, PWA e o executável do agente local de impressão
+  — ver [ARCHITECTURE.md](./ARCHITECTURE.md#pontos-de-extensão-futuros) e
   [AUDITORIA.md](./AUDITORIA.md).
 
 > **Nota:** o PDV **interno** do Chef Hub (`/pdv`, route group `(pos)`) já

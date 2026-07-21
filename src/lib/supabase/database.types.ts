@@ -1324,6 +1324,62 @@ export type Database = {
           },
         ]
       }
+      funcionarios: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          beneficios_mensais: number
+          carga_horaria_semanal: number
+          cargo: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          nome: string
+          observacoes: string | null
+          percentual_encargos: number
+          salario_bruto: number
+          tipo_contrato: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          beneficios_mensais?: number
+          carga_horaria_semanal?: number
+          cargo?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          percentual_encargos?: number
+          salario_bruto: number
+          tipo_contrato?: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          beneficios_mensais?: number
+          carga_horaria_semanal?: number
+          cargo?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          percentual_encargos?: number
+          salario_bruto?: number
+          tipo_contrato?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funcionarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredientes: {
         Row: {
           ativo: boolean
