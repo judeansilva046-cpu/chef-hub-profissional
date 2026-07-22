@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { registrarAuditoria } from "@/server/observabilidade/auditoria";
+import { registrarLog } from "@/server/observabilidade/logs";
 
 import { loginSchema, signupSchema } from "./validation";
 
@@ -28,8 +30,22 @@ export async function login(
   const { error } = await supabase.auth.signInWithPassword(validated.data);
 
   if (error) {
+    void registrarLog({
+      nivel: "WARNING",
+      modulo: "auth",
+      mensagem: "Falha de login",
+      detalhes: { email: validated.data.email },
+      empresaId: null,
+    });
     return { formError: "E-mail ou senha inválidos." };
   }
+
+  await registrarAuditoria({
+    acao: "login",
+    entidade: "auth",
+    empresaId: null,
+    metadados: { email: validated.data.email },
+  });
 
   redirect("/fichas-tecnicas");
 }
@@ -59,7 +75,23 @@ export async function signup(
   });
 
   if (error) {
+    void registrarLog({
+      nivel: "ERROR",
+      modulo: "auth",
+      mensagem: "Falha no cadastro",
+      detalhes: { email: validated.data.email },
+      empresaId: null,
+    });
     return { formError: "Não foi possível criar a conta. Tente novamente." };
+  }
+
+  if (data.session) {
+    await registrarAuditoria({
+      acao: "signup",
+      entidade: "auth",
+      empresaId: null,
+      metadados: { email: validated.data.email },
+    });
   }
 
   if (!data.session) {
@@ -75,6 +107,10 @@ export async function signup(
 }
 
 export async function logout() {
+  await registrarAuditoria({
+    acao: "logout",
+    entidade: "auth",
+  });
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");

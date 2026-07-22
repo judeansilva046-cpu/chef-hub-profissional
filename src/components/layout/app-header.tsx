@@ -5,6 +5,10 @@ import { Container } from "@/components/ui/container";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { logout } from "@/features/auth/actions";
 import type { Tables } from "@/lib/supabase/database.types";
+import {
+  filtrarLinksPorPapel,
+  type PapelEmpresa,
+} from "@/server/auth/permissoes-rota";
 
 import { EmpresaSwitcher } from "./empresa-switcher";
 
@@ -44,9 +48,13 @@ const NAV_GROUPS = [
     links: [
       { href: "/vendas", label: "Vendas" },
       { href: "/clientes", label: "Clientes" },
+      { href: "/crm", label: "CRM" },
+      { href: "/bi", label: "BI" },
       { href: "/financeiro", label: "Financeiro" },
       { href: "/relatorios", label: "Relatórios" },
+      { href: "/admin", label: "Monitoramento" },
       { href: "/integracoes", label: "Integrações" },
+      { href: "/equipe", label: "Equipe" },
     ],
   },
 ] as const;
@@ -54,9 +62,22 @@ const NAV_GROUPS = [
 export interface AppHeaderProps {
   empresas: Tables<"empresas">[];
   empresaAtualId: string;
+  papel: PapelEmpresa | null;
 }
 
-export function AppHeader({ empresas, empresaAtualId }: AppHeaderProps) {
+export function AppHeader({
+  empresas,
+  empresaAtualId,
+  papel,
+}: AppHeaderProps) {
+  const gruposVisiveis = NAV_GROUPS.map((grupo) => ({
+    label: grupo.label,
+    links: filtrarLinksPorPapel(
+      grupo.links as ReadonlyArray<{ href: string; label: string }>,
+      papel,
+    ),
+  })).filter((grupo) => grupo.links.length > 0);
+
   return (
     <header className="border-border bg-background border-b">
       <Container className="flex h-16 items-center justify-between gap-4">
@@ -82,7 +103,7 @@ export function AppHeader({ empresas, empresaAtualId }: AppHeaderProps) {
       </Container>
 
       <nav className="border-border flex items-center gap-6 overflow-x-auto border-t px-4 py-2">
-        {NAV_GROUPS.map((grupo) => (
+        {gruposVisiveis.map((grupo) => (
           <div key={grupo.label} className="flex shrink-0 items-center gap-3">
             <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
               {grupo.label}

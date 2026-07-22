@@ -1,42 +1,63 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { Container } from "@/components/ui/container";
 import { Heading } from "@/components/ui/heading";
 import { Section } from "@/components/ui/section";
 import { Text } from "@/components/ui/text";
-import { IntegracaoCard } from "@/features/integracoes/components/integracao-card";
-import { listarIntegracoesPorProvedor } from "@/features/integracoes/queries";
+import { IntegrationHub } from "@/features/integracoes/components/integration-hub";
+import { carregarMetricasIntegracoes } from "@/features/integracoes/metrics";
+import {
+  listarCentralIntegracoes,
+  listarLogsIntegracao,
+  listarSyncsIntegracao,
+  obterStatusIntegracoes,
+} from "@/features/integracoes/queries";
+import { getIntegracoesMode } from "@/integrations/mode";
+import { getPapelNaEmpresaAtual } from "@/server/auth/get-empresa-atual";
+import { caminhoCasaDoPapel } from "@/server/auth/permissoes-rota";
+import { requireEmpresaAtual } from "@/server/auth/require-empresa";
 
 export const metadata: Metadata = {
-  title: "Integrações — Chef Hub Profissional",
+  title: "Central de Integrações — Chef Hub Profissional",
 };
 
 export default async function IntegracoesPage() {
-  const integracoes = await listarIntegracoesPorProvedor();
+  await requireEmpresaAtual();
+  const papel = await getPapelNaEmpresaAtual();
+  if (papel !== "owner") {
+    redirect(papel ? caminhoCasaDoPapel(papel) : "/dashboard");
+  }
+
+  const [items, logs, syncs, status, metrics] = await Promise.all([
+    listarCentralIntegracoes(),
+    listarLogsIntegracao({ limit: 30 }),
+    listarSyncsIntegracao({ limit: 20 }),
+    obterStatusIntegracoes(),
+    carregarMetricasIntegracoes(),
+  ]);
+
+  const mode = getIntegracoesMode();
 
   return (
     <Section className="py-8">
       <Container className="flex flex-col gap-6">
         <div>
-          <Heading level={2}>Integrações</Heading>
+          <Heading level={2}>Central de Integrações</Heading>
           <Text tone="muted">
-            Estrutura pronta para iFood, 99Food, Keeta e Open Delivery —
-            credenciais, status de conexão e logs de sincronização. Nenhuma
-            chamada real é feita: cada provedor depende de credenciais de
-            parceiro homologado que este projeto ainda não tem.
+            Homologação dos conectores (iFood, WhatsApp, PIX, impressoras e cardápio
+            digital). Modo atual: <strong>{mode}</strong>. Credenciais AES-256-GCM;
+            resiliência com retry, circuit breaker, DLQ e idempotência.
           </Text>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {integracoes.map((item) => (
-            <IntegracaoCard
-              key={item.provedor}
-              provedor={item.provedor}
-              provedorLabel={item.label}
-              integracao={item.integracao}
-            />
-          ))}
-        </div>
+        <IntegrationHub
+          items={items}
+          logs={logs}
+          syncs={syncs}
+          status={status}
+          metrics={metrics}
+        />
       </Container>
     </Section>
   );

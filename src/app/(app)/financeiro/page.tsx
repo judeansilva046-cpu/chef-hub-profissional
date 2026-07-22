@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function FinanceiroPage() {
-  redirect("/financeiro/painel");
+export default function FinanceiroIndexPage() {
+  redirect("/financeiro/erp");
 }

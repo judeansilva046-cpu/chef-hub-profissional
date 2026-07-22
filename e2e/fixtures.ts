@@ -18,6 +18,72 @@ export const E2E_EMPRESA_ID = "fa43de88-a47d-4758-b137-7ee49fa40394";
 export const E2E_PRODUTO_NOME = "Produto E2E";
 export const E2E_ADICIONAL_NOME = "Adicional E2E";
 
+export type E2EOperador = {
+  papel: "caixa" | "cozinha" | "garcom";
+  email: string;
+  password: string;
+  homePath: string;
+  /** Links que devem aparecer na nav do (app) após login. */
+  deveVer: string[];
+  /** Links que NÃO devem aparecer na nav. */
+  naoDeveVer: string[];
+};
+
+/**
+ * Operadores para `e2e/13-rbac-papeis.spec.ts`. Criar Auth + vincular com
+ * `docs/sql/seed-e2e-operadores-rbac.sql`. Se o login falhar, o spec faz skip.
+ */
+export const E2E_OPERADORES: E2EOperador[] = [
+  {
+    papel: "caixa",
+    email: "e2e-caixa@chefhub.local",
+    password: E2E_USER.password,
+    homePath: "/pdv",
+    deveVer: ["/pdv", "/caixa", "/pedidos"],
+    naoDeveVer: ["/equipe", "/estoque", "/financeiro", "/kds"],
+  },
+  {
+    papel: "cozinha",
+    email: "e2e-cozinha@chefhub.local",
+    password: E2E_USER.password,
+    homePath: "/kds",
+    deveVer: ["/kds", "/pedidos", "/producao"],
+    naoDeveVer: ["/equipe", "/pdv", "/caixa", "/financeiro"],
+  },
+  {
+    papel: "garcom",
+    email: "e2e-garcom@chefhub.local",
+    password: E2E_USER.password,
+    homePath: "/mesas",
+    deveVer: ["/mesas", "/pedidos", "/pdv"],
+    naoDeveVer: ["/equipe", "/kds", "/estoque", "/financeiro"],
+  },
+];
+
+/**
+ * Login sem storageState prévio. Retorna false se permanecer em /login
+ * (usuário não seedado).
+ */
+export async function loginComCredenciais(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<boolean> {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByLabel("Senha").fill(password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+
+  try {
+    await page.waitForURL((url) => !url.pathname.includes("/login"), {
+      timeout: 12_000,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Ruído conhecido do Chromium automatizado via CDP (Playwright), confirmado
  * NÃO reproduzível numa sessão de navegador manual real (verificado via

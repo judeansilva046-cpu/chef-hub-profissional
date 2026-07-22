@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 import {
   pedidoCompraSchema,
@@ -27,6 +28,7 @@ export interface CriarSolicitacaoInput {
 export async function criarSolicitacaoCompra(
   input: CriarSolicitacaoInput,
 ): Promise<string> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");
@@ -74,6 +76,7 @@ export async function atualizarStatusSolicitacao(
   id: string,
   status: "aprovada" | "rejeitada",
 ): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -102,6 +105,7 @@ export async function converterSolicitacaoEmPedido(
   solicitacaoId: string,
   fornecedorId: string,
 ): Promise<string> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
@@ -190,6 +194,7 @@ export interface CriarPedidoInput {
 export async function criarPedidoCompra(
   input: CriarPedidoInput,
 ): Promise<string> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");
@@ -246,6 +251,7 @@ export async function atualizarStatusPedido(
   id: string,
   status: "enviado" | "cancelado",
 ): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase
@@ -278,6 +284,7 @@ export async function receberItemPedido(
   _prevState: ReceberItemActionState | undefined,
   formData: FormData,
 ): Promise<ReceberItemActionState> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
 
   const validated = receberItemPedidoSchema.safeParse({
@@ -337,6 +344,7 @@ export async function salvarPrecoFornecedor(
   _prevState: PrecoFornecedorActionState | undefined,
   formData: FormData,
 ): Promise<PrecoFornecedorActionState> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     return { formError: "Nenhuma empresa ativa." };
@@ -373,6 +381,7 @@ export async function salvarPrecoFornecedor(
 }
 
 export async function removerPrecoFornecedor(id: string): Promise<void> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
   const { error } = await supabase

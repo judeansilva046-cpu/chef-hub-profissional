@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getEmpresaAtual } from "@/server/auth/get-empresa-atual";
 import { requireEmpresaAtual } from "@/server/auth/require-empresa";
+import { requirePapel } from "@/server/auth/require-papel";
 
 export interface GerarListaInput {
   nome: string;
@@ -21,6 +22,7 @@ export interface GerarListaInput {
 export async function gerarListaCompras(
   input: GerarListaInput,
 ): Promise<string> {
+  await requirePapel();
   const empresa = await getEmpresaAtual();
   if (!empresa) {
     throw new Error("Nenhuma empresa ativa.");
@@ -64,6 +66,7 @@ export async function salvarItensLista(
   listaId: string,
   itens: SalvarItemListaInput[],
 ): Promise<void> {
+  await requirePapel();
   if (itens.some((item) => item.quantidadeSugerida <= 0)) {
     throw new Error("A quantidade sugerida deve ser maior que zero.");
   }
@@ -115,6 +118,7 @@ export async function salvarItensLista(
 export async function converterListaEmPedidos(
   listaId: string,
 ): Promise<string[]> {
+  await requirePapel();
   const empresa = await requireEmpresaAtual();
   const supabase = await createClient();
 
