@@ -66,7 +66,11 @@ export function BiShell({
             <Heading level={2}>{TITULOS[dashboard]}</Heading>
             <Text tone="muted">
               Indicadores consolidados · {data.periodo.inicio} a{" "}
-              {data.periodo.fim}
+              {data.periodo.fim}. Perguntas em linguagem natural:{" "}
+              <a href="/ai" className="text-primary underline-offset-2 hover:underline">
+                ChefHub AI
+              </a>
+              .
             </Text>
           </div>
           <BiExportLinks

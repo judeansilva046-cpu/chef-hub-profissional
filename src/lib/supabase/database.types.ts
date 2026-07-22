@@ -492,6 +492,53 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_query_logs: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          explicacao: string | null
+          fontes: Json
+          id: string
+          intencao: string
+          metadata: Json
+          pergunta: string
+          resposta: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          explicacao?: string | null
+          fontes?: Json
+          id?: string
+          intencao: string
+          metadata?: Json
+          pergunta: string
+          resposta: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          explicacao?: string | null
+          fontes?: Json
+          id?: string
+          intencao?: string
+          metadata?: Json
+          pergunta?: string
+          resposta?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_query_logs_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bi_metas: {
         Row: {
           ativo: boolean
