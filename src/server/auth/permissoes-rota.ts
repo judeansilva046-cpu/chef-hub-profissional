@@ -37,6 +37,7 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/clientes",
       "/crm",
       "/bi",
+      "/ai",
       "/financeiro",
       "/relatorios",
     ],
@@ -48,6 +49,7 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/clientes",
       "/crm",
       "/bi",
+      "/ai",
     ],
     caixa: [
       "/dashboard",

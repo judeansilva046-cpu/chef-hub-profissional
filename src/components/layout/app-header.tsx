@@ -50,6 +50,7 @@ const NAV_GROUPS = [
       { href: "/clientes", label: "Clientes" },
       { href: "/crm", label: "CRM" },
       { href: "/bi", label: "BI" },
+      { href: "/ai", label: "ChefHub AI" },
       { href: "/financeiro", label: "Financeiro" },
       { href: "/relatorios", label: "Relatórios" },
       { href: "/admin", label: "Monitoramento" },

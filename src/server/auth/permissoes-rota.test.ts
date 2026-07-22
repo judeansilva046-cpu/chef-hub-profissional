@@ -56,13 +56,19 @@ describe("permissoes-rota", () => {
     expect(podeAcessarRota("garcom", "/kds")).toBe(false);
   });
 
-  it("gerente acessa CRM e BI", () => {
+  it("gerente acessa CRM, BI e ChefHub AI", () => {
     expect(podeAcessarRota("gerente", "/crm/campanhas")).toBe(true);
     expect(podeAcessarRota("gerente", "/bi/vendas")).toBe(true);
+    expect(podeAcessarRota("gerente", "/ai")).toBe(true);
   });
 
-  it("caixa não acessa BI", () => {
+  it("caixa não acessa BI nem AI", () => {
     expect(podeAcessarRota("caixa", "/bi")).toBe(false);
+    expect(podeAcessarRota("caixa", "/ai")).toBe(false);
+  });
+
+  it("financeiro acessa ChefHub AI", () => {
+    expect(podeAcessarRota("financeiro", "/ai")).toBe(true);
   });
 
   it("home padrão por papel", () => {
