@@ -1,8 +1,7 @@
-import { createStubProvider } from "../create-stub-provider";
+import { createHomologProvider } from "../homolog/create-homolog-provider";
 import type { IntegrationProvider } from "../types";
 
-/** Stub goomer — sem chamadas reais (homologação futura). */
-export const goomerProvider: IntegrationProvider = createStubProvider(
-  "goomer",
-  "delivery",
-);
+export const goomerProvider: IntegrationProvider = createHomologProvider({
+  id: "goomer",
+  category: "delivery",
+});

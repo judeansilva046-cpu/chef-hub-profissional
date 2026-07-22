@@ -35,6 +35,8 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/lista-compras",
       "/vendas",
       "/clientes",
+      "/crm",
+      "/bi",
       "/financeiro",
       "/relatorios",
     ],
@@ -44,6 +46,8 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/relatorios",
       "/vendas",
       "/clientes",
+      "/crm",
+      "/bi",
     ],
     caixa: [
       "/dashboard",
@@ -53,6 +57,7 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/expedicao",
       "/vendas",
       "/clientes",
+      "/crm",
     ],
     cozinha: [
       "/dashboard",
@@ -68,6 +73,7 @@ export const PREFIXOS_POR_PAPEL: Record<PapelEmpresa, "*" | readonly string[]> =
       "/mesas",
       "/expedicao",
       "/clientes",
+      "/crm",
     ],
   };
 

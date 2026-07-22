@@ -39,18 +39,26 @@ describe("webhook inbox", () => {
     expect(result.status).toBe(404);
   });
 
-  it("rejeita assinatura inválida sem flag de dev", async () => {
+  it("rejeita assinatura inválida em modo live sem flag", async () => {
+    const prevMode = process.env.INTEGRACOES_MODE;
+    process.env.INTEGRACOES_MODE = "live";
     delete process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED;
-    const result = await processWebhookInbox({
-      provider: "ifood",
-      rawBody: JSON.stringify({ orderId: "1" }),
-      headers: new Headers(),
-    });
-    expect(result.status).toBe(401);
+    try {
+      const result = await processWebhookInbox({
+        provider: "ifood",
+        rawBody: JSON.stringify({ orderId: "1" }),
+        headers: new Headers(),
+      });
+      expect(result.status).toBe(401);
+    } finally {
+      if (prevMode === undefined) delete process.env.INTEGRACOES_MODE;
+      else process.env.INTEGRACOES_MODE = prevMode;
+    }
   });
 
-  it("aceita unsigned em modo desenvolvimento", async () => {
-    process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED = "true";
+  it("aceita unsigned em homologação (padrão Sprint 18)", async () => {
+    process.env.INTEGRACOES_MODE = "homolog";
+    delete process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED;
     const result = await processWebhookInbox({
       provider: "ifood",
       rawBody: JSON.stringify({ orderId: "1" }),

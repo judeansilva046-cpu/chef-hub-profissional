@@ -1,8 +1,7 @@
-import { createStubProvider } from "../create-stub-provider";
+import { createHomologProvider } from "../homolog/create-homolog-provider";
 import type { IntegrationProvider } from "../types";
 
-/** Stub delivery_direto — sem chamadas reais (homologação futura). */
-export const deliveryDiretoProvider: IntegrationProvider = createStubProvider(
-  "delivery_direto",
-  "delivery",
-);
+export const deliveryDiretoProvider: IntegrationProvider = createHomologProvider({
+  id: "delivery_direto",
+  category: "delivery",
+});

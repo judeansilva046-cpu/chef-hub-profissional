@@ -1,14 +1,19 @@
-import { createStubProvider } from "../create-stub-provider";
-import {
-  IntegrationNotAvailableError,
-  type IntegrationProvider,
-  type PrinterDriver,
-} from "../types";
+import { createHomologProvider } from "../homolog/create-homolog-provider";
+import type { IntegrationProvider, PrinterDriver } from "../types";
+import { buildEscPosJob } from "./escpos-builder";
 
 export const epsonProviderPrinter: PrinterDriver = {
-  async imprimir() {
-    throw new IntegrationNotAvailableError("epson", "Impressão térmica");
+  async imprimir(_ctx, job) {
+    const built = buildEscPosJob({
+      type: job.type,
+      payload: job.payload,
+      printerName: "Epson",
+    });
+    return { jobId: built.jobId };
   },
 };
 
-export const epsonProvider: IntegrationProvider = createStubProvider("epson", "printer");
+export const epsonProvider: IntegrationProvider = createHomologProvider({
+  id: "epson",
+  category: "printer",
+});

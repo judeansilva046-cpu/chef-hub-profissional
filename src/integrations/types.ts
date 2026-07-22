@@ -1,7 +1,7 @@
 /**
- * Sprint 13 — contratos desacoplados da Central de Integrações.
- * Nenhum provider chama API real: stubs lançam IntegrationNotAvailableError
- * até homologação com credenciais de parceiro (Sprint 16).
+ * Contratos desacoplados da Central de Integrações (Sprint 13+).
+ * Sprint 18: providers homologáveis — `INTEGRACOES_MODE=homolog|live|disabled`.
+ * Em live, chamadas HTTP reais exigem credenciais do parceiro.
  */
 
 export type IntegrationCategory =
@@ -280,7 +280,7 @@ export interface PrinterDriver {
   imprimir(
     ctx: ProviderContext,
     job: {
-      type: "pedido" | "cozinha" | "bar" | "balcao" | "comprovante";
+      type: "pedido" | "cozinha" | "bar" | "balcao" | "caixa" | "comprovante";
       payload: string;
     },
   ): Promise<{ jobId: string }>;

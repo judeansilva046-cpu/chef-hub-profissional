@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { IntegrationNotAvailableError } from "@/integrations/types";
 import { obterProvider } from "@/integrations/registry";
 
-describe("sincronização (mock, sem produção)", () => {
-  it("sincronizarPedidos do stub falha com erro de homologação", async () => {
+describe("sincronização (homologação)", () => {
+  it("sincronizarPedidos retorna pedidos de homologação", async () => {
     const provider = obterProvider("anota_ai");
-    await expect(
-      provider.sincronizarPedidos({
-        empresaId: "e",
-        integrationId: "i",
-        credentials: { clientId: "x", clientSecret: "y" },
-        config: {},
-      }),
-    ).rejects.toThrow(/homologação/);
+    const orders = await provider.sincronizarPedidos({
+      empresaId: "e",
+      integrationId: "i",
+      credentials: { clientId: "x", clientSecret: "y" },
+      config: {},
+    });
+    expect(orders.length).toBeGreaterThan(0);
+    expect(orders[0]!.externalId).toBeTruthy();
   });
 
   it("atualizarStatusPedido é mockável", async () => {
@@ -42,20 +41,20 @@ describe("sincronização (mock, sem produção)", () => {
     expect(calls).toEqual(["ext-1:pronto"]);
   });
 
-  it("PIX gateway stub não gera QR em produção", async () => {
+  it("PIX gera QR em modo homolog", async () => {
     const { mercadoPagoProviderPix } = await import(
       "@/integrations/pix/mercado_pago"
     );
-    await expect(
-      mercadoPagoProviderPix.gerarQrCode(
-        {
-          empresaId: "e",
-          integrationId: "i",
-          credentials: {},
-          config: {},
-        },
-        { amount: 10, description: "teste", externalRef: "1" },
-      ),
-    ).rejects.toBeInstanceOf(IntegrationNotAvailableError);
+    const qr = await mercadoPagoProviderPix.gerarQrCode(
+      {
+        empresaId: "e",
+        integrationId: "i",
+        credentials: {},
+        config: {},
+      },
+      { amount: 10, description: "teste", externalRef: "1" },
+    );
+    expect(qr.txid).toMatch(/mp_homolog_/);
+    expect(qr.qrCode.length).toBeGreaterThan(10);
   });
 });

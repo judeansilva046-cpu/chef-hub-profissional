@@ -1,8 +1,7 @@
-import { createStubProvider } from "../create-stub-provider";
+import { createHomologProvider } from "../homolog/create-homolog-provider";
 import type { IntegrationProvider } from "../types";
 
-/** Stub keeta — sem chamadas reais (homologação futura). */
-export const keetaProvider: IntegrationProvider = createStubProvider(
-  "keeta",
-  "delivery",
-);
+export const keetaProvider: IntegrationProvider = createHomologProvider({
+  id: "keeta",
+  category: "delivery",
+});

@@ -20,18 +20,22 @@ describe("permissoes-rota", () => {
     expect(podeAcessarRota("gerente", "/integracoes")).toBe(false);
   });
 
-  it("financeiro acessa só finanças/relatórios/vendas/clientes", () => {
+  it("financeiro acessa finanças/relatórios/vendas/clientes/crm/bi", () => {
     expect(podeAcessarRota("financeiro", "/dashboard")).toBe(true);
     expect(podeAcessarRota("financeiro", "/financeiro")).toBe(true);
     expect(podeAcessarRota("financeiro", "/relatorios")).toBe(true);
+    expect(podeAcessarRota("financeiro", "/crm")).toBe(true);
+    expect(podeAcessarRota("financeiro", "/bi")).toBe(true);
+    expect(podeAcessarRota("financeiro", "/bi/financeiro")).toBe(true);
     expect(podeAcessarRota("financeiro", "/estoque")).toBe(false);
     expect(podeAcessarRota("financeiro", "/kds")).toBe(false);
     expect(podeAcessarRota("financeiro", "/mesas")).toBe(false);
   });
 
-  it("caixa acessa PDV/caixa e não acessa KDS/equipe", () => {
+  it("caixa acessa PDV/caixa/crm e não acessa KDS/equipe", () => {
     expect(podeAcessarRota("caixa", "/pdv")).toBe(true);
     expect(podeAcessarRota("caixa", "/caixa/abc")).toBe(true);
+    expect(podeAcessarRota("caixa", "/crm/cupons")).toBe(true);
     expect(podeAcessarRota("caixa", "/kds")).toBe(false);
     expect(podeAcessarRota("caixa", "/equipe")).toBe(false);
     expect(podeAcessarRota("caixa", "/estoque")).toBe(false);
@@ -44,11 +48,21 @@ describe("permissoes-rota", () => {
     expect(podeAcessarRota("cozinha", "/caixa")).toBe(false);
   });
 
-  it("garçom acessa mesas/PDV e não acessa financeiro", () => {
+  it("garçom acessa mesas/PDV/crm e não acessa financeiro", () => {
     expect(podeAcessarRota("garcom", "/mesas/1")).toBe(true);
     expect(podeAcessarRota("garcom", "/pdv")).toBe(true);
+    expect(podeAcessarRota("garcom", "/crm")).toBe(true);
     expect(podeAcessarRota("garcom", "/financeiro")).toBe(false);
     expect(podeAcessarRota("garcom", "/kds")).toBe(false);
+  });
+
+  it("gerente acessa CRM e BI", () => {
+    expect(podeAcessarRota("gerente", "/crm/campanhas")).toBe(true);
+    expect(podeAcessarRota("gerente", "/bi/vendas")).toBe(true);
+  });
+
+  it("caixa não acessa BI", () => {
+    expect(podeAcessarRota("caixa", "/bi")).toBe(false);
   });
 
   it("home padrão por papel", () => {

@@ -492,6 +492,59 @@ export type Database = {
         }
         Relationships: []
       }
+      bi_metas: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          criado_por: string | null
+          empresa_id: string
+          id: string
+          observacao: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          tipo: string
+          unidade: string
+          valor_meta: number
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id: string
+          id?: string
+          observacao?: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          tipo: string
+          unidade?: string
+          valor_meta: number
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          criado_por?: string | null
+          empresa_id?: string
+          id?: string
+          observacao?: string | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          tipo?: string
+          unidade?: string
+          valor_meta?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bi_metas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agentes_impressao: {
         Row: {
           ativo: boolean
@@ -2123,6 +2176,166 @@ export type Database = {
           },
         ]
       }
+
+      integration_dlq: {
+        Row: {
+          attempts: number
+          created_at: string
+          empresa_id: string | null
+          error_message: string
+          id: string
+          job_id: string | null
+          operation: string
+          payload: Json
+          provider: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          empresa_id?: string | null
+          error_message: string
+          id?: string
+          job_id?: string | null
+          operation: string
+          payload?: Json
+          provider: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          empresa_id?: string | null
+          error_message?: string
+          id?: string
+          job_id?: string | null
+          operation?: string
+          payload?: Json
+          provider?: string
+        }
+        Relationships: []
+      }
+      integration_idempotency_keys: {
+        Row: {
+          created_at: string
+          empresa_id: string | null
+          expires_at: string
+          id: string
+          idem_key: string
+          provider: string
+          result: Json
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string | null
+          expires_at: string
+          id?: string
+          idem_key: string
+          provider: string
+          result?: Json
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string | null
+          expires_at?: string
+          id?: string
+          idem_key?: string
+          provider?: string
+          result?: Json
+        }
+        Relationships: []
+      }
+      integration_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          empresa_id: string | null
+          id: string
+          integration_id: string | null
+          last_error: string | null
+          max_attempts: number
+          operation: string
+          payload: Json
+          provider: string
+          run_after: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          integration_id?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          operation: string
+          payload?: Json
+          provider: string
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          integration_id?: string | null
+          last_error?: string | null
+          max_attempts?: number
+          operation?: string
+          payload?: Json
+          provider?: string
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integration_metrics: {
+        Row: {
+          avg_latency_ms: number
+          calls: number
+          created_at: string
+          empresa_id: string
+          failures: number
+          id: string
+          last_sync_at: string | null
+          metric_date: string
+          payload: Json
+          provider: string
+          retries: number
+          webhooks_received: number
+        }
+        Insert: {
+          avg_latency_ms?: number
+          calls?: number
+          created_at?: string
+          empresa_id: string
+          failures?: number
+          id?: string
+          last_sync_at?: string | null
+          metric_date?: string
+          payload?: Json
+          provider: string
+          retries?: number
+          webhooks_received?: number
+        }
+        Update: {
+          avg_latency_ms?: number
+          calls?: number
+          created_at?: string
+          empresa_id?: string
+          failures?: number
+          id?: string
+          last_sync_at?: string | null
+          metric_date?: string
+          payload?: Json
+          provider?: string
+          retries?: number
+          webhooks_received?: number
+        }
+        Relationships: []
+      }
       integration_syncs: {
         Row: {
           duration_ms: number | null
@@ -2185,7 +2398,9 @@ export type Database = {
           created_at: string
           empresa_id: string | null
           error_message: string | null
+          event_type: string | null
           id: string
+          idempotency_key: string | null
           integration_id: string | null
           payload: Json
           processed: boolean
@@ -2196,7 +2411,9 @@ export type Database = {
           created_at?: string
           empresa_id?: string | null
           error_message?: string | null
+          event_type?: string | null
           id?: string
+          idempotency_key?: string | null
           integration_id?: string | null
           payload: Json
           processed?: boolean
@@ -2207,7 +2424,9 @@ export type Database = {
           created_at?: string
           empresa_id?: string | null
           error_message?: string | null
+          event_type?: string | null
           id?: string
+          idempotency_key?: string | null
           integration_id?: string | null
           payload?: Json
           processed?: boolean
@@ -2921,6 +3140,508 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+
+      campaign_recipients: {
+        Row: {
+          campaign_id: string
+          cliente_id: string
+          created_at: string
+          empresa_id: string
+          error_message: string | null
+          id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          cliente_id: string
+          created_at?: string
+          empresa_id: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          campaign_id?: string
+          cliente_id?: string
+          created_at?: string
+          empresa_id?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      cashback_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          cliente_id: string
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          id: string
+          notes: string | null
+          reference_id: string | null
+          reference_tipo: string | null
+          tipo: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number
+          cliente_id: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_tipo?: string | null
+          tipo: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          cliente_id?: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_tipo?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
+      communication_logs: {
+        Row: {
+          body: string | null
+          campaign_id: string | null
+          channel: string
+          cliente_id: string | null
+          created_at: string
+          empresa_id: string
+          error_message: string | null
+          id: string
+          metadata: Json
+          provider_id: string | null
+          status: string
+          to_address: string | null
+        }
+        Insert: {
+          body?: string | null
+          campaign_id?: string | null
+          channel: string
+          cliente_id?: string | null
+          created_at?: string
+          empresa_id: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          provider_id?: string | null
+          status: string
+          to_address?: string | null
+        }
+        Update: {
+          body?: string | null
+          campaign_id?: string | null
+          channel?: string
+          cliente_id?: string | null
+          created_at?: string
+          empresa_id?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          provider_id?: string | null
+          status?: string
+          to_address?: string | null
+        }
+        Relationships: []
+      }
+      coupon_redemptions: {
+        Row: {
+          cliente_id: string | null
+          coupon_id: string
+          created_at: string
+          created_by: string | null
+          discount_applied: number
+          empresa_id: string
+          id: string
+          pedido_id: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          coupon_id: string
+          created_at?: string
+          created_by?: string | null
+          discount_applied?: number
+          empresa_id: string
+          id?: string
+          pedido_id?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          coupon_id?: string
+          created_at?: string
+          created_by?: string | null
+          discount_applied?: number
+          empresa_id?: string
+          id?: string
+          pedido_id?: string | null
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          discount_amount: number | null
+          discount_percent: number | null
+          ends_at: string | null
+          empresa_id: string
+          gift_description: string | null
+          id: string
+          max_uses: number | null
+          max_uses_per_customer: number
+          metadata: Json
+          min_order_amount: number
+          name: string
+          segment_key: string | null
+          starts_at: string
+          tipo: string
+          updated_at: string
+          uses_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          empresa_id: string
+          gift_description?: string | null
+          id?: string
+          max_uses?: number | null
+          max_uses_per_customer?: number
+          metadata?: Json
+          min_order_amount?: number
+          name: string
+          segment_key?: string | null
+          starts_at?: string
+          tipo: string
+          updated_at?: string
+          uses_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          empresa_id?: string
+          gift_description?: string | null
+          id?: string
+          max_uses?: number | null
+          max_uses_per_customer?: number
+          metadata?: Json
+          min_order_amount?: number
+          name?: string
+          segment_key?: string | null
+          starts_at?: string
+          tipo?: string
+          updated_at?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
+      customer_preferences: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          empresa_id: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          empresa_id: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      customer_segments: {
+        Row: {
+          created_at: string
+          description: string | null
+          dynamic: boolean
+          empresa_id: string
+          id: string
+          key: string
+          last_evaluated_at: string | null
+          member_count: number
+          name: string
+          rules: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          dynamic?: boolean
+          empresa_id: string
+          id?: string
+          key: string
+          last_evaluated_at?: string | null
+          member_count?: number
+          name: string
+          rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          dynamic?: boolean
+          empresa_id?: string
+          id?: string
+          key?: string
+          last_evaluated_at?: string | null
+          member_count?: number
+          name?: string
+          rules?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customers_profiles: {
+        Row: {
+          birth_date: string | null
+          cliente_id: string
+          consent_email: boolean
+          consent_push: boolean
+          consent_sms: boolean
+          consent_updated_at: string | null
+          consent_whatsapp: boolean
+          created_at: string
+          dietary_preferences: string[]
+          dietary_restrictions: string[]
+          empresa_id: string
+          favorite_products: Json
+          id: string
+          notes: string | null
+          origin_channel: string | null
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          cliente_id: string
+          consent_email?: boolean
+          consent_push?: boolean
+          consent_sms?: boolean
+          consent_updated_at?: string | null
+          consent_whatsapp?: boolean
+          created_at?: string
+          dietary_preferences?: string[]
+          dietary_restrictions?: string[]
+          empresa_id: string
+          favorite_products?: Json
+          id?: string
+          notes?: string | null
+          origin_channel?: string | null
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          cliente_id?: string
+          consent_email?: boolean
+          consent_push?: boolean
+          consent_sms?: boolean
+          consent_updated_at?: string | null
+          consent_whatsapp?: boolean
+          created_at?: string
+          dietary_preferences?: string[]
+          dietary_restrictions?: string[]
+          empresa_id?: string
+          favorite_products?: Json
+          id?: string
+          notes?: string | null
+          origin_channel?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loyalty_points: {
+        Row: {
+          balance_after: number
+          cliente_id: string
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          points: number
+          program_id: string
+          reference_id: string | null
+          reference_tipo: string | null
+          tipo: string
+        }
+        Insert: {
+          balance_after?: number
+          cliente_id: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          points: number
+          program_id: string
+          reference_id?: string | null
+          reference_tipo?: string | null
+          tipo: string
+        }
+        Update: {
+          balance_after?: number
+          cliente_id?: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          points?: number
+          program_id?: string
+          reference_id?: string | null
+          reference_tipo?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
+      loyalty_programs: {
+        Row: {
+          active: boolean
+          cashback_percent: number
+          created_at: string
+          currency_per_point: number
+          empresa_id: string
+          id: string
+          min_redeem_points: number
+          name: string
+          points_per_currency: number
+          points_validity_days: number
+          rules: Json
+          updated_at: string
+          welcome_points: number
+        }
+        Insert: {
+          active?: boolean
+          cashback_percent?: number
+          created_at?: string
+          currency_per_point?: number
+          empresa_id: string
+          id?: string
+          min_redeem_points?: number
+          name?: string
+          points_per_currency?: number
+          points_validity_days?: number
+          rules?: Json
+          updated_at?: string
+          welcome_points?: number
+        }
+        Update: {
+          active?: boolean
+          cashback_percent?: number
+          created_at?: string
+          currency_per_point?: number
+          empresa_id?: string
+          id?: string
+          min_redeem_points?: number
+          name?: string
+          points_per_currency?: number
+          points_validity_days?: number
+          rules?: Json
+          updated_at?: string
+          welcome_points?: number
+        }
+        Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          automation_type: string | null
+          channel: string
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          id: string
+          metrics: Json
+          name: string
+          scheduled_at: string | null
+          segment_key: string | null
+          sent_at: string | null
+          status: string
+          template_body: string
+          template_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          automation_type?: string | null
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          id?: string
+          metrics?: Json
+          name: string
+          scheduled_at?: string | null
+          segment_key?: string | null
+          sent_at?: string | null
+          status?: string
+          template_body?: string
+          template_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          automation_type?: string | null
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          id?: string
+          metrics?: Json
+          name?: string
+          scheduled_at?: string | null
+          segment_key?: string | null
+          sent_at?: string | null
+          status?: string
+          template_body?: string
+          template_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       kds_config: {
         Row: {
@@ -4358,6 +5079,10 @@ export type Database = {
           p_metadados?: Json
         }
         Returns: string
+      }
+      fn_seed_crm_defaults: {
+        Args: { p_empresa_id: string }
+        Returns: undefined
       }
       fn_seed_kds_config: {
         Args: { p_empresa_id: string }

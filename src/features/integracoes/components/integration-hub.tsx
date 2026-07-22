@@ -2,9 +2,11 @@ import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import type { IntegrationCategory } from "@/integrations/types";
 
+import type { PainelIntegracoesMetrics } from "../metrics";
 import type { IntegrationHubItem } from "../queries";
 import { IntegrationCard } from "./integration-card";
 import { IntegrationLogsPanel } from "./integration-logs-panel";
+import { IntegrationMetricsPanel } from "./integration-metrics-panel";
 import { IntegrationSyncHistory } from "./integration-sync-history";
 
 const CATEGORY_LABEL: Record<IntegrationCategory, string> = {
@@ -28,6 +30,7 @@ export function IntegrationHub({
   logs,
   syncs,
   status,
+  metrics,
 }: {
   items: IntegrationHubItem[];
   logs: Array<{
@@ -55,12 +58,16 @@ export function IntegrationHub({
     error: number;
     withCredentials: number;
   };
+  metrics: PainelIntegracoesMetrics;
 }) {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap gap-4 text-sm">
         <Text>
           Online: <Text as="span" weight="semibold">{status.online}</Text>
+        </Text>
+        <Text>
+          Offline: <Text as="span" weight="semibold">{status.offline}</Text>
         </Text>
         <Text>
           Pendente: <Text as="span" weight="semibold">{status.pending}</Text>
@@ -73,6 +80,8 @@ export function IntegrationHub({
           <Text as="span" weight="semibold">{status.withCredentials}</Text>
         </Text>
       </div>
+
+      <IntegrationMetricsPanel metrics={metrics} />
 
       {ORDER.map((category) => {
         const group = items.filter((i) => i.catalog.category === category);

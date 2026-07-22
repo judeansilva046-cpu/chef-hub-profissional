@@ -48,6 +48,8 @@ const NAV_GROUPS = [
     links: [
       { href: "/vendas", label: "Vendas" },
       { href: "/clientes", label: "Clientes" },
+      { href: "/crm", label: "CRM" },
+      { href: "/bi", label: "BI" },
       { href: "/financeiro", label: "Financeiro" },
       { href: "/relatorios", label: "Relatórios" },
       { href: "/admin", label: "Monitoramento" },

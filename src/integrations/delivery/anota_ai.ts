@@ -1,8 +1,7 @@
-import { createStubProvider } from "../create-stub-provider";
+import { createHomologProvider } from "../homolog/create-homolog-provider";
 import type { IntegrationProvider } from "../types";
 
-/** Stub anota_ai — sem chamadas reais (homologação futura). */
-export const anotaAiProvider: IntegrationProvider = createStubProvider(
-  "anota_ai",
-  "delivery",
-);
+export const anotaAiProvider: IntegrationProvider = createHomologProvider({
+  id: "anota_ai",
+  category: "delivery",
+});

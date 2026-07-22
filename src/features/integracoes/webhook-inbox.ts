@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getIntegracoesMode } from "@/integrations/mode";
 import { resolverProvider } from "@/integrations/registry";
 import { isProviderId } from "@/integrations/types";
 import type { Json } from "@/lib/supabase/database.types";
@@ -61,8 +62,11 @@ export async function processWebhookInbox(input: {
     payload,
     input.headers,
   );
+  // Homologação aceita unsigned por padrão; live exige assinatura ou flag explícita.
   const allowUnsigned =
-    process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED === "true";
+    process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED === "true" ||
+    (process.env.INTEGRACOES_WEBHOOKS_ALLOW_UNSIGNED !== "false" &&
+      getIntegracoesMode() === "homolog");
 
   if (!signatureValid && !allowUnsigned) {
     return {
@@ -132,6 +136,11 @@ export async function processWebhookInbox(input: {
     detalhes: { signatureValid },
     empresaId: integration?.empresa_id ?? null,
   });
+
+  // Reconciliação assíncrona (best-effort) — classifica eventos pendentes.
+  void import("./webhook-processor")
+    .then((m) => m.processPendingWebhooks(5))
+    .catch(() => undefined);
 
   return {
     ok: true,
